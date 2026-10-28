@@ -1,0 +1,519 @@
+:root {
+    --primary-color: #007BFF;
+    --advanced-color: #DC3545;
+    --advanced-dark: #C82333;
+    --success-color: #28A745;
+    --bg-light: #F8F9FA;
+    --card-bg: #FFFFFF;
+    --text-primary: #343A40;
+    --text-secondary: #6C757D;
+    --border-color: #E9ECEF;
+    --gradient-advanced: linear-gradient(135deg, #DC3545 0%, #FF6B6B 100%);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Nunito', 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg-light);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Navbar (igual que otros niveles) */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo-icon { font-size: 2rem; }
+
+.logo-text {
+    background: linear-gradient(135deg, #007BFF 0%, #00C4FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-menu a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+    font-weight: 500;
+}
+
+.nav-menu a:hover { color: var(--primary-color); }
+
+.btn-primary {
+    background: linear-gradient(135deg, #007BFF 0%, #00C4FF 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+/* Hero Banner */
+.hero-banner.advanced {
+    background: var(--gradient-advanced);
+    color: white;
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-banner::before {
+    content: '🐍';
+    position: absolute;
+    font-size: 15rem;
+    opacity: 0.1;
+    top: -50px;
+    right: -50px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.badge-level {
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid white;
+}
+
+.hero-banner h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Progress Bar */
+.progress-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    overflow: hidden;
+    border: 2px solid white;
+}
+
+.progress-fill {
+    height: 100%;
+    background: white;
+    color: var(--advanced-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+.progress-text {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Content */
+.content-wrapper {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+}
+
+/* Lesson Cards */
+.lesson-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.lesson-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    border-color: var(--advanced-color);
+}
+
+.lesson-card.locked {
+    opacity: 0.6;
+    pointer-events: none;
+    filter: grayscale(50%);
+}
+
+.lesson-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.lesson-number {
+    width: 55px;
+    height: 55px;
+    background: var(--gradient-advanced);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+.lesson-header h2 {
+    font-size: 1.9rem;
+    margin-bottom: 0.4rem;
+}
+
+.lesson-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+}
+
+.lesson-status {
+    padding: 0.7rem 1.3rem;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #e9ecef;
+    color: var(--text-secondary);
+}
+
+/* Theory Box */
+.theory-box {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border-left: 5px solid var(--advanced-color);
+}
+
+.theory-box h3 {
+    color: var(--advanced-dark);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.theory-box p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.code-example {
+    background: #263238;
+    color: #81c784;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-top: 1.5rem;
+    overflow-x: auto;
+}
+
+.code-example pre {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    line-height: 1.8;
+    font-size: 0.95rem;
+}
+
+/* Interactive Box */
+.interactive-box {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    border-left: 5px solid var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+.interactive-box h3 {
+    color: #1a237e;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+/* Python Editor */
+.python-editor, .decision-game, .pattern-generator, .final-project-editor {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+.code-input {
+    width: 100%;
+    min-height: 300px;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    resize: vertical;
+    line-height: 1.8;
+}
+
+.code-input:focus {
+    outline: none;
+    border-color: var(--advanced-color);
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+}
+
+.output-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+    border: 2px solid var(--border-color);
+    min-height: 100px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.output-box.large {
+    min-height: 200px;
+}
+
+.output-box.error {
+    color: var(--advanced-color);
+    background: #ffebee;
+}
+
+/* Buttons */
+.btn-run, .btn-complete, .btn-certificate, .btn-share {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 1rem;
+}
+
+.btn-run {
+    background: var(--advanced-color);
+    color: white;
+}
+
+.btn-run:hover {
+    background: var(--advanced-dark);
+    transform: translateY(-2px);
+}
+
+.btn-run.large {
+    width: 100%;
+    font-size: 1.3rem;
+}
+
+.btn-complete {
+    background: var(--gradient-advanced);
+    color: white;
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.btn-complete:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+/* Challenge Box */
+.challenge-box {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+    border-left: 5px solid #ff9800;
+}
+
+.challenge-box h4 {
+    color: #e65100;
+    margin-bottom: 1rem;
+}
+
+.challenge-box ul {
+    margin-left: 1.5rem;
+}
+
+.challenge-box ul li {
+    margin-bottom: 0.5rem;
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+}
+
+.requirements-list li {
+    padding: 0.7rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Certificate */
+.certificate-section {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    border: 3px solid var(--advanced-color);
+}
+
+.certificate-card h2 {
+    font-size: 3rem;
+    color: var(--advanced-color);
+    margin-bottom: 0.5rem;
+}
+
+.cert-subtitle {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.cert-content {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    padding: 3rem;
+    border-radius: 15px;
+    margin: 2rem 0;
+}
+
+.cert-badge {
+    font-size: 6rem;
+    margin-bottom: 1rem;
+}
+
+.cert-content h3 {
+    font-size: 2.2rem;
+    color: var(--advanced-dark);
+    margin-bottom: 1rem;
+}
+
+.cert-description {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.cert-skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.skill-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 2px solid var(--advanced-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.skill-icon {
+    font-size: 2.5rem;
+}
+
+.btn-certificate, .btn-share {
+    background: var(--gradient-advanced);
+    color: white;
+    margin: 0.5rem;
+}
+
+.btn-certificate:hover, .btn-share:hover {
+    transform: scale(1.05);
+}
+
+/* Confetti */
+.confetti {
+    position: fixed;
+    font-size: 2rem;
+    animation: fall 4s linear forwards;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-30px) rotate(10deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-banner h1 { font-size: 2rem; }
+    .lesson-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .lesson-number { margin: 0 auto; }
+    .nav-menu { display: none; }
+    .cert-skills {
+        grid-template-columns: 1fr 1fr;
+    }
+}

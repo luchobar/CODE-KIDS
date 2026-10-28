@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivel 2 - Intermedio | CodeKids</title>
+    <link rel="stylesheet" href="css/nivel2-styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">👾</span>
+                <span class="logo-text">CodeKids</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="recusos.html">Recursos</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+            <button class="btn-primary" onclick="window.location.href='recusos.html'">Volver a Recursos</button>
+        </div>
+    </nav>
+
+    <div class="hero-banner intermediate">
+        <div class="badge-level">Nivel 2 - Más Popular</div>
+        <h1>🎨 Intermedio - HTML & CSS</h1>
+        <p>Crea páginas web increíbles desde cero</p>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+            <p class="progress-text">Progreso: <span id="progressText">0/4</span> lecciones completadas</p>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <!-- Lección 1: HTML Básico -->
+        <section class="lesson-card" id="lesson1">
+            <div class="lesson-header">
+                <div class="lesson-number">1</div>
+                <div>
+                    <h2>HTML: El Esqueleto de la Web 🏗️</h2>
+                    <p class="lesson-subtitle">Estructura y etiquetas fundamentales</p>
+                </div>
+                <div class="lesson-status" id="status1">📝 Pendiente</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Concepto</h3>
+                    <p><strong>HTML</strong> (HyperText Markup Language) es el lenguaje que da estructura a las páginas web. Piensa en él como el esqueleto de una casa.</p>
+                    <div class="code-demo">
+                        <h4>Estructura básica:</h4>
+                        <pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Mi Primera Página&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;¡Hola Mundo!&lt;/h1&gt;
+    &lt;p&gt;Este es mi primer sitio web&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Editor HTML en Vivo</h3>
+                    <div class="split-editor">
+                        <div class="editor-panel">
+                            <h4>💻 Escribe HTML:</h4>
+                            <textarea id="htmlEditor1" class="code-input">&lt;h1&gt;Mi Título&lt;/h1&gt;
+&lt;p&gt;Este es un párrafo&lt;/p&gt;
+&lt;button&gt;Haz clic aquí&lt;/button&gt;</textarea>
+                        </div>
+                        <div class="preview-panel">
+                            <h4>👁️ Vista Previa:</h4>
+                            <iframe id="preview1" class="preview-frame"></iframe>
+                        </div>
+                    </div>
+                    <button class="btn-run" onclick="updatePreview(1)">▶ Ver Resultado</button>
+                </div>
+
+                <div class="challenge-box">
+                    <h4>🏆 Desafío: Crea tu tarjeta personal</h4>
+                    <p>Usa las siguientes etiquetas: &lt;h1&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;</p>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(1)">Marcar como Completada 🎉</button>
+        </section>
+
+        <!-- Lección 2: Títulos, Párrafos e Imágenes -->
+        <section class="lesson-card locked" id="lesson2">
+            <div class="lesson-header">
+                <div class="lesson-number">2</div>
+                <div>
+                    <h2>Títulos, Párrafos e Imágenes 📝🖼️</h2>
+                    <p class="lesson-subtitle">Contenido y multimedia</p>
+                </div>
+                <div class="lesson-status" id="status2">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Etiquetas Principales</h3>
+                    <div class="tags-grid">
+                        <div class="tag-card">
+                            <div class="tag-name">&lt;h1&gt; a &lt;h6&gt;</div>
+                            <p>Títulos (h1 es el más grande)</p>
+                        </div>
+                        <div class="tag-card">
+                            <div class="tag-name">&lt;p&gt;</div>
+                            <p>Párrafos de texto</p>
+                        </div>
+                        <div class="tag-card">
+                            <div class="tag-name">&lt;img&gt;</div>
+                            <p>Imágenes</p>
+                        </div>
+                        <div class="tag-card">
+                            <div class="tag-name">&lt;a&gt;</div>
+                            <p>Enlaces</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Constructor de Página</h3>
+                    <div class="page-builder">
+                        <div class="builder-controls">
+                            <button class="builder-btn" onclick="addElement('h1')">+ Título Grande</button>
+                            <button class="builder-btn" onclick="addElement('h2')">+ Título Mediano</button>
+                            <button class="builder-btn" onclick="addElement('p')">+ Párrafo</button>
+                            <button class="builder-btn" onclick="addElement('img')">+ Imagen</button>
+                            <button class="builder-btn" onclick="addElement('button')">+ Botón</button>
+                            <button class="builder-btn danger" onclick="clearBuilder()">🗑️ Limpiar</button>
+                        </div>
+                        <div class="builder-output" id="builderOutput">
+                            <p class="placeholder">Haz clic en los botones para construir tu página</p>
+                        </div>
+                        <div class="builder-code">
+                            <h4>📄 Código Generado:</h4>
+                            <pre id="generatedCode"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(2)">Marcar como Completada 🎉</button>
+        </section>
+
+        <!-- Lección 3: CSS Básico -->
+        <section class="lesson-card locked" id="lesson3">
+            <div class="lesson-header">
+                <div class="lesson-number">3</div>
+                <div>
+                    <h2>CSS: Dando Estilo y Color 🎨</h2>
+                    <p class="lesson-subtitle">Transforma tu página con diseño</p>
+                </div>
+                <div class="lesson-status" id="status3">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 ¿Qué es CSS?</h3>
+                    <p><strong>CSS</strong> (Cascading Style Sheets) es el lenguaje que da estilo y diseño a las páginas web. Si HTML es el esqueleto, CSS es la ropa y el maquillaje.</p>
+                    <div class="css-examples">
+                        <div class="css-property">
+                            <strong>color:</strong> cambia el color del texto
+                        </div>
+                        <div class="css-property">
+                            <strong>background:</strong> color de fondo
+                        </div>
+                        <div class="css-property">
+                            <strong>font-size:</strong> tamaño del texto
+                        </div>
+                        <div class="css-property">
+                            <strong>border:</strong> añade bordes
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Laboratorio de Estilos</h3>
+                    <div class="style-lab">
+                        <div class="demo-element" id="styledElement">
+                            <h2>Experimenta conmigo</h2>
+                            <p>Usa los controles para cambiar mi apariencia</p>
+                        </div>
+                        <div class="style-controls">
+                            <div class="control-group">
+                                <label>Color de Texto:</label>
+                                <input type="color" id="textColor" value="#000000" onchange="applyStyle()">
+                            </div>
+                            <div class="control-group">
+                                <label>Color de Fondo:</label>
+                                <input type="color" id="bgColor" value="#ffffff" onchange="applyStyle()">
+                            </div>
+                            <div class="control-group">
+                                <label>Tamaño de Texto:</label>
+                                <input type="range" id="fontSize" min="12" max="48" value="16" onchange="applyStyle()">
+                                <span id="fontSizeValue">16px</span>
+                            </div>
+                            <div class="control-group">
+                                <label>Borde:</label>
+                                <input type="range" id="borderWidth" min="0" max="10" value="0" onchange="applyStyle()">
+                                <span id="borderValue">0px</span>
+                            </div>
+                            <div class="control-group">
+                                <label>Redondeo:</label>
+                                <input type="range" id="borderRadius" min="0" max="50" value="0" onchange="applyStyle()">
+                                <span id="radiusValue">0px</span>
+                            </div>
+                        </div>
+                        <div class="css-output">
+                            <h4>CSS Generado:</h4>
+                            <pre id="cssCode"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(3)">Marcar como Completada 🎉</button>
+        </section>
+
+        <!-- Lección 4: Proyecto Final -->
+        <section class="lesson-card locked" id="lesson4">
+            <div class="lesson-header">
+                <div class="lesson-number">4</div>
+                <div>
+                    <h2>Proyecto: Tu Primera Página Web 🚀</h2>
+                    <p class="lesson-subtitle">Crea tu portafolio personal</p>
+                </div>
+                <div class="lesson-status" id="status4">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>🎯 Requisitos del Proyecto</h3>
+                    <ul class="requirements-list">
+                        <li>✅ Una sección de encabezado con tu nombre</li>
+                        <li>✅ Una breve descripción sobre ti</li>
+                        <li>✅ Lista de tus hobbies o intereses</li>
+                        <li>✅ Estilos CSS personalizados (colores, fuentes, bordes)</li>
+                        <li>✅ Al menos 3 colores diferentes</li>
+                    </ul>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>💻 Editor Completo HTML + CSS</h3>
+                    <div class="full-editor">
+                        <div class="editor-tabs">
+                            <button class="tab-btn active" onclick="switchTab('html')">HTML</button>
+                            <button class="tab-btn" onclick="switchTab('css')">CSS</button>
+                        </div>
+                        <div class="tab-content active" id="htmlTab">
+                            <textarea id="finalHTML" class="code-input">&lt;div class="profile"&gt;
+  &lt;h1&gt;Tu Nombre&lt;/h1&gt;
+  &lt;p&gt;Sobre ti...&lt;/p&gt;
+  &lt;h2&gt;Mis Hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Hobby 1&lt;/li&gt;
+    &lt;li&gt;Hobby 2&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;</textarea>
+                        </div>
+                        <div class="tab-content" id="cssTab">
+                            <textarea id="finalCSS" class="code-input">.profile {
+  background: lightblue;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+h1 {
+  color: darkblue;
+  text-align: center;
+}</textarea>
+                        </div>
+                        <button class="btn-run large" onclick="renderFinalProject()">▶ Ver Tu Página Web</button>
+                        <div class="final-preview">
+                            <h4>🌐 Tu Página Web:</h4>
+                            <iframe id="finalPreview" class="preview-frame large"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(4)">¡Completar Nivel 2! 🎊</button>
+        </section>
+
+        <!-- Certificado -->
+        <section class="certificate-section" id="certificateSection" style="display: none;">
+            <div class="certificate-card">
+                <h2>🎓 ¡Felicitaciones!</h2>
+                <p class="cert-subtitle">Has completado el Nivel 2 - Intermedio</p>
+                <div class="cert-content">
+                    <div class="cert-badge">⭐</div>
+                    <h3>Desarrollador Web Junior</h3>
+                    <p class="cert-name" id="certName">Tu Nombre</p>
+                    <p class="cert-date">Completado el: <span id="certDate"></span></p>
+                    <div class="cert-skills">
+                        <span class="skill-badge">HTML</span>
+                        <span class="skill-badge">CSS</span>
+                        <span class="skill-badge">Diseño Web</span>
+                        <span class="skill-badge">Maquetación</span>
+                    </div>
+                </div>
+                <button class="btn-certificate" onclick="downloadCertificate()">📥 Descargar Certificado</button>
+                <button class="btn-next-level" onclick="nextLevel()">➡️ Ir al Nivel 3</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/nivel2-scripts.js"></script>
+</body>
+</html>

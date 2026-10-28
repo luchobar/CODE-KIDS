@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivel 3 - Avanzado | CodeKids</title>
+    <link rel="stylesheet" href="css/nivel3-styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">👾</span>
+                <span class="logo-text">CodeKids</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="recusos.html">Recursos</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+            <button class="btn-primary" onclick="window.location.href='recusos.html'">Volver a Recursos</button>
+        </div>
+    </nav>
+
+    <div class="hero-banner advanced">
+        <div class="badge-level">Nivel 3 - Avanzado</div>
+        <h1>🐍 Python - El Cerebro Lógico</h1>
+        <p>Domina la programación con Python</p>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+            <p class="progress-text">Progreso: <span id="progressText">0/4</span> lecciones completadas</p>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <!-- Lección 1: Sintaxis y Variables -->
+        <section class="lesson-card" id="lesson1">
+            <div class="lesson-header">
+                <div class="lesson-number">1</div>
+                <div>
+                    <h2>Sintaxis y Variables en Python 📊</h2>
+                    <p class="lesson-subtitle">Fundamentos del lenguaje</p>
+                </div>
+                <div class="lesson-status" id="status1">📝 Pendiente</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Python: Tu primer lenguaje real</h3>
+                    <p>Python es uno de los lenguajes más usados en el mundo. Es fácil de leer y muy poderoso.</p>
+                    <div class="code-example">
+<pre># Variables en Python
+nombre = "Ana"
+edad = 14
+altura = 1.60
+es_estudiante = True
+
+print(f"Hola, soy {nombre}") 
+print(f"Tengo {edad} años")</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Practica con Variables</h3>
+                    <div class="python-editor">
+                        <textarea id="pyCode1" class="code-input"># Crea tus propias variables
+nombre = "Tu nombre"
+edad = 10
+hobby = "programar"
+
+print(f"Me llamo {nombre}")
+print(f"Tengo {edad} años")
+print(f"Me gusta {hobby}")</textarea>
+                        <button class="btn-run" onclick="runPython(1)">▶ Ejecutar</button>
+                        <div class="output-box" id="output1">Presiona ejecutar...</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(1)">Completar Lección 🎉</button>
+        </section>
+
+        <!-- Lección 2: Condicionales -->
+        <section class="lesson-card locked" id="lesson2">
+            <div class="lesson-header">
+                <div class="lesson-number">2</div>
+                <div>
+                    <h2>Lógica con 'if' y 'else' 🔀</h2>
+                    <p class="lesson-subtitle">Tomando decisiones inteligentes</p>
+                </div>
+                <div class="lesson-status" id="status2">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Condicionales</h3>
+                    <div class="code-example">
+<pre>edad = 15
+
+if edad &gt;= 18:
+    print("Eres mayor de edad")
+elif edad &gt;= 13:
+    print("Eres adolescente")
+else:
+    print("Eres niño")
+
+# Operadores de comparación:
+# == igual, != diferente
+# &gt; mayor, &lt; menor
+# &gt;= mayor o igual, &lt;= menor o igual</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Juego de Decisiones</h3>
+                    <div class="decision-game">
+                        <p>🎮 Crea un juego de adivinanza de edad:</p>
+                        <textarea id="pyCode2" class="code-input">edad_secreta = 12
+intento = 10
+
+if intento == edad_secreta:
+    print("¡Acertaste!")
+elif intento < edad_secreta:
+    print("Muy bajo, intenta con un número mayor")
+else:
+    print("Muy alto, intenta con un número menor")</textarea>
+                        <button class="btn-run" onclick="runPython(2)">▶ Ejecutar</button>
+                        <div class="output-box" id="output2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(2)">Completar Lección 🎉</button>
+        </section>
+
+        <!-- Lección 3: Bucles -->
+        <section class="lesson-card locked" id="lesson3">
+            <div class="lesson-header">
+                <div class="lesson-number">3</div>
+                <div>
+                    <h2>Bucles 'for' y 'while' 🔄</h2>
+                    <p class="lesson-subtitle">Automatiza tareas repetitivas</p>
+                </div>
+                <div class="lesson-status" id="status3">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Bucles</h3>
+                    <div class="code-example">
+<pre># Bucle FOR - repite un número fijo de veces
+for i in range(5):
+    print(f"Contando: {i}")
+
+# Bucle WHILE - repite mientras sea verdadero
+contador = 0
+while contador &lt; 3:
+    print(f"Número: {contador}")
+    contador += 1
+
+# Recorrer listas
+frutas = ["manzana", "banana", "naranja"]
+for fruta in frutas:
+    print(fruta)</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Generador de Patrones</h3>
+                    <div class="pattern-generator">
+                        <textarea id="pyCode3" class="code-input"># Crea una pirámide de asteriscos
+for i in range(1, 6):
+    print("*" * i)
+
+# Cuenta regresiva
+for num in range(5, 0, -1):
+    print(f"{num}...")</textarea>
+                        <button class="btn-run" onclick="runPython(3)">▶ Ejecutar</button>
+                        <div class="output-box" id="output3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(3)">Completar Lección 🎉</button>
+        </section>
+
+        <!-- Lección 4: Proyecto Final -->
+        <section class="lesson-card locked" id="lesson4">
+            <div class="lesson-header">
+                <div class="lesson-number">4</div>
+                <div>
+                    <h2>Proyecto: Adivina el Número 🎲</h2>
+                    <p class="lesson-subtitle">Crea tu primer juego completo</p>
+                </div>
+                <div class="lesson-status" id="status4">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>🎯 Objetivo</h3>
+                    <p>Crea un juego donde el programa elija un número aleatorio y el usuario tenga que adivinarlo con pistas.</p>
+                    <ul class="requirements-list">
+                        <li>✅ Usa variables para el número secreto y los intentos</li>
+                        <li>✅ Usa condicionales (if/elif/else) para dar pistas</li>
+                        <li>✅ Usa un bucle para permitir múltiples intentos</li>
+                        <li>✅ Cuenta cuántos intentos usa el jugador</li>
+                    </ul>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>💻 Tu Proyecto Final</h3>
+                    <div class="final-project-editor">
+                        <textarea id="pyCode4" class="code-input"># Juego: Adivina el Número
+import random
+
+numero_secreto = random.randint(1, 10)
+intentos = 0
+max_intentos = 5
+
+print("¡Adivina el número entre 1 y 10!")
+
+for i in range(max_intentos):
+    intento = 5  # Cambia este número para probar
+    intentos += 1
+    
+    if intento == numero_secreto:
+        print(f"¡GANASTE en {intentos} intentos!")
+        break
+    elif intento < numero_secreto:
+        print("Muy bajo, intenta más alto")
+    else:
+        print("Muy alto, intenta más bajo")
+else:
+    print(f"Perdiste. El número era {numero_secreto}")</textarea>
+                        <button class="btn-run large" onclick="runPython(4)">▶ Ejecutar Juego</button>
+                        <div class="output-box large" id="output4"></div>
+                    </div>
+                </div>
+
+                <div class="challenge-box">
+                    <h4>🏆 Desafío Extra</h4>
+                    <p>Mejora tu juego agregando:</p>
+                    <ul>
+                        <li>Diferentes niveles de dificultad</li>
+                        <li>Un sistema de puntuación</li>
+                        <li>Mensajes más creativos</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(4)">¡Completar Nivel 3! 🎊</button>
+        </section>
+
+        <!-- Certificado Final -->
+        <section class="certificate-section" id="certificateSection" style="display: none;">
+            <div class="certificate-card">
+                <h2>🏆 ¡FELICITACIONES!</h2>
+                <p class="cert-subtitle">Has completado todos los niveles de CodeKids</p>
+                <div class="cert-content">
+                    <div class="cert-badge">🎓</div>
+                    <h3>Programador Junior Certificado</h3>
+                    <p class="cert-description">Dominas los fundamentos de la programación</p>
+                    <div class="cert-skills">
+                        <div class="skill-item">
+                            <span class="skill-icon">🎮</span>
+                            <span>Algoritmos</span>
+                        </div>
+                        <div class="skill-item">
+                            <span class="skill-icon">🌐</span>
+                            <span>HTML & CSS</span>
+                        </div>
+                        <div class="skill-item">
+                            <span class="skill-icon">🐍</span>
+                            <span>Python</span>
+                        </div>
+                        <div class="skill-item">
+                            <span class="skill-icon">💡</span>
+                            <span>Lógica</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-certificate" onclick="downloadCertificate()">📥 Descargar Certificado</button>
+                <button class="btn-share" onclick="shareProgress()">🎉 Compartir Logro</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let completedLessons = JSON.parse(localStorage.getItem('nivel3Progress')) || [];
+        
+        window.onload = function() {
+            loadProgress();
+        };
+
+        function loadProgress() {
+            completedLessons.forEach(lessonNum => {
+                markAsCompleted(lessonNum, false);
+            });
+            updateProgress();
+            unlockNextLesson();
+        }
+
+        function completeLesson(lessonNum) {
+            if (!completedLessons.includes(lessonNum)) {
+                completedLessons.push(lessonNum);
+                localStorage.setItem('nivel3Progress', JSON.stringify(completedLessons));
+                markAsCompleted(lessonNum, true);
+                updateProgress();
+                unlockNextLesson();
+            }
+        }
+
+        function markAsCompleted(lessonNum, showAnimation) {
+            const status = document.getElementById(`status${lessonNum}`);
+            if (status) {
+                status.textContent = '✅ Completada';
+                status.style.background = '#DC3545';
+                status.style.color = 'white';
+                
+                if (showAnimation) createConfetti();
+            }
+        }
+
+        function updateProgress() {
+            const total = 4;
+            const completed = completedLessons.length;
+            const percentage = (completed / total) * 100;
+            
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressBar').textContent = Math.round(percentage) + '%';
+            document.getElementById('progressText').textContent = `${completed}/${total}`;
+
+            if (completed === total) {
+                showCertificate();
+            }
+        }
+
+        function unlockNextLesson() {
+            for (let i = 1; i <= 4; i++) {
+                if (completedLessons.includes(i)) {
+                    const nextLesson = document.getElementById(`lesson${i + 1}`);
+                    if (nextLesson) {
+                        nextLesson.classList.remove('locked');
+                        const nextStatus = document.getElementById(`status${i + 1}`);
+                        if (nextStatus && nextStatus.textContent.includes('🔒')) {
+                            nextStatus.textContent = '📝 Pendiente';
+                        }
+                    }
+                }
+            }
+        }
+
+        function runPython(lessonNum) {
+            const code = document.getElementById(`pyCode${lessonNum}`).value;
+            const output = document.getElementById(`output${lessonNum}`);
+            output.classList.remove('error');
+            
+            try {
+                let result = '';
+                const lines = code.split('\n');
+                const variables = {};
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    
+                    if (line.startsWith('#') || !line) continue;
+                    
+                    if (line.includes('import random')) {
+                        variables['random'] = { randint: (a, b) => Math.floor(Math.random() * (b - a + 1)) + a };
+                        continue;
+                    }
+                    
+                    if (line.includes('=') && !line.includes('==') && !line.includes('!=')) {
+                        const parts = line.split('=');
+                        const varName = parts[0].trim();
+                        let value = parts[1].trim();
+                        
+                        // random.randint
+                        if (value.includes('random.randint')) {
+                            const match = value.match(/random\.randint\((\d+),\s*(\d+)\)/);
+                            if (match) {
+                                value = variables.random.randint(parseInt(match[1]), parseInt(match[2]));
+                            }
+                        } else {
+                            value = eval(value.replace(/"/g, "'"));
+                        }
+                        
+                        variables[varName] = value;
+                        continue;
+                    }
+                    
+                    if (line.includes('print')) {
+                        let content = line.match(/print\((.+)\)/)?.[1] || '';
+                        if (content.startsWith('f"') || content.startsWith("f'")) {
+                            content = content.slice(2, -1);
+                            content = content.replace(/\{(\w+)\}/g, (_, varName) => variables[varName] || '');
+                            result += content + '\n';
+                        } else {
+                            content = content.replace(/["']/g, '');
+                            for (let [key, val] of Object.entries(variables)) {
+                                content = content.replace(new RegExp(key, 'g'), val);
+                            }
+                            result += content + '\n';
+                        }
+                    }
+                    
+                    // Bucles for range
+                    if (line.startsWith('for ')) {
+                        const match = line.match(/for\s+(\w+)\s+in\s+range\((.+)\):/);
+                        if (match) {
+                            const varName = match[1];
+                            const rangeArgs = match[2].split(',').map(x => parseInt(x.trim()));
+                            let start = 0, end = 0, step = 1;
+                            
+                            if (rangeArgs.length === 1) {
+                                end = rangeArgs[0];
+                            } else if (rangeArgs.length === 2) {
+                                start = rangeArgs[0];
+                                end = rangeArgs[1];
+                            } else if (rangeArgs.length === 3) {
+                                start = rangeArgs[0];
+                                end = rangeArgs[1];
+                                step = rangeArgs[2];
+                            }
+                            
+                            const iterations = Math.min(Math.abs((end - start) / step), 10);
+                            for (let j = 0; j < iterations; j++) {
+                                variables[varName] = start + (j * step);
+                            }
+                        }
+                    }
+                }
+                
+                output.innerHTML = result || '✅ Código ejecutado correctamente';
+                
+            } catch (error) {
+                output.classList.add('error');
+                output.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function showCertificate() {
+            document.getElementById('certificateSection').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('certificateSection').scrollIntoView({ behavior: 'smooth' });
+                createConfetti();
+            }, 500);
+        }
+
+        function downloadCertificate() {
+            alert('🎓 ¡Certificado de Programador Junior!\n\n✅ Has completado:\n• Nivel 1: PSeInt\n• Nivel 2: HTML & CSS\n• Nivel 3: Python\n\n¡Sigue aprendiendo y creando proyectos increíbles!');
+        }
+
+        function shareProgress() {
+            alert('🎉 ¡Comparte tu logro en redes sociales!\n\n"¡Completé todos los niveles de CodeKids! 🎓💻"\n\n#CodeKids #Programación #Python');
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.background = ['#DC3545', '#FF6B6B', '#FF4757', '#EE5A6F'][Math.floor(Math.random() * 4)];
+                    confetti.innerHTML = ['🎉', '⭐', '🎊', '✨', '🏆'][Math.floor(Math.random() * 5)];
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+    </script>
+</body>
+</html>

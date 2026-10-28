@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivel 1 - Principiante | CodeKids</title>
+    <link rel="stylesheet" href="css/nivel1-styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">👾</span>
+                <span class="logo-text">CodeKids</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="recusos.html">Recursos</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+            <button class="btn-primary" onclick="window.location.href='recusos.html'">Volver a Recursos</button>
+        </div>
+    </nav>
+
+    <div class="hero-banner">
+        <div class="badge-level beginner">Nivel 1</div>
+        <h1>🎮 Principiante - PSeInt</h1>
+        <p>Aprende los fundamentos del pensamiento computacional paso a paso</p>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+            <p class="progress-text">Progreso: <span id="progressText">0/4</span> lecciones completadas</p>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <section class="lesson-card" id="lesson1">
+            <div class="lesson-header">
+                <div class="lesson-number">1</div>
+                <div>
+                    <h2>¿Qué es un Algoritmo? 🤔</h2>
+                    <p class="lesson-subtitle">Secuencias de pasos para resolver problemas</p>
+                </div>
+                <div class="lesson-status" id="status1">📝 Pendiente</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Concepto</h3>
+                    <p>Un <strong>algoritmo</strong> es como una receta de cocina: una serie de pasos ordenados para resolver un problema o completar una tarea.</p>
+                    <div class="example-box">
+                        <h4>Ejemplo: Algoritmo para lavarse los dientes</h4>
+                        <ol>
+                            <li>Tomar el cepillo de dientes</li>
+                            <li>Poner pasta dental en el cepillo</li>
+                            <li>Abrir la llave del agua</li>
+                            <li>Mojar el cepillo</li>
+                            <li>Cepillar los dientes por 2 minutos</li>
+                            <li>Enjuagar la boca</li>
+                            <li>Guardar el cepillo</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Ejercicio Interactivo</h3>
+                    <p>Ordena los pasos para hacer un sándwich:</p>
+                    <div class="sortable-container" id="sortable1">
+                        <div class="sortable-item" draggable="true" data-order="3">Agregar jamón y queso</div>
+                        <div class="sortable-item" draggable="true" data-order="1">Tomar dos rebanadas de pan</div>
+                        <div class="sortable-item" draggable="true" data-order="4">Cerrar el sándwich</div>
+                        <div class="sortable-item" draggable="true" data-order="2">Untar mantequilla</div>
+                    </div>
+                    <button class="btn-check" onclick="checkOrder(1)">Verificar Orden ✓</button>
+                    <div class="feedback" id="feedback1"></div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(1)">Marcar como Completada 🎉</button>
+        </section>
+
+        <section class="lesson-card locked" id="lesson2">
+            <div class="lesson-header">
+                <div class="lesson-number">2</div>
+                <div>
+                    <h2>Variables (Leer y Escribir) 📦</h2>
+                    <p class="lesson-subtitle">Cajas para guardar información</p>
+                </div>
+                <div class="lesson-status" id="status2">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Concepto</h3>
+                    <p>Una <strong>variable</strong> es como una caja donde guardamos información que puede cambiar. Tiene un nombre y un valor.</p>
+                    <div class="code-example">
+                        <pre>Algoritmo SaludarPersona
+    Definir nombre Como Caracter
+    Escribir "¿Cuál es tu nombre?"
+    Leer nombre
+    Escribir "¡Hola, ", nombre, "!"
+FinAlgoritmo</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Simulador de Variables</h3>
+                    <div class="variable-simulator">
+                        <div class="variable-box">
+                            <label>📦 Variable: <strong>edad</strong></label>
+                            <input type="number" id="varEdad" placeholder="Ingresa tu edad">
+                        </div>
+                        <div class="variable-box">
+                            <label>📦 Variable: <strong>nombre</strong></label>
+                            <input type="text" id="varNombre" placeholder="Ingresa tu nombre">
+                        </div>
+                        <button class="btn-run" onclick="runVariableExample()">▶ Ejecutar</button>
+                        <div class="output-box" id="varOutput">Los resultados aparecerán aquí...</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(2)">Marcar como Completada 🎉</button>
+        </section>
+
+        <section class="lesson-card locked" id="lesson3">
+            <div class="lesson-header">
+                <div class="lesson-number">3</div>
+                <div>
+                    <h2>Decisiones (Si-Entonces) 🔀</h2>
+                    <p class="lesson-subtitle">Enseñando a pensar a tu programa</p>
+                </div>
+                <div class="lesson-status" id="status3">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Concepto</h3>
+                    <p>Las <strong>decisiones</strong> permiten que el programa tome diferentes caminos según una condición.</p>
+                    <div class="code-example">
+                        <pre>Si edad &gt;= 18 Entonces
+    Escribir "Eres mayor de edad"
+Sino
+    Escribir "Eres menor de edad"
+FinSi</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Simulador de Decisiones</h3>
+                    <div class="decision-game">
+                        <p>🌡️ ¿Qué ropa te pones según el clima?</p>
+                        <div class="weather-options">
+                            <button class="weather-btn" onclick="checkWeather('calor')">☀️ Hace Calor</button>
+                            <button class="weather-btn" onclick="checkWeather('frio')">❄️ Hace Frío</button>
+                            <button class="weather-btn" onclick="checkWeather('lluvia')">🌧️ Está Lloviendo</button>
+                        </div>
+                        <div class="output-box" id="weatherOutput"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(3)">Marcar como Completada 🎉</button>
+        </section>
+
+        <section class="lesson-card locked" id="lesson4">
+            <div class="lesson-header">
+                <div class="lesson-number">4</div>
+                <div>
+                    <h2>Bucles (Para, Mientras) 🔄</h2>
+                    <p class="lesson-subtitle">Repitiendo acciones automáticamente</p>
+                </div>
+                <div class="lesson-status" id="status4">🔒 Bloqueada</div>
+            </div>
+            
+            <div class="lesson-content">
+                <div class="theory-box">
+                    <h3>💡 Concepto</h3>
+                    <p>Los <strong>bucles</strong> permiten repetir acciones sin escribir el mismo código muchas veces.</p>
+                    <div class="code-example">
+                        <pre>Para i &lt;- 1 Hasta 5 Con Paso 1 Hacer
+    Escribir "Número: ", i
+FinPara</pre>
+                    </div>
+                </div>
+
+                <div class="interactive-box">
+                    <h3>🎯 Generador de Patrones</h3>
+                    <div class="loop-simulator">
+                        <label>¿Cuántas veces quieres repetir? (1-10)</label>
+                        <input type="number" id="loopCount" min="1" max="10" value="5">
+                        <select id="loopPattern">
+                            <option value="numbers">Números 🔢</option>
+                            <option value="stars">Estrellas ⭐</option>
+                            <option value="hearts">Corazones ❤️</option>
+                        </select>
+                        <button class="btn-run" onclick="runLoop()">▶ Ejecutar Bucle</button>
+                        <div class="output-box pattern-output" id="loopOutput"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-complete" onclick="completeLesson(4)">Marcar como Completada 🎉</button>
+        </section>
+
+        <section class="final-project" id="finalProject" style="display: none;">
+            <div class="project-header">
+                <h2>🏆 Proyecto Final del Nivel 1</h2>
+                <p>¡Crea tu primer algoritmo completo!</p>
+            </div>
+            <div class="project-content">
+                <h3>📝 Desafío: Calculadora de Edad</h3>
+                <p>Crea un algoritmo que:</p>
+                <ul>
+                    <li>Pida el año de nacimiento del usuario</li>
+                    <li>Calcule la edad actual</li>
+                    <li>Determine si es menor o mayor de edad</li>
+                    <li>Muestre un mensaje personalizado</li>
+                </ul>
+                <button class="btn-certificate" onclick="generateCertificate()">🎓 Obtener Certificado</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let completedLessons = JSON.parse(localStorage.getItem('nivel1Progress')) || [];
+        
+        window.onload = function() {
+            loadProgress();
+        };
+
+        function loadProgress() {
+            completedLessons.forEach(lessonNum => {
+                markAsCompleted(lessonNum, false);
+            });
+            updateProgress();
+            unlockNextLesson();
+        }
+
+        function completeLesson(lessonNum) {
+            if (!completedLessons.includes(lessonNum)) {
+                completedLessons.push(lessonNum);
+                localStorage.setItem('nivel1Progress', JSON.stringify(completedLessons));
+                markAsCompleted(lessonNum, true);
+                updateProgress();
+                unlockNextLesson();
+            }
+        }
+
+        function markAsCompleted(lessonNum, showAnimation) {
+            const status = document.getElementById(`status${lessonNum}`);
+            status.textContent = '✅ Completada';
+            status.style.background = 'var(--success-color)';
+            status.style.color = 'white';
+            
+            if (showAnimation) {
+                createConfetti();
+            }
+        }
+
+        function updateProgress() {
+            const total = 4;
+            const completed = completedLessons.length;
+            const percentage = (completed / total) * 100;
+            
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressBar').textContent = Math.round(percentage) + '%';
+            document.getElementById('progressText').textContent = `${completed}/${total}`;
+
+            if (completed === total) {
+                document.getElementById('finalProject').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('finalProject').scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            }
+        }
+
+        function unlockNextLesson() {
+            for (let i = 1; i <= 4; i++) {
+                if (completedLessons.includes(i)) {
+                    const nextLesson = document.getElementById(`lesson${i + 1}`);
+                    if (nextLesson) {
+                        nextLesson.classList.remove('locked');
+                        document.getElementById(`status${i + 1}`).textContent = '📝 Pendiente';
+                    }
+                }
+            }
+        }
+
+        let draggedElement = null;
+
+        document.querySelectorAll('.sortable-item').forEach(item => {
+            item.addEventListener('dragstart', function() {
+                draggedElement = this;
+                setTimeout(() => this.classList.add('dragging'), 0);
+            });
+
+            item.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
+
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (draggedElement !== this) {
+                    const container = this.parentNode;
+                    const allItems = [...container.children];
+                    const draggedIndex = allItems.indexOf(draggedElement);
+                    const targetIndex = allItems.indexOf(this);
+
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
+                }
+            });
+        });
+
+        function checkOrder(exerciseNum) {
+            const items = document.querySelectorAll('#sortable1 .sortable-item');
+            let correct = true;
+            let currentOrder = 1;
+
+            items.forEach(item => {
+                const expectedOrder = parseInt(item.dataset.order);
+                if (expectedOrder !== currentOrder) {
+                    correct = false;
+                }
+                currentOrder++;
+            });
+
+            const feedback = document.getElementById('feedback1');
+            if (correct) {
+                feedback.innerHTML = '🎉 ¡Perfecto! El orden es correcto.';
+                feedback.className = 'feedback success';
+            } else {
+                feedback.innerHTML = '❌ El orden no es correcto. Intenta de nuevo.';
+                feedback.className = 'feedback error';
+            }
+        }
+
+        function runVariableExample() {
+            const edad = document.getElementById('varEdad').value;
+            const nombre = document.getElementById('varNombre').value;
+            const output = document.getElementById('varOutput');
+
+            if (!nombre || !edad) {
+                output.innerHTML = '⚠️ Por favor completa ambos campos.';
+                output.style.background = '#fff3cd';
+                return;
+            }
+
+            output.innerHTML = `
+                <strong>Resultado del programa:</strong><br>
+                Hola, ${nombre}!<br>
+                Tienes ${edad} años.<br>
+                ${edad >= 18 ? '¡Eres mayor de edad!' : 'Eres menor de edad.'}
+            `;
+            output.style.background = '#d4edda';
+        }
+
+        function checkWeather(condition) {
+            const output = document.getElementById('weatherOutput');
+            let message = '';
+            let emoji = '';
+
+            switch(condition) {
+                case 'calor':
+                    message = 'Ponte ropa ligera y shorts';
+                    emoji = '👕🩳';
+                    break;
+                case 'frio':
+                    message = 'Ponte un abrigo y bufanda';
+                    emoji = '🧥🧣';
+                    break;
+                case 'lluvia':
+                    message = 'Lleva paraguas e impermeable';
+                    emoji = '☂️🧥';
+                    break;
+            }
+
+            output.innerHTML = `
+                <strong>Decisión tomada:</strong><br>
+                ${emoji} ${message}
+            `;
+            output.style.background = '#d1ecf1';
+        }
+
+        function runLoop() {
+            const count = parseInt(document.getElementById('loopCount').value);
+            const pattern = document.getElementById('loopPattern').value;
+            const output = document.getElementById('loopOutput');
+            let result = '';
+
+            for (let i = 1; i <= count; i++) {
+                switch(pattern) {
+                    case 'numbers':
+                        result += `Número ${i}<br>`;
+                        break;
+                    case 'stars':
+                        result += '⭐'.repeat(i) + '<br>';
+                        break;
+                    case 'hearts':
+                        result += '❤️'.repeat(i) + '<br>';
+                        break;
+                }
+            }
+
+            output.innerHTML = result;
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                    confetti.innerHTML = ['🎉', '⭐', '🎊', '✨'][Math.floor(Math.random() * 4)];
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 50);
+            }
+        }
+
+        function generateCertificate() {
+            alert('🎓 ¡Felicitaciones! Has completado el Nivel 1.\n\nCertificado de Principiante en Pensamiento Computacional\n\n✅ Algoritmos\n✅ Variables\n✅ Decisiones\n✅ Bucles\n\n¡Continúa al Nivel 2!');
+            window.location.href = 'recursos.html';
+        }
+    </script>
+</body>
+</html>

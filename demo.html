@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo de Código Python</title>
+     <link rel="stylesheet" href="css/styles2.css">
+</head>
+<body>
+    <div class="demo-section">
+        <h2>🐍 Aprende Python Jugando 🐍</h2>
+        <p class="demo-subtitle">
+            Escribe código Python real y ve los resultados instantáneamente
+        </p>
+        
+        <div class="code-playground">
+            <div class="code-editor">
+                <h4>💻 Editor Python:</h4>
+                <textarea id="codeInput" placeholder="# Escribe tu código Python aquí
+print('Hola Mundo')
+">print('¡Hola, soy un programador!')
+
+# Condicional if-else
+edad = 15
+if edad >= 13:
+    print('Eres adolescente')
+else:
+    print('Eres niño')
+
+# Bucle for
+for i in range(3):
+    print('Contando:', i)</textarea>
+                <button class="btn-run" onclick="runPython()">▶️ Ejecutar Python</button>
+            </div>
+            
+            <div class="output-box">
+                <h4>🎯 Consola de Salida:</h4>
+                <div id="output">Presiona "Ejecutar Python" para ver el resultado...</div>
+            </div>
+        </div>
+
+        <div class="commands-help">
+            <h4>📚 Comandos Python que puedes usar:</h4>
+            <div class="command-list">
+                <div class="command-item">
+                    <code>print('mensaje')</code>
+                    <p>Muestra texto en la pantalla</p>
+                </div>
+                <div class="command-item">
+                    <code>nombre = 'Juan'</code>
+                    <p>Crea una variable con un valor</p>
+                </div>
+                <div class="command-item">
+                    <code>5 + 3, 10 - 2</code>
+                    <p>Operaciones matemáticas: +, -, *, /</p>
+                </div>
+                <div class="command-item">
+                    <code>for i in range(5):</code>
+                    <p>Repite código varias veces (bucle)</p>
+                </div>
+                <div class="command-item">
+                    <code>if condicion:<br>&nbsp;&nbsp;&nbsp;&nbsp;codigo<br>else:<br>&nbsp;&nbsp;&nbsp;&nbsp;codigo</code>
+                    <p>Toma decisiones (if-else)</p>
+                </div>
+                <div class="command-item">
+                    <code>while contador < 5:<br>&nbsp;&nbsp;&nbsp;&nbsp;print(contador)<br>&nbsp;&nbsp;&nbsp;&nbsp;contador += 1</code>
+                    <p>Repite mientras sea verdadero</p>
+                </div>
+                <div class="command-item">
+                    <code>len('texto')</code>
+                    <p>Cuenta la longitud de un texto</p>
+                </div>
+                <div class="command-item">
+                    <code>lista = [1, 2, 3]</code>
+                    <p>Crea listas de elementos</p>
+                </div>
+                <div class="command-item">
+                    <code># comentario</code>
+                    <p>Escribe notas en tu código</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Crear partículas flotantes
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.width = '12px';
+            particle.style.height = '12px';
+            particle.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+            document.body.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 4000);
+        }
+
+    
+        function runPython() {
+            const code = document.getElementById('codeInput').value;
+            const output = document.getElementById('output');
+            let result = '';
+            const variables = {};
+            
+            output.classList.remove('error-output');
+            
+            try {
+                const lines = code.split('\n');
+                let skipUntil = -1;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    if (i < skipUntil) continue;
+                    
+                    let line = lines[i];
+                    const trimmed = line.trim();
+           
+                    if (!trimmed || trimmed.startsWith('#')) continue;
+                    
+                    // Detectar indentación
+                    const currentIndent = line.search(/\S/);
+                    
+                    // Manejo de bucles FOR
+                    if (trimmed.startsWith('for ')) {
+                        const match = trimmed.match(/for\s+(\w+)\s+in\s+range\((\d+)\):/);
+                        if (match) {
+                            const varName = match[1];
+                            const loopRange = parseInt(match[2]);
+                            const loopLines = collectIndentedBlock(lines, i + 1, currentIndent);
+                            
+                            // Ejecutar el bucle
+                            for (let k = 0; k < loopRange; k++) {
+                                variables[varName] = k;
+                                for (const loopLine of loopLines) {
+                                    result += executeLine(loopLine.trim(), variables);
+                                }
+                            }
+                            
+                            skipUntil = i + loopLines.length + 1;
+                        }
+                    }
+                    // Manejo de bucles WHILE
+                    else if (trimmed.startsWith('while ')) {
+                        const match = trimmed.match(/while\s+(.+):/);
+                        if (match) {
+                            const condition = match[1];
+                            const loopLines = collectIndentedBlock(lines, i + 1, currentIndent);
+                            
+                            // Límite de seguridad para evitar bucles infinitos
+                            let iterations = 0;
+                            const maxIterations = 1000;
+                            
+                            // Ejecutar el bucle mientras la condición sea verdadera
+                            while (evaluateCondition(condition, variables) && iterations < maxIterations) {
+                                for (const loopLine of loopLines) {
+                                    result += executeLine(loopLine.trim(), variables);
+                                }
+                                iterations++;
+                            }
+                            
+                            if (iterations >= maxIterations) {
+                                throw new Error('Bucle while detenido (demasiadas iteraciones)');
+                            }
+                            
+                            skipUntil = i + loopLines.length + 1;
+                        }
+                    }
+                    // Manejo de condicionales IF-ELSE
+                    else if (trimmed.startsWith('if ')) {
+                        const match = trimmed.match(/if\s+(.+):/);
+                        if (match) {
+                            const condition = match[1];
+                            const conditionMet = evaluateCondition(condition, variables);
+                            const ifLines = collectIndentedBlock(lines, i + 1, currentIndent);
+                            
+                            // Buscar el else
+                            let elseIndex = i + ifLines.length + 1;
+                            let elseLines = [];
+                            if (elseIndex < lines.length && lines[elseIndex].trim() === 'else:') {
+                                elseLines = collectIndentedBlock(lines, elseIndex + 1, currentIndent);
+                            }
+                            
+                            // Ejecutar el bloque correspondiente
+                            if (conditionMet) {
+                                for (const ifLine of ifLines) {
+                                    result += executeLine(ifLine.trim(), variables);
+                                }
+                            } else if (elseLines.length > 0) {
+                                for (const elseLine of elseLines) {
+                                    result += executeLine(elseLine.trim(), variables);
+                                }
+                            }
+                            
+                            skipUntil = elseIndex + elseLines.length + 1;
+                        }
+                    }
+                    // Ejecución normal de líneas
+                    else if (trimmed !== 'else:') {
+                        result += executeLine(trimmed, variables);
+                    }
+                }
+                
+                output.innerHTML = result || '✅ Código ejecutado correctamente';
+                
+                // Efecto de partículas
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        createParticle(
+                            Math.random() * window.innerWidth,
+                            window.innerHeight
+                        );
+                    }, i * 100);
+                }
+                
+            } catch (error) {
+                output.classList.add('error-output');
+                output.innerHTML = `❌ Error: ${error.message}\n\n💡 Revisa tu código y vuelve a intentarlo.`;
+            }
+        }
+        
+        // Función auxiliar para recolectar bloques indentados
+        function collectIndentedBlock(lines, startIndex, parentIndent) {
+            const block = [];
+            for (let j = startIndex; j < lines.length; j++) {
+                const line = lines[j];
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                const indent = line.search(/\S/);
+                
+                if (indent > parentIndent) {
+                    block.push(line);
+                } else {
+                    break;
+                }
+            }
+            return block;
+        }
+        
+        // Ejecutar una línea de código
+        function executeLine(line, variables) {
+            let output = '';
+            
+            // print()
+            if (line.startsWith('print(')) {
+                const content = line.match(/print\((.+)\)/)?.[1];
+                if (content) {
+                    const values = content.split(',').map(v => evaluateExpression(v.trim(), variables));
+                    output = values.join(' ') + '\n';
+                }
+            }
+            // Asignación con operadores +=, -=, *=, /=
+            else if (line.includes('+=') || line.includes('-=') || line.includes('*=') || line.includes('/=')) {
+                const operators = ['+=', '-=', '*=', '/='];
+                for (const op of operators) {
+                    if (line.includes(op)) {
+                        const parts = line.split(op);
+                        const varName = parts[0].trim();
+                        const value = evaluateExpression(parts[1].trim(), variables);
+                        
+                        if (!variables.hasOwnProperty(varName)) {
+                            variables[varName] = 0;
+                        }
+                        
+                        switch(op) {
+                            case '+=': variables[varName] = Number(variables[varName]) + Number(value); break;
+                            case '-=': variables[varName] = Number(variables[varName]) - Number(value); break;
+                            case '*=': variables[varName] = Number(variables[varName]) * Number(value); break;
+                            case '/=': variables[varName] = Number(variables[varName]) / Number(value); break;
+                        }
+                        break;
+                    }
+                }
+            }
+            // Asignación simple de variables
+            else if (line.includes('=') && !line.includes('==') && !line.includes('!=') && !line.includes('<=') && !line.includes('>=')) {
+                const parts = line.split('=');
+                const varName = parts[0].trim();
+                const value = evaluateExpression(parts[1].trim(), variables);
+                variables[varName] = value;
+            }
+            
+            return output;
+        }
+        
+        // Evaluar expresiones
+        function evaluateExpression(expr, variables) {
+            expr = expr.trim();
+            
+            // Strings entre comillas
+            if ((expr.startsWith("'") && expr.endsWith("'")) || 
+                (expr.startsWith('"') && expr.endsWith('"'))) {
+                return expr.slice(1, -1);
+            }
+            
+            // Variables
+            if (variables.hasOwnProperty(expr)) {
+                return variables[expr];
+            }
+            
+            // Números
+            if (!isNaN(expr)) {
+                return parseFloat(expr);
+            }
+            
+            // Listas
+            if (expr.startsWith('[') && expr.endsWith(']')) {
+                return expr;
+            }
+            
+            // Funciones
+            if (expr.includes('len(')) {
+                const match = expr.match(/len\((.+)\)/);
+                if (match) {
+                    const value = evaluateExpression(match[1], variables);
+                    return String(value).length;
+                }
+            }
+            
+            // Operaciones matemáticas
+            if (expr.includes('+') || expr.includes('-') || expr.includes('*') || expr.includes('/')) {
+                // Reemplazar variables en la expresión
+                let evalExpr = expr;
+                for (const [key, value] of Object.entries(variables)) {
+                    evalExpr = evalExpr.replace(new RegExp(key, 'g'), value);
+                }
+                try {
+                    return eval(evalExpr);
+                } catch {
+                    return expr;
+                }
+            }
+            
+            return expr;
+        }
+        
+        // Evaluar condiciones
+        function evaluateCondition(condition, variables) {
+            // Reemplazar variables
+            let evalCond = condition;
+            for (const [key, value] of Object.entries(variables)) {
+                const regex = new RegExp('\\b' + key + '\\b', 'g');
+                evalCond = evalCond.replace(regex, typeof value === 'string' ? `"${value}"` : value);
+            }
+            
+            try {
+                return eval(evalCond);
+            } catch {
+                return false;
+            }
+        }
+        
+        // Ejecutar código con Ctrl+Enter
+        document.getElementById('codeInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                runPython();
+            }
+        });
+    </script>
+</body>
+</html>
