@@ -1,11 +1,11 @@
 :root {
-    --primary-color: #007BFF;
+    --primary-color: #1B7EDC;
     --advanced-color: #DC3545;
     --advanced-dark: #C82333;
     --success-color: #28A745;
     --bg-light: #F8F9FA;
     --card-bg: #FFFFFF;
-    --text-primary: #343A40;
+    --text-primary: #1B2A41;
     --text-secondary: #6C757D;
     --border-color: #E9ECEF;
     --gradient-advanced: linear-gradient(135deg, #DC3545 0%, #FF6B6B 100%);
@@ -533,4 +533,18 @@ body {
     .cert-skills {
         grid-template-columns: 1fr 1fr;
     }
+}
+/* Logotipo Oficial CodeKids */
+.brand-logo-img {
+    height: 42px;
+    width: auto;
+    max-width: 175px;
+    object-fit: contain;
+    border-radius: 8px;
+    vertical-align: middle;
+    transition: transform 0.25s ease, filter 0.25s ease;
+}
+.logo:hover .brand-logo-img {
+    transform: scale(1.04);
+    filter: drop-shadow(0 2px 8px rgba(27, 126, 220, 0.45));
 }

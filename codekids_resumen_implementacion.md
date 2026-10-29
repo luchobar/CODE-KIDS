@@ -9,42 +9,44 @@ Este documento recopila de manera integral todas las decisiones de diseño, espe
 Se transformó por completo la identidad visual y la experiencia de usuario (UI/UX) de la plataforma, sustituyendo la interfaz previa (de tono corporativo y monocromático) por un entorno inmersivo tipo videojuego educativo (*EdTech Arcade* inspirado en los estándares de Duolingo, Code.org y Scratch). Las mejoras se concentraron en tres frentes:
 
 1. **Sistema de Acceso y Autenticación (`Login`):**
-   * **Atmósfera Cósmica 2.5D:** Fondo con degradados espaciales oscuros (`#0B0F19` a `#1E1B4B`) complementados con orbes difuminados de luz neón (*Cyan*, *Violet* y *Lime*).
-   * **Tarjeta de Acceso Flotante (*Glassmorphism*):** Superficie translúcida con `backdrop-filter: blur(20px)`, bordes con brillo cian y elevación suave.
+   * **Identidad de Marca Maestro:** Inclusión del logotipo vertical (`logo_vertical.jpg`) en la tarjeta de bienvenida y el logotipo horizontal (`logo_horizontal.jpg`) en la barra de navegación persistente.
+   * **Atmósfera Cósmica 2.5D:** Fondo con degradados espaciales inspirados en el azul espacial del logo (`#101B2B` a `#1B2A41`) complementados con orbes difuminados de luz neón (*Azul Eléctrico*, *Violeta Arcade* y *Verde Lima Cyber*).
+   * **Tarjeta de Acceso Flotante (*Glassmorphism*):** Superficie translúcida con `backdrop-filter: blur(20px)`, bordes con aura azul `#1B7EDC` y elevación suave.
    * **Selector Rápido de Perfiles y Avatares de Aula:** Sistema de acceso en 1 clic pensado para laboratorios escolares o dispositivos compartidos (perfiles rápidos para *Sofi*, *Mateo*, *Valeria* y *Profe Alex*, junto a la barra de avatares: dragón, gato, rover, zorro y unicornio).
    * **Validación en Tiempo Real con Iconografía Intuitiva:** Indicadores dinámicos que validan correos y contraseñas (mínimo 8 caracteres) en vivo con microetiquetas de color.
-   * **Botones CTA Táctiles con Relieve 3D:** Botones con sombra inferior rígida y microinteracción de pulsado (`active:translate-y-1`).
+   * **Botones CTA Táctiles con Relieve 3D:** Botones en Verde Lima Cyber (`#B8EC63`) con sombra inferior rígida y microinteracción de pulsado (`active:translate-y-1`).
 
 2. **Panel de Control y Mapa de Misiones (`Header` & `StudentDashboard`):**
-   * **HUD Superior Flotante del Explorador:** Barra persistente con insignia de Nivel, **barra de progreso de XP animada** (`XX/100 XP` con degradado cian a lima), contador de **Racha de días** con llama neón y botón de **Monedas ganadas** que da acceso directo a la tienda de avatares.
+   * **Logotipo Horizontal en Navbar:** Marca oficial (`logo_horizontal.jpg`) integrada con escala fluida y efecto hover de brillo azul.
+   * **HUD Superior Flotante del Explorador:** Barra persistente con insignia de Nivel, **barra de progreso de XP animada** (`XX/100 XP` con degradado azul eléctrico `#1B7EDC` a lima `#B8EC63`), contador de **Racha de días** con llama neón y botón de **Monedas ganadas** que da acceso directo a la tienda de avatares.
    * **Filtros Rápidos Gamificados:** Selector por temáticas de programación (*Todos*, *Secuencias*, *Bucles*, *Condicionales*, *Funciones*) y por dificultad (*Inicio*, *En camino*, *Explorador*).
    * **Mapa de Aventura por Nodos:** Nodos conectados organizados por mundos (*Bosque*, *Isla*, *Cueva*, *Laboratorio*) con 3 estados visuales inconfundibles:
-     * **Completado:** Borde verde esmeralda, medalla/trofeo dorado y **calificación de 3 estrellas** (`⭐⭐⭐`).
+     * **Completado:** Borde verde lima neón, medalla/trofeo dorado y **calificación de 3 estrellas** (`⭐⭐⭐`).
      * **Disponible:** Brillo pulsante neón (`pulseMissionNode`), aura activa y llamado a la acción visible.
      * **Bloqueado:** Escudo con candado sci-fi y opacidad reducida.
 
 3. **Área de Trabajo de los Ejercicios (`BlocklyMission`):**
    * **Arquitectura Modular en 3 Paneles de Alto Contraste:**
      * **Panel Izquierdo (Misión y Guía Pipo):** Personaje guía interactivo con estados de ánimo (`hello`, `thinking`, `party`), **3 objetivos de la misión en viñetas cortas numeradas**, cápsula conceptual y sistema de pistas progresivas desplegables.
-     * **Panel Central (Constructor de Bloques):** Espacio de programación con cuadrícula sutil de puntos radiales, contador de bloques activos (`X / 32`), alerta visual de ensamblado (`⚡ ¡Bloque ensamblado!`) y bloques de colores semánticos vibrantes (amarillo evento, cian movimiento, azul giro, morado bucle, naranja condición).
+     * **Panel Central (Constructor de Bloques):** Espacio de programación con cuadrícula sutil de puntos radiales, contador de bloques activos (`X / 32`), alerta visual de ensamblado (`⚡ ¡Bloque ensamblado!`) y bloques de colores semánticos vibrantes (amarillo evento, azul movimiento, azul giro, morado bucle, naranja condición).
      * **Panel Derecho (Escenario y Reproductor Multimedia):** Tablero con visor de coordenadas `(X, Y)`, rastro luminoso de energía en casillas visitadas, controles estilo reproductor multimedia (**Probar**, **Paso a paso**, **Pausa/Reanudar**, **Reiniciar**) y animación de confeti ligero al alcanzar la meta.
 
 ---
 
-## 2. Guía de Estilos y Diseño (Design System)
+## 2. Guía de Estilos y Diseño (Design System Armonizado)
 
-### 2.1. Paleta de Colores Exacta (Códigos HEX)
+### 2.1. Paleta de Colores Exacta del Logotipo (Códigos HEX)
 
 #### Fondos y Superficies
 | Token CSS | Código HEX / Valor | Aplicación |
 | :--- | :--- | :--- |
-| `--color-canvas` | `#0B0F19` | Fondo cósmico base de la aplicación |
-| `--color-canvas-parchment` | `#131B2E` | Fondo elevado de paneles y tarjetas secundarias |
-| `--color-surface-tile-1` | `#0D1322` | Superficies de mundos y contenedores oscuros |
-| `--color-surface-tile-2` | `#151F36` | Contenedores de misiones y panel de Pipo |
-| `--color-surface-tile-3` | `#1E293B` | Nodos inactivos y celdas base de simulación |
-| `--color-hairline` | `rgba(56, 189, 248, 0.22)` | Bordes sutiles con tono cian transparente |
-| Glassmorphism Surface | `rgba(19, 27, 46, 0.72)` | Tarjeta flotante de acceso con desenfoque |
+| `--color-canvas` | `#101B2B` | Fondo cósmico base de la aplicación |
+| `--color-canvas-parchment` | `#17253B` | Fondo elevado de paneles y tarjetas secundarias |
+| `--color-surface-tile-1` | `#0D1624` | Superficies de mundos y contenedores oscuros |
+| `--color-surface-tile-2` | `#16243A` | Contenedores de misiones y panel de Pipo |
+| `--color-surface-tile-3` | `#1B2A41` | **Fondo Exacto del Logo**: Nodos destacados y celdas base de simulación |
+| `--color-hairline` | `rgba(27, 126, 220, 0.28)` | Bordes sutiles inspirados en el resplandor del logo |
+| Glassmorphism Surface | `rgba(22, 36, 58, 0.78)` | Tarjeta flotante de acceso con desenfoque de 20px |
 
 #### Tipografía y Textos
 | Token CSS | Código HEX | Aplicación |
@@ -56,12 +58,12 @@ Se transformó por completo la identidad visual y la experiencia de usuario (UI/
 #### Acentos Gamificados y Semántica de Bloques
 | Token / Rol | Código HEX | Uso Específico |
 | :--- | :--- | :--- |
-| **Cyber Cyan** | `#06B6D4` / `#22D3EE` | Acento principal, foco, rastro del robot y bloque `ck_move` (*avanzar*) |
-| **Energy Lime** | `#84CC16` (Sombra: `#3F6212`) | Botón CTA primario 3D, barra de XP y estado completado |
+| **Electric Code Blue** | `#1B7EDC` / `#2FA0FF` | Color de la palabra "Code" y cuerpo del robot; acento principal y bloque `ck_move` |
+| **Cyber Kids Lime** | `#B8EC63` (Sombra: `#5E9319`) | Color de la palabra "Kids" y corchetes `{ }`; botón CTA 3D, barra XP y meta |
+| **Pixel Cyan Spark** | `#38BDF8` | Partículas de energía, coordenadas y focos activos |
 | **Arcade Violet** | `#8B5CF6` | Filtros activos, orbe ambiental y bloque `ck_repeat` (*repetir*) |
-| **Electric Indigo** | `#6366F1` | Bloques `ck_turn_right` y `ck_turn_left` (*girar*) |
 | **Solar Gold** | `#FACC15` / `#F59E0B` | Estrellas de puntuación, monedas y bloque `ck_start` (*al comenzar*) |
-| **Streak Flame** | `#FF6B00` / `#F97316` | Medidor de racha, muros y bloque `ck_if_wall` (*si hay pared*) |
+| **Streak Flame** | `#FB923C` / `#F97316` | Medidor de racha, muros y bloque `ck_if_wall` (*si hay pared*) |
 
 ### 2.2. Tipografías
 

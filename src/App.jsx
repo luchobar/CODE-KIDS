@@ -444,17 +444,19 @@ function Header({
       <header className="global-nav" aria-label="Navegación global">
         <div className="global-nav-inner">
           <a
-            className="global-nav-brand"
+            className="global-nav-brand brand-with-logo"
             href="#top"
             onClick={(event) => {
               event.preventDefault();
               if (onHome) onHome();
             }}
+            title="CodeKids - Plataforma Educativa"
           >
-            <span className="brand-badge-icon">
-              <RocketLaunch size={16} weight="duotone" />
-            </span>
-            <span>CODEKIDS</span>
+            <img
+              src="/images/logo_horizontal.jpg"
+              alt="CodeKids Logo"
+              className="global-nav-logo-horizontal"
+            />
           </a>
           <nav className="global-nav-links" aria-label="Secciones principales">
             <button
@@ -627,6 +629,16 @@ function Footer({ onHome, onGoMissions, onPython, onAssessment, user }) {
             </ul>
           </div>
         </div>
+        <div className="apple-footer-brand-row">
+          <img
+            src="/images/logo_horizontal.jpg"
+            alt="CodeKids Logo"
+            className="footer-brand-logo"
+          />
+          <p className="footer-brand-tagline">
+            Pensamiento computacional, programación por bloques y Python en una aventura gamificada.
+          </p>
+        </div>
         <div className="apple-footer-legal">
           <p>CodeKids Educación. Pensamiento computacional diseñado con claridad y precisión.</p>
         </div>
@@ -792,6 +804,18 @@ function Login({ onEnter }) {
 
             {/* Tarjeta Flotante con Efecto Glassmorphism */}
             <form className="apple-login-form glass-auth-card" onSubmit={handleAuthSubmit} noValidate>
+              <div className="auth-brand-badge-container">
+                <img
+                  src="/images/logo_vertical.jpg"
+                  alt="CodeKids Robot Pipo"
+                  className="auth-brand-logo-vertical"
+                />
+                <div className="auth-brand-badge-text">
+                  <span className="auth-brand-eyebrow">Aventura Oficial</span>
+                  <span className="auth-brand-subtitle">¡Bienvenido a CodeKids!</span>
+                </div>
+              </div>
+
               <div className="auth-connection-bar">
                 {isSupabaseConfigured ? (
                   <span className="auth-status-chip online" title="Base de datos Supabase conectada en vivo">

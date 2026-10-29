@@ -1,15 +1,15 @@
 :root {
-    --primary-color: #007BFF;
-    --secondary-color: #28A745;
+    --primary-color: #1B7EDC;
+    --secondary-color: #B8EC63;
     --accent-color: #FFC107;
     --danger-color: #DC3545;
     --warning-color: #FD7E14;
     --bg-light: #F8F9FA;
     --card-bg: #FFFFFF;
-    --text-primary: #343A40;
+    --text-primary: #1B2A41;
     --text-secondary: #6C757D;
     --border-color: #E9ECEF;
-    --gradient-1: linear-gradient(135deg, #007BFF 0%, #00C4FF 100%);
+    --gradient-1: linear-gradient(135deg, #1B7EDC 0%, #38BDF8 100%);
     --gradient-2: linear-gradient(135deg, #FFC107 0%, #FD7E14 100%);
     --success-color: var(--secondary-color);
 }
@@ -376,4 +376,19 @@ body {
     .btn-large {
         width: 100%;
     }
+}
+
+/* Logotipo Oficial CodeKids */
+.brand-logo-img {
+    height: 42px;
+    width: auto;
+    max-width: 175px;
+    object-fit: contain;
+    border-radius: 8px;
+    vertical-align: middle;
+    transition: transform 0.25s ease, filter 0.25s ease;
+}
+.logo:hover .brand-logo-img {
+    transform: scale(1.04);
+    filter: drop-shadow(0 2px 8px rgba(27, 126, 220, 0.45));
 }

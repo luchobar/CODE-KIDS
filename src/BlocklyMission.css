@@ -44,13 +44,13 @@
   padding: 14px;
   border-radius: 18px;
   background: var(--color-canvas-parchment, rgba(15, 23, 42, 0.9));
-  border: 1.5px solid rgba(6, 182, 212, 0.32);
+  border: 1.5px solid rgba(27, 126, 220, 0.35);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pipo-guide-card.mood-party {
-  border-color: #84CC16;
-  box-shadow: 0 0 22px rgba(132, 204, 22, 0.25);
+  border-color: #B8EC63;
+  box-shadow: 0 0 22px rgba(184, 236, 99, 0.28);
 }
 
 .pipo-guide-card.mood-thinking {
@@ -65,13 +65,13 @@
   display: grid;
   place-items: center;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(139, 92, 246, 0.28));
-  color: #22D3EE;
-  border: 1px solid rgba(34, 211, 238, 0.4);
+  background: linear-gradient(135deg, rgba(27, 126, 220, 0.3), rgba(139, 92, 246, 0.28));
+  color: #38BDF8;
+  border: 1px solid rgba(27, 126, 220, 0.4);
 }
 
 [data-theme="light"] .pipo-avatar-orb {
-  color: #0284C7;
+  color: #1B7EDC;
 }
 
 .pipo-status-dot {
@@ -81,9 +81,9 @@
   width: 12px;
   height: 12px;
   border-radius: 9999px;
-  background: #84CC16;
+  background: #B8EC63;
   border: 2px solid var(--color-canvas, #0B0F19);
-  box-shadow: 0 0 8px #84CC16;
+  box-shadow: 0 0 8px #B8EC63;
 }
 
 .pipo-speech-bubble {
@@ -324,13 +324,13 @@
 }
 
 .editor-dot.cyan {
-  background: #06B6D4;
+  background: #1B7EDC;
 }
 .editor-dot.violet {
   background: #8B5CF6;
 }
 .editor-dot.lime {
-  background: #84CC16;
+  background: #B8EC63;
 }
 
 .editor-toolbar-badges {
@@ -342,9 +342,9 @@
 .snap-feedback-pill {
   padding: 4px 10px;
   border-radius: 9999px;
-  background: rgba(132, 204, 22, 0.22);
-  color: #A3E635;
-  border: 1px solid rgba(132, 204, 22, 0.5);
+  background: rgba(184, 236, 99, 0.22);
+  color: #B8EC63;
+  border: 1px solid rgba(184, 236, 99, 0.5);
   font-size: 0.75rem;
   font-weight: 700;
   animation: popInHint 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -512,23 +512,23 @@
 }
 
 .robot-cell-trail {
-  background: rgba(6, 182, 212, 0.14);
-  border-color: rgba(34, 211, 238, 0.35);
+  background: rgba(27, 126, 220, 0.16);
+  border-color: rgba(27, 126, 220, 0.35);
 }
 
 .trail-energy-dot {
   width: 10px;
   height: 10px;
   border-radius: 9999px;
-  background: #22D3EE;
-  box-shadow: 0 0 10px #22D3EE;
+  background: #38BDF8;
+  box-shadow: 0 0 10px #38BDF8;
 }
 
 .robot-cell-active {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.32), rgba(139, 92, 246, 0.32));
-  border-color: #22D3EE;
+  background: linear-gradient(135deg, rgba(27, 126, 220, 0.35), rgba(139, 92, 246, 0.32));
+  border-color: #38BDF8;
   color: #38BDF8;
-  box-shadow: 0 0 18px rgba(34, 211, 238, 0.4);
+  box-shadow: 0 0 18px rgba(27, 126, 220, 0.4);
   transform: scale(1.03);
 }
 
@@ -606,26 +606,26 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(180deg, #84CC16 0%, #65A30D 100%);
-  color: #0B0F19;
+  background: linear-gradient(180deg, #B8EC63 0%, #95DC38 100%);
+  color: #101B2B;
   border: 0;
   border-radius: 16px;
   font-family: var(--font-display);
   font-size: 1.02rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 0 #3F6212, 0 10px 20px -4px rgba(132, 204, 22, 0.45);
+  box-shadow: 0 4px 0 #5E9319, 0 10px 20px -4px rgba(184, 236, 99, 0.45);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .robot-controls .game-check:hover:not(:disabled) {
   transform: translateY(-1px) scale(1.01);
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .robot-controls .game-check:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #3F6212;
+  box-shadow: 0 2px 0 #5E9319;
 }
 
 .media-secondary-controls {
@@ -654,12 +654,12 @@
 }
 
 .media-ctrl-btn.step-btn {
-  border-color: rgba(6, 182, 212, 0.45);
-  color: #22D3EE;
+  border-color: rgba(27, 126, 220, 0.45);
+  color: #38BDF8;
 }
 
 [data-theme="light"] .media-ctrl-btn.step-btn {
-  color: #0284C7;
+  color: #1B7EDC;
 }
 
 .media-ctrl-btn.pause-btn {
@@ -709,15 +709,15 @@
 }
 
 .blockly-feedback.won {
-  border-color: #84CC16;
-  color: #A3E635;
-  background: rgba(132, 204, 22, 0.14);
-  box-shadow: 0 0 24px rgba(132, 204, 22, 0.2);
+  border-color: #B8EC63;
+  color: #B8EC63;
+  background: rgba(184, 236, 99, 0.16);
+  box-shadow: 0 0 24px rgba(184, 236, 99, 0.25);
 }
 
 [data-theme="light"] .blockly-feedback.won {
   color: #3F6212;
-  background: #ECFCCB;
+  background: #F0FBDC;
 }
 
 /* Confeti de celebración */
@@ -738,8 +738,8 @@
   animation: confettiFall 2.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.confetti-piece.c-0 { left: 12%; background: #06B6D4; animation-delay: 0s; }
-.confetti-piece.c-1 { left: 28%; background: #84CC16; animation-delay: 0.1s; }
+.confetti-piece.c-0 { left: 12%; background: #1B7EDC; animation-delay: 0s; }
+.confetti-piece.c-1 { left: 28%; background: #B8EC63; animation-delay: 0.1s; }
 .confetti-piece.c-2 { left: 45%; background: #FACC15; animation-delay: 0.05s; }
 .confetti-piece.c-3 { left: 62%; background: #8B5CF6; animation-delay: 0.15s; }
 .confetti-piece.c-4 { left: 78%; background: #F97316; animation-delay: 0.08s; }

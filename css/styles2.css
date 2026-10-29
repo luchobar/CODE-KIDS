@@ -1,7 +1,7 @@
 :root {
     /* Paleta de Colores Primarios y Claros */
-    --primary-color: #007BFF;    /* Azul Brillante */
-    --secondary-color: #28A745;  /* Verde Amigable */
+    --primary-color: #1B7EDC;    /* Azul Brillante */
+    --secondary-color: #B8EC63;  /* Verde Amigable */
     --accent-color: #FFC107;     /* Amarillo Sol */
     --danger-color: #DC3545;     /* Rojo */
     --warning-color: #FD7E14;    /* Naranja */
@@ -9,12 +9,12 @@
     /* Paleta de Fondos y Texto (Modo Claro) */
     --bg-light: #F8F9FA;         /* Fondo de página (gris muy claro) */
     --card-bg: #FFFFFF;          /* Fondo de tarjetas (blanco) */
-    --text-primary: #343A40;     /* Texto principal (casi negro) */
+    --text-primary: #1B2A41;     /* Texto principal (casi negro) */
     --text-secondary: #6C757D;   /* Texto secundario (gris) */
     --border-color: #E9ECEF;     /* Borde suave */
 
     /* Gradientes Alegres */
-    --gradient-1: linear-gradient(135deg, #007BFF 0%, #00C4FF 100%); /* Azul */
+    --gradient-1: linear-gradient(135deg, #1B7EDC 0%, #38BDF8 100%); /* Azul */
     --gradient-2: linear-gradient(135deg, #FFC107 0%, #FD7E14 100%); /* Amarillo-Naranja */
     
     /* Colores de Estado */
@@ -450,4 +450,18 @@ textarea:focus {
     .btn-large {
         width: 100%;
     }
+}
+/* Logotipo Oficial CodeKids */
+.brand-logo-img {
+    height: 42px;
+    width: auto;
+    max-width: 175px;
+    object-fit: contain;
+    border-radius: 8px;
+    vertical-align: middle;
+    transition: transform 0.25s ease, filter 0.25s ease;
+}
+.logo:hover .brand-logo-img {
+    transform: scale(1.04);
+    filter: drop-shadow(0 2px 8px rgba(27, 126, 220, 0.45));
 }

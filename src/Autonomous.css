@@ -6,34 +6,37 @@
 
 :root,
 [data-theme="dark"] {
-  --color-primary: #06B6D4;
-  --color-primary-focus: #22D3EE;
-  --color-primary-on-dark: #22D3EE;
+  --color-primary: #1B7EDC;
+  --color-primary-focus: #2FA0FF;
+  --color-primary-on-dark: #38BDF8;
+  --color-accent-lime: #B8EC63;
+  --color-accent-lime-focus: #C9F577;
+  --color-accent-lime-tint: rgba(184, 236, 99, 0.18);
   --color-ink: #F8FAFC;
-  --color-body: #F8FAFC;
+  --color-body: #F1F5F9;
   --color-body-on-dark: #FFFFFF;
   --color-body-muted: #94A3B8;
   --color-ink-muted-80: #CBD5E1;
   --color-ink-muted-48: #94A3B8;
-  --color-divider-soft: #1E293B;
-  --color-hairline: rgba(56, 189, 248, 0.22);
-  --color-canvas: #0B0F19;
-  --color-canvas-parchment: #131B2E;
-  --color-surface-pearl: #1E293B;
-  --color-surface-tile-1: #0D1322;
-  --color-surface-tile-2: #151F36;
-  --color-surface-tile-3: #1E293B;
-  --color-surface-black: #070A12;
-  --color-surface-chip-translucent: rgba(34, 211, 238, 0.16);
-  --color-on-primary: #0B0F19;
+  --color-divider-soft: rgba(27, 126, 220, 0.18);
+  --color-hairline: rgba(27, 126, 220, 0.28);
+  --color-canvas: #101B2B;
+  --color-canvas-parchment: #17253B;
+  --color-surface-pearl: #1C2E49;
+  --color-surface-tile-1: #0D1624;
+  --color-surface-tile-2: #16243A;
+  --color-surface-tile-3: #1B2A41;
+  --color-surface-black: #09101A;
+  --color-surface-chip-translucent: rgba(27, 126, 220, 0.18);
+  --color-on-primary: #FFFFFF;
   --color-on-dark: #F8FAFC;
-  --color-subnav-bg: rgba(11, 15, 25, 0.82);
+  --color-subnav-bg: rgba(16, 27, 43, 0.88);
 
-  /* Tones for stat icons & world cards in dark mode */
-  --tone-blue-bg: rgba(6, 182, 212, 0.18);
-  --tone-blue-fg: #22D3EE;
-  --tone-mint-bg: rgba(132, 204, 22, 0.18);
-  --tone-mint-fg: #A3E635;
+  /* Tones for stat icons & world cards in dark mode (matched to logo) */
+  --tone-blue-bg: rgba(27, 126, 220, 0.2);
+  --tone-blue-fg: #38BDF8;
+  --tone-mint-bg: rgba(184, 236, 99, 0.2);
+  --tone-mint-fg: #B8EC63;
   --tone-peach-bg: rgba(255, 107, 0, 0.18);
   --tone-peach-fg: #FB923C;
   --tone-lav-bg: rgba(139, 92, 246, 0.2);
@@ -72,37 +75,40 @@
    Modo Claro: Colores Originales de CodeKids
    ========================================================================== */
 [data-theme="light"] {
-  --color-primary: #0878e8;
-  --color-primary-focus: #0563c4;
-  --color-primary-on-dark: #0878e8;
-  --color-ink: #142a3d;
-  --color-body: #263746;
-  --color-body-on-dark: #142a3d;
-  --color-body-muted: #5d7180;
-  --color-ink-muted-80: #405570;
-  --color-ink-muted-48: #687889;
-  --color-divider-soft: #e5edf2;
-  --color-hairline: #dce8ef;
-  --color-canvas: #ffffff;
-  --color-canvas-parchment: #f6f9fc;
-  --color-surface-pearl: #edf7ff;
-  --color-surface-tile-1: #edf7ff;
-  --color-surface-tile-2: #e8f8ed;
-  --color-surface-tile-3: #ffffff;
-  --color-surface-black: #10283c;
-  --color-surface-chip-translucent: rgba(8, 120, 232, 0.12);
-  --color-on-primary: #ffffff;
-  --color-on-dark: #142a3d;
-  --color-subnav-bg: rgba(255, 255, 255, 0.92);
+  --color-primary: #1B7EDC;
+  --color-primary-focus: #1463B0;
+  --color-primary-on-dark: #1B7EDC;
+  --color-accent-lime: #5D9915;
+  --color-accent-lime-focus: #4F8410;
+  --color-accent-lime-tint: rgba(184, 236, 99, 0.22);
+  --color-ink: #1B2A41;
+  --color-body: #23344E;
+  --color-body-on-dark: #1B2A41;
+  --color-body-muted: #57697D;
+  --color-ink-muted-80: #3E5168;
+  --color-ink-muted-48: #627488;
+  --color-divider-soft: #E2EAF2;
+  --color-hairline: #D3DFEB;
+  --color-canvas: #FFFFFF;
+  --color-canvas-parchment: #F3F7FB;
+  --color-surface-pearl: #EAF2FA;
+  --color-surface-tile-1: #EAF2FA;
+  --color-surface-tile-2: #EBF8EC;
+  --color-surface-tile-3: #FFFFFF;
+  --color-surface-black: #1B2A41;
+  --color-surface-chip-translucent: rgba(27, 126, 220, 0.12);
+  --color-on-primary: #FFFFFF;
+  --color-on-dark: #1B2A41;
+  --color-subnav-bg: rgba(255, 255, 255, 0.94);
 
-  /* Original CodeKids Tones */
-  --tone-blue-bg: #edf7ff;
-  --tone-blue-fg: #0878e8;
-  --tone-mint-bg: #e8f8ed;
-  --tone-mint-fg: #248a4d;
-  --tone-peach-bg: #fff2e5;
-  --tone-peach-fg: #c9641b;
-  --tone-lav-bg: #f2edff;
+  /* CodeKids Harmonized Tones */
+  --tone-blue-bg: #EAF2FC;
+  --tone-blue-fg: #1B7EDC;
+  --tone-mint-bg: #F0FBDC;
+  --tone-mint-fg: #5D9915;
+  --tone-peach-bg: #FFF2E5;
+  --tone-peach-fg: #C9641B;
+  --tone-lav-bg: #F2EDFF;
   --tone-lav-fg: #6454b5;
   --tone-yellow-bg: #fff5c9;
   --tone-yellow-fg: #765609;
@@ -320,6 +326,20 @@ textarea {
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.224px;
+}
+
+.global-nav-logo-horizontal {
+  height: 38px;
+  width: auto;
+  max-width: 175px;
+  object-fit: contain;
+  border-radius: var(--rounded-sm);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+}
+
+.global-nav-brand:hover .global-nav-logo-horizontal {
+  transform: scale(1.03);
+  filter: drop-shadow(0 0 12px rgba(27, 126, 220, 0.55));
 }
 
 .brand-badge-icon {
@@ -2730,6 +2750,40 @@ textarea {
   text-decoration: none;
 }
 
+.apple-footer-col a:hover {
+  color: var(--color-primary);
+}
+
+.apple-footer-brand-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0 var(--space-xs);
+  border-top: 1px solid var(--color-hairline);
+  margin-top: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.footer-brand-logo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  border-radius: var(--rounded-xs);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.footer-brand-logo:hover {
+  transform: scale(1.03);
+  filter: drop-shadow(0 0 10px rgba(27, 126, 220, 0.4));
+}
+
+.footer-brand-tagline {
+  font-family: var(--font-text);
+  font-size: 0.86rem;
+  color: var(--color-ink-muted-80);
+  margin: 0;
+}
+
 .apple-footer-legal {
   padding-top: var(--space-md);
   font-family: var(--font-text);
@@ -2835,17 +2889,18 @@ textarea {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 18%, rgba(6, 182, 212, 0.16), transparent 36%),
+    radial-gradient(circle at 12% 18%, rgba(27, 126, 220, 0.22), transparent 38%),
     radial-gradient(circle at 86% 24%, rgba(139, 92, 246, 0.18), transparent 40%),
-    radial-gradient(circle at 52% 88%, rgba(132, 204, 22, 0.12), transparent 38%),
-    linear-gradient(135deg, #0B0F19 0%, #111827 52%, #1E1B4B 100%);
+    radial-gradient(circle at 52% 88%, rgba(184, 236, 99, 0.16), transparent 38%),
+    linear-gradient(135deg, #101B2B 0%, #1B2A41 52%, #142338 100%);
 }
 
 [data-theme="light"] .cosmic-auth-stage {
   background:
-    radial-gradient(circle at 12% 18%, rgba(6, 182, 212, 0.15), transparent 38%),
-    radial-gradient(circle at 86% 24%, rgba(139, 92, 246, 0.14), transparent 40%),
-    linear-gradient(135deg, #F0F9FF 0%, #F5F3FF 55%, #ECFCCB 100%);
+    radial-gradient(circle at 12% 18%, rgba(27, 126, 220, 0.14), transparent 38%),
+    radial-gradient(circle at 86% 24%, rgba(139, 92, 246, 0.12), transparent 40%),
+    radial-gradient(circle at 52% 88%, rgba(184, 236, 99, 0.16), transparent 38%),
+    linear-gradient(135deg, #F0F6FD 0%, #F5F3FF 55%, #F0FBE6 100%);
 }
 
 .cosmic-orb {
@@ -2862,7 +2917,7 @@ textarea {
   height: 320px;
   top: -80px;
   left: -60px;
-  background: #00F0FF;
+  background: #1B7EDC;
 }
 
 .cosmic-orb.orb-violet {
@@ -2878,8 +2933,8 @@ textarea {
   height: 240px;
   top: 40%;
   left: 46%;
-  background: #84CC16;
-  opacity: 0.25;
+  background: #B8EC63;
+  opacity: 0.28;
 }
 
 .cosmic-auth-stage .tile-container {
@@ -2892,20 +2947,79 @@ textarea {
   max-width: 540px;
   padding: 26px;
   border-radius: 24px;
-  background: rgba(19, 27, 46, 0.72);
+  background: rgba(22, 36, 58, 0.78);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1.5px solid rgba(34, 211, 238, 0.26);
+  border: 1.5px solid rgba(27, 126, 220, 0.35);
   box-shadow:
     0 24px 48px -12px rgba(0, 0, 0, 0.55),
-    0 0 28px rgba(6, 182, 212, 0.12);
+    0 0 28px rgba(27, 126, 220, 0.16);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="light"] .glass-auth-card {
-  background: rgba(255, 255, 255, 0.84);
-  border-color: rgba(8, 120, 232, 0.24);
-  box-shadow: 0 20px 44px -12px rgba(20, 42, 61, 0.16);
+  background: rgba(255, 255, 255, 0.90);
+  border-color: rgba(27, 126, 220, 0.28);
+  box-shadow: 0 20px 44px -12px rgba(27, 42, 65, 0.16);
+}
+
+/* Badge con Logotipo Vertical de CodeKids */
+.auth-brand-badge-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  background: rgba(16, 27, 43, 0.6);
+  border: 1.5px solid rgba(27, 126, 220, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .auth-brand-badge-container {
+  background: rgba(235, 244, 253, 0.85);
+  border-color: rgba(27, 126, 220, 0.25);
+}
+
+.auth-brand-logo-vertical {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 0 0 1.5px rgba(184, 236, 99, 0.45);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.auth-brand-logo-vertical:hover {
+  transform: rotate(-3deg) scale(1.05);
+}
+
+.auth-brand-badge-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.auth-brand-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #B8EC63;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-theme="light"] .auth-brand-eyebrow {
+  color: #5D9915;
+}
+
+.auth-brand-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  line-height: 1.2;
 }
 
 /* Selector Rápido de Perfil y Avatar (Cuentas Compartidas / Aula) */
@@ -3109,22 +3223,22 @@ textarea {
 
 /* Botones CTA con Relieve 3D y Efecto Hover */
 .cta-3d-lime {
-  background: linear-gradient(180deg, #84CC16 0%, #65A30D 100%) !important;
-  color: #0B0F19 !important;
+  background: linear-gradient(180deg, #B8EC63 0%, #95DC38 100%) !important;
+  color: #101B2B !important;
   font-family: var(--font-display) !important;
   font-weight: 700 !important;
-  box-shadow: 0 4px 0 #3F6212, 0 12px 24px -4px rgba(132, 204, 22, 0.45);
+  box-shadow: 0 4px 0 #5E9319, 0 12px 24px -4px rgba(184, 236, 99, 0.45);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .cta-3d-lime:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .cta-3d-lime:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #3F6212;
+  box-shadow: 0 2px 0 #5E9319;
 }
 
 /* Marco de Ilustración Hero con Badges Flotantes */
@@ -3141,9 +3255,9 @@ textarea {
   gap: 8px;
   padding: 9px 15px;
   border-radius: 9999px;
-  background: rgba(15, 23, 42, 0.86);
+  background: rgba(16, 27, 43, 0.88);
   backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(34, 211, 238, 0.35);
+  border: 1.5px solid rgba(27, 126, 220, 0.35);
   color: #F8FAFC;
   font-family: var(--font-display);
   font-size: 0.82rem;
@@ -3191,11 +3305,11 @@ textarea {
   gap: 5px;
   font-family: var(--font-display);
   font-size: 0.82rem;
-  color: #22D3EE;
+  color: #38BDF8;
 }
 
 [data-theme="light"] .hud-level-badge {
-  color: #0284C7;
+  color: #1B7EDC;
 }
 
 .hud-xp-track {
@@ -3209,8 +3323,8 @@ textarea {
 .hud-xp-fill {
   height: 100%;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #06B6D4 0%, #84CC16 100%);
-  box-shadow: 0 0 10px rgba(132, 204, 22, 0.6);
+  background: linear-gradient(90deg, #1B7EDC 0%, #B8EC63 100%);
+  box-shadow: 0 0 10px rgba(184, 236, 99, 0.6);
   transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -3275,10 +3389,10 @@ textarea {
 }
 
 .map-filter-chip.active {
-  background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+  background: linear-gradient(135deg, #1B7EDC, #38BDF8);
   color: #FFFFFF;
   border-color: transparent;
-  box-shadow: 0 6px 16px -4px rgba(6, 182, 212, 0.5);
+  box-shadow: 0 6px 16px -4px rgba(27, 126, 220, 0.5);
 }
 
 .world-showcase-media {
@@ -3292,10 +3406,10 @@ textarea {
   z-index: 2;
   padding: 4px 11px;
   border-radius: 9999px;
-  background: rgba(11, 15, 25, 0.82);
+  background: rgba(16, 27, 43, 0.86);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(34, 211, 238, 0.4);
-  color: #22D3EE;
+  border: 1px solid rgba(27, 126, 220, 0.4);
+  color: #38BDF8;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.7rem;
   font-weight: 700;
@@ -3330,14 +3444,14 @@ textarea {
 
 /* Estados de Nodos del Mapa: Disponible (Pulso), Completado (Estrellas), Bloqueado */
 .world-stage-pill.active {
-  border: 2px solid #22D3EE;
-  box-shadow: 0 0 22px rgba(34, 211, 238, 0.28);
+  border: 2px solid #38BDF8;
+  box-shadow: 0 0 22px rgba(27, 126, 220, 0.35);
   animation: pulseMissionNode 2.2s infinite ease-in-out;
 }
 
 .world-stage-pill.done {
-  border: 2px solid rgba(132, 204, 22, 0.65);
-  background: rgba(132, 204, 22, 0.1);
+  border: 2px solid rgba(184, 236, 99, 0.65);
+  background: rgba(184, 236, 99, 0.1);
 }
 
 .world-stage-pill.done .world-stage-icon {
@@ -3380,13 +3494,13 @@ textarea {
 }
 
 .reward-pill.xp {
-  background: rgba(132, 204, 22, 0.18);
-  color: #A3E635;
-  border: 1px solid rgba(132, 204, 22, 0.45);
+  background: rgba(184, 236, 99, 0.18);
+  color: #B8EC63;
+  border: 1px solid rgba(184, 236, 99, 0.45);
 }
 
 [data-theme="light"] .reward-pill.xp {
-  background: #ECFCCB;
+  background: #F0FBDC;
   color: #3F6212;
 }
 
@@ -3403,10 +3517,10 @@ textarea {
 
 @keyframes pulseMissionNode {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.35), 0 0 18px rgba(34, 211, 238, 0.22);
+    box-shadow: 0 0 0 0 rgba(27, 126, 220, 0.45), 0 0 18px rgba(27, 126, 220, 0.28);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(34, 211, 238, 0), 0 0 26px rgba(34, 211, 238, 0.42);
+    box-shadow: 0 0 0 6px rgba(27, 126, 220, 0), 0 0 26px rgba(184, 236, 99, 0.45);
   }
 }
 

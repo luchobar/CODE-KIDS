@@ -1,5 +1,14 @@
 # 🚀 CodeKids — Plataforma Interactiva de Pensamiento Computacional y Programación
 
+<p align="center">
+  <img src="logo_horizontal.jpg" alt="CodeKids - Logotipo Oficial Horizontal" width="680" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);" />
+</p>
+
+<p align="center">
+  <b>Aventura de Programación por Bloques y Python para Exploradores del Futuro</b><br>
+  <i>Identidad visual unificada · Interfaz inmersiva gamificada · Diseñado con precisión y calidez</i>
+</p>
+
 **CodeKids** es una plataforma educativa interactiva diseñada para que niñas y niños de básica primaria desarrollen **pensamiento computacional**, aprendan **programación visual por bloques (Blockly)** y den sus primeros pasos en **código escrito con Python**, acompañados por **Pipo** (su mascota robot tutora) y un motor de inteligencia artificial local (**Ollama**) que personaliza rutas de aprendizaje y asiste la labor docente.
 
 > **Estado del proyecto:** Prototipo funcional local. Toda la persistencia de progreso, perfiles de demostración, monedas, asignaciones y preferencias de accesibilidad se almacena en el navegador (`localStorage`), y el procesamiento de IA se ejecuta 100 % en local mediante Node.js + Ollama (`qwen2.5:3b`).
@@ -58,10 +67,33 @@ La identidad visual y corporativa de **CodeKids** equilibra dos mundos: **la pre
 
 ---
 
-### 2.2 Logotipo, Símbolo e Iconografía
+### 2.2 Logotipos Oficiales, Símbolo e Iconografía
 
-- **Marca gráfica (`global-nav-brand`):**
-  - Compuesta por un **isotipo cuadrado redondeado** (`26×26 px`, radio `8px`, fondo azul primario `--color-primary`) con el símbolo de código (`<Code />` en trazo `bold` blanco) seguido del **logotipo tipográfico** `CodeKids` en peso `600` y tracking `-0.224px`.
+La identidad visual de CodeKids cuenta con dos versiones oficiales maestras diseñadas para armonizar todos los puntos de contacto del producto:
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="60%">
+        <img src="logo_horizontal.jpg" alt="Logo Horizontal CodeKids" width="380" /><br>
+        <b>Versión Horizontal (Master Header)</b><br>
+        <sub>Uso: Barra de navegación superior, cabecera de escritorio, membretes y banners.</sub>
+      </td>
+      <td align="center" width="40%">
+        <img src="logo_vertical.jpg" alt="Logo Vertical CodeKids" width="190" /><br>
+        <b>Versión Vertical (App Badge / Isotipo)</b><br>
+        <sub>Uso: Pantalla de acceso, tarjeta de login, splash, favicon, avatares y medallas.</sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
+- **Morfología y Concepto del Logotipo:**
+  - **Mascota Robot Pipo:** Enmarcado dentro de corchetes de programación `{ [•‿•] }`, con ojos en forma de cruz de mando gamer y destellos de energía pixelada.
+  - **Logotipo Tipográfico "CodeKids":**
+    - **"Code"**: Tipografía retro-futurista pixelada en **Azul Eléctrico Corporativo (`#1B7EDC`)**, reflejando precisión, lógica y rigor computacional.
+    - **"Kids"**: Tipografía retro-futurista pixelada en **Verde Lima Cyber (`#B8EC63`)**, aportando frescura, dinamismo, diversión y accesibilidad infantil.
+  - **Fondo Espacial Oficial (`#1B2A41`)**: Azul marino profundo de alta tecnología que sirve de lienzo maestro y garantiza un contraste visual óptimo.
   - En la barra secundaria translúcida (`sub-nav-frosted`), la marca declina según el contexto de uso:
     - **Vista pública:** `CodeKids Studio`
     - **Vista estudiante:** `Modo Explorador`
@@ -105,44 +137,46 @@ El sistema visual emplea renders estilizados tipo *diorama 3D de estudio* con il
 
 ---
 
-### 2.4 Arquitectura Cromática: Sistema Dual de Temas
+### 2.4 Arquitectura Cromática: Sistema Dual de Temas Armonizado
 
-El diseño visual en `src/Autonomous.css` implementa un **Sistema Dual de Temas** (`[data-theme="dark"]` y `[data-theme="light"]`) conmutable en tiempo real desde el menú de Accesibilidad:
+El diseño visual en `src/Autonomous.css` y las páginas web complementarias implementa una paleta directamente armonizada con los logotipos maestros (`logo_horizontal.jpg` y `logo_vertical.jpg`):
 
-#### 🌙 1. Modo Oscuro — *Apple Dark Gallery* (Predeterminado)
-Inspirado en la estética de galería oscura de alta precisión, pensado para reducir la fatiga visual y resaltar los renders 3D y el editor de código:
+#### 🌙 1. Modo Oscuro — *Apple Dark Gallery & Cosmic Space* (Predeterminado)
+Inspirado en la atmósfera cósmica del logotipo (`#1B2A41`), pensado para reducir la fatiga visual y resaltar los dioramas 3D y el editor de código:
 
-| Token CSS | Valor Hex / RGBA | Uso en la Interfaz |
+| Token CSS | Valor Hex / RGBA | Relación con el Logo / Uso en Interfaz |
 | :--- | :--- | :--- |
-| `--color-primary` | `#0066CC` | Botones primarios, acentos principales, bloques de movimiento |
-| `--color-primary-focus` | `#0071E3` | Estados de foco (`focus-visible`), bordes activos, bloques de bucle |
-| `--color-primary-on-dark` | `#2997FF` | Enlaces, etiquetas de habilidad y acentos sobre fondos oscuros |
-| `--color-canvas` | `#1D1D1F` | Lienzo principal de página y tarjetas base |
-| `--color-canvas-parchment` | `#252527` | Secciones alternas, contenedores de tablero y tarjetas secundarias |
-| `--color-surface-tile-1` | `#161617` | Bloques de sección profunda (*Full-bleed dark tiles*) |
-| `--color-surface-tile-2` | `#202022` | Celdas destacadas del Bento Grid y filas de mundos |
-| `--color-surface-tile-3` | `#2A2A2C` | Celdas de superficie, píldoras de etapas y tarjetas de curso |
-| `--color-surface-black` | `#000000` | Barra de navegación global superior (`global-nav`) |
-| `--color-ink` / `--color-body` | `#F5F5F7` | Texto principal de alta legibilidad |
-| `--color-ink-muted-80` | `#D2D2D7` | Subtítulos, descripciones e instrucciones |
-| `--color-ink-muted-48` | `#98989D` | Metadatos, notas al pie y contadores |
-| `--color-hairline` | `#38383A` | Bordes sutiles de `1px` y `1.5px` en tarjetas y divisores |
+| `--color-primary` | `#1B7EDC` | **Azul "Code" Oficial**: Botones primarios, enlaces, rastro del robot y bloques de movimiento |
+| `--color-primary-focus` | `#2FA0FF` | **Azul Brillante de Foco**: Estados `hover`, focos accesibles y anillos de selección activa |
+| `--color-primary-on-dark` | `#38BDF8` | **Cian Acento**: Destellos de partículas y texto resaltado sobre fondos oscuros |
+| `--color-accent-lime` | `#B8EC63` | **Verde "Kids" Oficial**: Botones CTA 3D (`cta-3d-lime`), corchetes y celebración |
+| `--color-canvas` | `#101B2B` | **Lienzo Base**: Armonizado con el fondo `#1B2A41` del logo |
+| `--color-canvas-parchment` | `#17253B` | Contenedores de misiones, tableros y tarjetas flotantes |
+| `--color-surface-tile-1` | `#0D1624` | Bloques oscuros de sección profunda y pie de página |
+| `--color-surface-tile-2` | `#16243A` | Superficies de Bento Grid y paneles del editor |
+| `--color-surface-tile-3` | `#1B2A41` | **Fondo Exacto del Logo**: Tarjetas destacadas y celdas de simulación |
+| `--color-surface-black` | `#09101A` | Barra de navegación superior translúcida (`global-nav`) |
+| `--color-ink` / `--color-body` | `#F8FAFC` / `#F1F5F9` | Texto principal de alta legibilidad |
+| `--color-ink-muted-80` | `#CBD5E1` | Subtítulos, descripciones de reto y diálogos |
+| `--color-ink-muted-48` | `#94A3B8` | Metadatos secundarios, coordenadas `(X, Y)` y notas |
+| `--color-hairline` | `rgba(27, 126, 220, 0.28)` | Bordes sutiles inspirados en el aura azul del logo |
 
 #### ☀️ 2. Modo Claro — *Original CodeKids Vibrant Palette*
-Recupera la paleta luminosa, escolar y juguetona original de CodeKids con contrastes azul marino, verde lima y pasteles cálidos:
+Armoniza la luminosidad escolar con los contrastes identitarios de la marca:
 
 | Token / Elemento | Valor Hex | Uso en la Interfaz |
 | :--- | :--- | :--- |
-| `--color-primary` | `#0878E8` | Azul brillante corporativo CodeKids |
-| `--color-primary-focus` | `#0563C4` | Azul profundo para estados activos y foco |
-| `--color-ink` | `#142A3D` | Azul marino profundo para títulos |
-| `--color-body` | `#263746` | Texto corrido de lectura cómoda |
-| `--color-canvas` | `#FFFFFF` | Fondo limpio de tarjetas y secciones principales |
-| `--color-canvas-parchment` | `#F6F9FC` | Fondo general perlado azulado |
-| `--color-surface-pearl` | `#EDF7FF` | Superficies de realce suave y chips seleccionados |
-| `.student-hero-tile` (Light) | `#10283C` | Banner Hero de estudiante en azul aventura nocturno |
-| `.adventure-cta-btn` (Light) | `#B8F36B` (Texto `#19311A`) | Verde lima icónico de CodeKids para el CTA *"Continuar misión"* |
-| `.teacher-hero-tile` (Light) | `#E9F8EF` | Banner Hero docente en verde menta escolar |
+| `--color-primary` | `#1B7EDC` | Azul brillante corporativo CodeKids |
+| `--color-primary-focus` | `#1463B0` | Azul profundo para estados activos y foco |
+| `--color-accent-lime` | `#5D9915` (Badges `#B8EC63`) | Verde lima equilibrado para lectura accesible WCAG |
+| `--color-ink` | `#1B2A41` | **Azul Marino del Logo**: Utilizado en títulos y textos destacados |
+| `--color-body` | `#23344E` | Texto corrido de lectura cómoda |
+| `--color-canvas` | `#FFFFFF` | Fondo blanco limpio de tarjetas y secciones principales |
+| `--color-canvas-parchment` | `#F3F7FB` | Fondo general perlado azulado suave |
+| `--color-surface-pearl` | `#EAF2FA` | Superficies de realce suave y chips seleccionados |
+| `.student-hero-tile` (Light) | `#101B2B` | Banner Hero de estudiante en azul noche cósmico |
+| `.cta-3d-lime` (Light) | `#B8EC63` (Texto `#101B2B`) | Verde lima icónico de CodeKids para botones de acción con máximo contraste |
+| `.teacher-hero-tile` (Light) | `#EBF8EC` | Banner Hero docente en verde menta escolar |
 | **Mundos en Modo Claro** | `#F5FAEF` / `#F0F9FA` / `#F5F2FB` | Tintes pastel exclusivos para Bosque (verde), Isla (cian) y Cueva (lavanda) |
 
 #### 🎨 3. Paleta Semántica de Tonos Funcionales (`Tones`)
