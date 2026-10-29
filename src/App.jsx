@@ -54,6 +54,7 @@ import {
   syncMissionSuccess,
   syncAvatarPurchase,
   authenticateUser,
+  registerUser,
   UNIVERSITY_ACCOUNTS,
 } from './supabase.js';
 
@@ -646,14 +647,19 @@ function Login({ onEnter }) {
           setErrorMessage('La contraseña debe tener mínimo 8 caracteres.');
           return;
         }
-        const newUser = {
-          id: Date.now(),
+        const regResult = await registerUser({
           name: name.trim() || (role === 'teacher' ? 'Docente' : 'Explorador'),
-          email: email.trim().toLowerCase(),
+          email,
+          password,
           role,
           avatar: selectedAvatar,
-        };
-        onEnter(newUser);
+        });
+
+        if (!regResult.ok) {
+          setErrorMessage(regResult.error || 'No se pudo crear la cuenta.');
+          return;
+        }
+        onEnter(regResult.user);
       } else if (authMode === 'login') {
         const authResult = await authenticateUser(email, password);
         if (!authResult.ok) {

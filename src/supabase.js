@@ -156,6 +156,106 @@ export async function authenticateUser(email, password) {
 }
 
 /**
+ * Registra un nuevo usuario en la base de datos de Supabase.
+ */
+export async function registerUser({ name, email, password, role = 'student', avatar = 'dragon' }) {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const userName = (name || '').trim() || (role === 'teacher' ? 'Docente' : 'Explorador');
+  const userRole = role === 'teacher' ? 'docente' : 'estudiante';
+
+  if (!normalizedEmail) {
+    return { ok: false, error: 'Por favor ingresa un correo electrónico.' };
+  }
+  if (!password || password.length < 8) {
+    return { ok: false, error: 'La contraseña debe tener mínimo 8 caracteres.' };
+  }
+
+  // 1. Si Supabase está conectado, guardar en PostgreSQL
+  if (supabase) {
+    try {
+      // Comprobar si ya existe
+      const { data: existente } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('correo', normalizedEmail)
+        .maybeSingle();
+
+      if (existente) {
+        return { ok: false, error: 'Este correo ya está registrado en la base de datos. Por favor inicia sesión.' };
+      }
+
+      // Insertar en tabla usuarios
+      const { data: nuevo, error: errInsert } = await supabase
+        .from('usuarios')
+        .insert({
+          correo: normalizedEmail,
+          nombre: userName,
+          rol: userRole,
+          contrasena_hash: password,
+          es_perfil_rapido: false,
+          activo: true,
+        })
+        .select('id, nombre, correo, rol')
+        .single();
+
+      if (errInsert || !nuevo) {
+        console.error('[Supabase Register Error]', errInsert);
+        return {
+          ok: false,
+          error: `Error de Supabase: ${errInsert?.message || 'No se pudo registrar'}.`,
+        };
+      }
+
+      const newUserId = nuevo.id;
+
+      // Si es estudiante, crear su perfil gamificado inicial
+      if (userRole === 'estudiante') {
+        await supabase.from('perfiles_gamificacion').insert({
+          usuario_id: newUserId,
+          puntos_xp: 0,
+          saldo_monedas: 20,
+          dias_racha: 1,
+          avatar_activo_id: avatar || 'dragon',
+          sonido_habilitado: true,
+        });
+
+        // Asignar avatar al inventario
+        await supabase.from('inventario_avatares_usuario').insert({
+          usuario_id: newUserId,
+          avatar_id: avatar || 'dragon',
+        });
+      }
+
+      return {
+        ok: true,
+        user: {
+          id: newUserId,
+          name: nuevo.nombre,
+          email: nuevo.correo,
+          role,
+          avatar,
+        },
+      };
+    } catch (e) {
+      console.error('[Supabase Register Exception]', e);
+      return { ok: false, error: 'Error de conexión con Supabase.' };
+    }
+  }
+
+  // 2. Fallback si no está configurado Supabase
+  return {
+    ok: true,
+    user: {
+      id: Date.now(),
+      name: userName,
+      email: normalizedEmail,
+      role,
+      avatar,
+    },
+  };
+}
+
+/**
  * Carga el perfil completo de un estudiante desde Supabase (HUD, XP, Avatares, Progreso).
  */
 export async function loadStudentFromSupabase(userId) {
