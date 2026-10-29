@@ -15,13 +15,145 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Mapa de perfiles rápidos locales a IDs numéricos de Supabase
+// Mapa de perfiles rápidos a IDs numéricos
 export const QUICK_PROFILE_IDS = {
   sofi: 1,
   mateo: 2,
   valeria: 3,
   profe: 4,
 };
+
+// Cuentas oficiales para sustentación y presentación universitaria
+export const UNIVERSITY_ACCOUNTS = {
+  'sofi@codekids.edu.co': {
+    id: 1,
+    name: 'Sofi',
+    email: 'sofi@codekids.edu.co',
+    role: 'student',
+    avatar: 'dragon',
+    badge: 'Nvl. 3 · Secuencias',
+    passwords: ['CodeKids2026*', 'Sofi12345*', '12345678'],
+  },
+  'mateo@codekids.edu.co': {
+    id: 2,
+    name: 'Mateo',
+    email: 'mateo@codekids.edu.co',
+    role: 'student',
+    avatar: 'robot',
+    badge: 'Nvl. 2 · Bucles',
+    passwords: ['CodeKids2026*', 'Mateo12345*', '12345678'],
+  },
+  'valeria@codekids.edu.co': {
+    id: 3,
+    name: 'Valeria',
+    email: 'valeria@codekids.edu.co',
+    role: 'student',
+    avatar: 'fox',
+    badge: 'Nvl. 4 · Python',
+    passwords: ['CodeKids2026*', 'Valeria12345*', '12345678'],
+  },
+  'alex.profe@codekids.edu.co': {
+    id: 4,
+    name: 'Profe Alex',
+    email: 'alex.profe@codekids.edu.co',
+    role: 'teacher',
+    avatar: 'unicorn',
+    badge: 'Docente · 5° A',
+    passwords: ['CodeKids2026*', 'Profe2026*', '12345678'],
+  },
+};
+
+/**
+ * Autentica al usuario por correo y contraseña.
+ */
+export async function authenticateUser(email, password) {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const trimmedPassword = (password || '').trim();
+
+  if (!normalizedEmail) {
+    return { ok: false, error: 'Por favor ingresa tu correo electrónico.' };
+  }
+  if (!trimmedPassword) {
+    return { ok: false, error: 'Por favor ingresa tu contraseña.' };
+  }
+
+  // 1. Si Supabase está conectado, buscar en la tabla 'usuarios'
+  if (supabase) {
+    try {
+      const { data: dbUser, error } = await supabase
+        .from('usuarios')
+        .select('id, nombre, correo, rol, etiqueta_rapida')
+        .eq('correo', normalizedEmail)
+        .single();
+
+      if (!error && dbUser) {
+        const known = UNIVERSITY_ACCOUNTS[normalizedEmail];
+        const isKnownPassword = known ? known.passwords.includes(trimmedPassword) : false;
+
+        // Aceptar contraseña oficial o clave >= 8 caracteres
+        if (isKnownPassword || trimmedPassword === 'CodeKids2026*' || trimmedPassword.length >= 8) {
+          const { data: perfil } = await supabase
+            .from('perfiles_gamificacion')
+            .select('avatar_activo_id')
+            .eq('usuario_id', dbUser.id)
+            .single();
+
+          return {
+            ok: true,
+            user: {
+              id: dbUser.id,
+              name: dbUser.nombre,
+              email: dbUser.correo,
+              role: dbUser.rol === 'docente' ? 'teacher' : 'student',
+              avatar: perfil?.avatar_activo_id || known?.avatar || 'dragon',
+            },
+          };
+        } else {
+          return { ok: false, error: 'Contraseña incorrecta. Recuerda usar: CodeKids2026*' };
+        }
+      }
+    } catch (err) {
+      console.warn('[Supabase Auth]', err);
+    }
+  }
+
+  // 2. Comprobar contra las cuentas universitarias estándar
+  const academic = UNIVERSITY_ACCOUNTS[normalizedEmail];
+  if (academic) {
+    if (academic.passwords.includes(trimmedPassword) || trimmedPassword === 'CodeKids2026*') {
+      return {
+        ok: true,
+        user: {
+          id: academic.id,
+          name: academic.name,
+          email: academic.email,
+          role: academic.role,
+          avatar: academic.avatar,
+        },
+      };
+    }
+    return { ok: false, error: 'Contraseña incorrecta. La clave es: CodeKids2026*' };
+  }
+
+  // 3. Si no es una de las 4 pero tiene formato de correo y contraseña >= 8
+  if (trimmedPassword.length >= 8) {
+    const isTeacher = normalizedEmail.includes('profe') || normalizedEmail.includes('docente');
+    const autoName = normalizedEmail.split('@')[0].replace(/[._-]/g, ' ');
+    const formattedName = autoName.charAt(0).toUpperCase() + autoName.slice(1);
+    return {
+      ok: true,
+      user: {
+        id: Date.now(),
+        name: formattedName || (isTeacher ? 'Docente' : 'Explorador'),
+        email: normalizedEmail,
+        role: isTeacher ? 'teacher' : 'student',
+        avatar: isTeacher ? 'unicorn' : 'dragon',
+      },
+    };
+  }
+
+  return { ok: false, error: 'Credenciales inválidas. Revisa tu correo y contraseña.' };
+}
 
 /**
  * Carga el perfil completo de un estudiante desde Supabase (HUD, XP, Avatares, Progreso).

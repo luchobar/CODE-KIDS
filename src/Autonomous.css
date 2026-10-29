@@ -3436,3 +3436,8 @@ textarea {
   letter-spacing: 0.02em;
   text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
 }
+
+.full-width-cta {
+  width: 100%;
+  justify-content: center;
+}

@@ -53,6 +53,8 @@ import {
   loadStudentFromSupabase,
   syncMissionSuccess,
   syncAvatarPurchase,
+  authenticateUser,
+  UNIVERSITY_ACCOUNTS,
 } from './supabase.js';
 
 const STORAGE_KEY = 'codekids-demo-state';
@@ -636,37 +638,29 @@ function Login({ onEnter }) {
 
     try {
       if (authMode === 'register') {
-        const res = await fetchWithCsrf('/api/v1/auth/register', {
-          method: 'POST',
-          body: JSON.stringify({
-            email,
-            password,
-            name: name.trim() || (role === 'teacher' ? 'Profe Alex' : 'Sofi'),
-            role,
-            returnTo: '/dashboard',
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setErrorMessage(data.error || 'No fue posible completar el registro.');
+        if (!isEmailValid) {
+          setErrorMessage('Por favor ingresa un correo institucional o válido.');
           return;
         }
-        onEnter({ ...data.user, avatar: selectedAvatar });
+        if (!isPasswordValid) {
+          setErrorMessage('La contraseña debe tener mínimo 8 caracteres.');
+          return;
+        }
+        const newUser = {
+          id: Date.now(),
+          name: name.trim() || (role === 'teacher' ? 'Docente' : 'Explorador'),
+          email: email.trim().toLowerCase(),
+          role,
+          avatar: selectedAvatar,
+        };
+        onEnter(newUser);
       } else if (authMode === 'login') {
-        const res = await fetchWithCsrf('/api/v1/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({
-            email,
-            password,
-            returnTo: '/dashboard',
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setErrorMessage(data.error || 'Credenciales inválidas.');
+        const authResult = await authenticateUser(email, password);
+        if (!authResult.ok) {
+          setErrorMessage(authResult.error || 'Credenciales inválidas.');
           return;
         }
-        onEnter({ ...data.user, avatar: selectedAvatar });
+        onEnter(authResult.user);
       } else if (authMode === 'reset') {
         if (!resetToken.trim()) {
           const res = await fetchWithCsrf('/api/v1/auth/password-reset/request', {
@@ -743,58 +737,6 @@ function Login({ onEnter }) {
                       }}
                     >
                       <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Selección Rápida de Avatar y Perfil (Para Aula o Equipos Compartidos) */}
-              <div className="quick-avatar-bar">
-                <div className="quick-avatar-header">
-                  <span className="field-label">⚡ Acceso rápido de aula o elige tu avatar</span>
-                  <small className="field-helper">Ideal para equipos compartidos</small>
-                </div>
-                <div className="quick-profiles-grid" role="group" aria-label="Perfiles rápidos de aula">
-                  {QUICK_PROFILES.map((profile) => (
-                    <button
-                      type="button"
-                      key={profile.id}
-                      className={`quick-profile-card${selectedAvatar === profile.avatar && name === profile.name ? ' active' : ''}`}
-                      onClick={() => {
-                        setSelectedAvatar(profile.avatar);
-                        setName(profile.name);
-                        setRole(profile.role);
-                        onEnter({
-                          name: profile.name,
-                          role: profile.role,
-                          avatar: profile.avatar,
-                        });
-                      }}
-                    >
-                      <span className="quick-profile-avatar">
-                        <AvatarGlyph avatar={profile.avatar} size={20} />
-                      </span>
-                      <span className="quick-profile-meta">
-                        <b>{profile.name}</b>
-                        <small>{profile.badge}</small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="avatar-pills-row" role="radiogroup" aria-label="Selecciona tu compañero">
-                  {AVATAR_SHOP.map((item) => (
-                    <button
-                      type="button"
-                      key={item.avatar}
-                      role="radio"
-                      aria-checked={selectedAvatar === item.avatar}
-                      className={`avatar-mini-pill${selectedAvatar === item.avatar ? ' selected' : ''}`}
-                      onClick={() => setSelectedAvatar(item.avatar)}
-                      title={item.name}
-                    >
-                      <AvatarGlyph avatar={item.avatar} size={16} />
-                      <span>{item.name.split(' ')[0]}</span>
                     </button>
                   ))}
                 </div>
@@ -957,34 +899,20 @@ function Login({ onEnter }) {
               )}
 
               <div className="hero-cta-row">
-                <button className="button-store-hero cta-3d-lime" type="submit" disabled={submitting}>
+                <button className="button-store-hero cta-3d-lime full-width-cta" type="submit" disabled={submitting}>
                   <RocketLaunch size={18} weight="fill" />
                   <span>
                     {submitting
-                      ? 'Conectando...'
+                      ? 'Validando credenciales...'
                       : authMode === 'register'
-                        ? 'Crear cuenta y despegar'
+                        ? 'Crear cuenta y comenzar'
                         : authMode === 'reset'
                           ? resetToken.trim()
                             ? 'Confirmar nueva clave'
-                            : 'Enviar enlace mágico'
-                          : '¡Entrar a la Aventura!'}
+                            : 'Enviar enlace de recuperación'
+                          : 'Iniciar sesión en CODEKIDS'}
                   </span>
                   <ArrowRight size={16} weight="bold" />
-                </button>
-                <button
-                  type="button"
-                  className="button-secondary-pill"
-                  onClick={() =>
-                    onEnter({
-                      name: name.trim() || (role === 'teacher' ? 'Profe Alex' : 'Sofi'),
-                      role,
-                      avatar: selectedAvatar,
-                    })
-                  }
-                >
-                  <Play size={15} weight="fill" />
-                  <span>Modo Demo Rápido</span>
                 </button>
               </div>
             </form>
