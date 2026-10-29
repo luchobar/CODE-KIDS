@@ -3863,3 +3863,247 @@ textarea {
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   SISTEMA DE NAVEGACIÓN Y EXPERIENCIA MOBILE-FIRST NATIVA
+   ========================================================================== */
+
+.mobile-bottom-bar {
+  display: none;
+}
+
+@media (max-width: 833px) {
+  /* Evitar zoom automático molesto en iOS al enfocar campos de texto */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Optimizar respuesta táctil y eliminar retardo de 300ms en botones */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Espacio de resguardo inferior en el contenedor principal para la barra fija */
+  .portal-shell {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Barra de Navegación Móvil Inferior Flotante (Bottom Navigation Bar) */
+  .mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 995;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: var(--color-surface-frosted, rgba(15, 23, 42, 0.94));
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border-top: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.2));
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  .mobile-bottom-item {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-ink-subtle, #94A3B8);
+    font-family: var(--font-display, inherit);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color 0.18s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-bottom-item:active {
+    transform: scale(0.90);
+  }
+
+  .mobile-bottom-item.active {
+    color: var(--color-primary-focus, #00F0FF);
+    font-weight: 800;
+  }
+
+  .mobile-bottom-item.active svg {
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.7));
+    transform: translateY(-1px);
+  }
+
+  /* Ocultar la barra superior duplicada cuando la inferior está activa */
+  .mobile-quick-nav {
+    display: none !important;
+  }
+
+  /* Ajustes ergonómicos en la cabecera móvil */
+  .global-nav-logo-horizontal {
+    max-height: 28px;
+    width: auto;
+  }
+
+  .sub-nav-frosted {
+    padding: 6px 0;
+  }
+
+  /* Ajustes en tarjetas de héroe y formularios en celular */
+  .split-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .hero-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .hero-cta-row button {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .split-hero-visual {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  /* Pantallas de misiones en modo pantalla completa en móvil */
+  .fullscreen-exercise-page {
+    padding: 10px 0 24px;
+  }
+
+  .fullscreen-exercise-container {
+    padding: 0 12px;
+  }
+
+  .workspace-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .workspace-back-btn {
+    align-self: flex-start;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+  }
+
+  .workspace-title-group h1 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+  }
+
+  .workspace-title-group p {
+    font-size: 0.86rem;
+  }
+
+  /* Misiones del mapa de mundos en móvil */
+  .world-showcase-row {
+    flex-direction: column;
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .world-showcase-media {
+    width: 100%;
+    text-align: center;
+  }
+
+  .world-render-img {
+    height: 160px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    margin: 0 auto;
+  }
+
+  .world-stage-pill {
+    padding: 12px 14px;
+    min-height: 52px;
+  }
+
+  .world-stage-text b {
+    font-size: 0.88rem;
+  }
+
+  .world-stage-text small {
+    font-size: 0.74rem;
+  }
+
+  /* Modales en móvil: aspecto estilo Bottom Sheet */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .feedback-modal,
+  .avatar-shop,
+  .assignment-modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+    max-height: 90dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 480px) {
+  .global-nav-brand span {
+    font-size: 1.05rem;
+  }
+
+  .hud-mode-pill {
+    max-width: 180px;
+    font-size: 0.82rem;
+  }
+
+  .hud-xp-pill {
+    padding: 3px 7px;
+  }
+
+  .hud-xp-text {
+    display: none;
+  }
+
+  .streak-metric {
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  .coin-hud-btn {
+    padding: 5px 9px;
+    font-size: 0.78rem;
+  }
+
+  .sub-nav-cta {
+    padding: 5px 9px;
+    font-size: 0.72rem;
+  }
+}

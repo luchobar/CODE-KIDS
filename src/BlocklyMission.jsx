@@ -218,6 +218,16 @@ export default function BlocklyMission({
   const [message, setMessage] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [hintIndex, setHintIndex] = useState(0);
+  const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'stage' | 'briefing'
+
+  const switchMobileTab = (tab) => {
+    setMobileTab(tab);
+    if (tab === 'editor') {
+      window.setTimeout(() => {
+        if (workspaceRef.current) Blockly.svgResize(workspaceRef.current);
+      }, 60);
+    }
+  };
 
   useEffect(() => {
     if (!hostRef.current) return undefined;
@@ -377,6 +387,12 @@ export default function BlocklyMission({
   const runProgram = async () => {
     const workspace = workspaceRef.current;
     if (!workspace || running) return;
+
+    // En pantallas de celular o tablet, alternar automáticamente al escenario para ver a Pipo avanzar
+    if (typeof window !== 'undefined' && window.innerWidth <= 860) {
+      setMobileTab('stage');
+    }
+
     const plan = buildActionQueue();
     setRunning(true);
     setPaused(false);
@@ -411,6 +427,11 @@ export default function BlocklyMission({
 
   const runSingleStep = () => {
     if (running) return;
+
+    if (typeof window !== 'undefined' && window.innerWidth <= 860) {
+      setMobileTab('stage');
+    }
+
     const plan = buildActionQueue();
     if (!plan.actions.length) {
       finalizeOutcome(plan);
@@ -466,9 +487,46 @@ export default function BlocklyMission({
 
   return (
     <div className="blockly-mission">
-      <div className="blockly-three-panel-grid">
+      {/* Selector de vistas optimizado para dispositivos móviles */}
+      <div className="blockly-mobile-tabs-bar" role="tablist" aria-label="Selector de vista móvil">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === 'editor'}
+          className={`blockly-mobile-tab-btn${mobileTab === 'editor' ? ' active' : ''}`}
+          onClick={() => switchMobileTab('editor')}
+        >
+          <span className="tab-icon">🧩</span>
+          <span>Bloques</span>
+          <span className="mobile-pill-badge">{blockCount}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === 'stage'}
+          className={`blockly-mobile-tab-btn${mobileTab === 'stage' ? ' active' : ''}`}
+          onClick={() => switchMobileTab('stage')}
+        >
+          <span className="tab-icon">🤖</span>
+          <span>Escenario</span>
+          {running && <span className="tab-live-pulse" />}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === 'briefing'}
+          className={`blockly-mobile-tab-btn${mobileTab === 'briefing' ? ' active' : ''}`}
+          onClick={() => switchMobileTab('briefing')}
+        >
+          <span className="tab-icon">💡</span>
+          <span>Pipo y Pistas</span>
+          {hintIndex > 0 && <span className="tab-hint-counter">{hintIndex}</span>}
+        </button>
+      </div>
+
+      <div className={`blockly-three-panel-grid mobile-active-${mobileTab}`}>
         {/* PANEL IZQUIERDO: Guía Pipo + Objetivos en Viñetas + Pistas */}
-        <aside className="mission-briefing-panel" aria-label="Instrucciones de la misión">
+        <aside className="mission-briefing-panel tab-panel-briefing" aria-label="Instrucciones de la misión">
           <div className={`pipo-guide-card mood-${mood}`} aria-live="polite">
             <div className="pipo-avatar-orb">
               <Cpu size={28} weight="duotone" />
@@ -537,7 +595,7 @@ export default function BlocklyMission({
         </aside>
 
         {/* PANEL CENTRAL: Área de Bloques y Espacio de Trabajo */}
-        <section className="blockly-editor-panel" aria-label="Espacio de trabajo de bloques">
+        <section className="blockly-editor-panel tab-panel-editor" aria-label="Espacio de trabajo de bloques">
           <div className="editor-panel-toolbar">
             <div className="editor-toolbar-title">
               <span className="editor-dot cyan" />
@@ -559,10 +617,30 @@ export default function BlocklyMission({
           <div className="blockly-editor-area">
             <div ref={hostRef} className="blockly-host" aria-label="Editor de programación por bloques" />
           </div>
+
+          {/* Barra rápida móvil debajo del editor para probar sin perder el contexto */}
+          <div className="blockly-editor-mobile-quickbar">
+            <button
+              type="button"
+              className="btn-quick-run"
+              onClick={runProgram}
+              disabled={running}
+            >
+              <Play size={16} weight="fill" />
+              <span>{running ? 'Ejecutando en Escenario...' : 'Probar en Escenario ▶️'}</span>
+            </button>
+            <button
+              type="button"
+              className="btn-quick-switch"
+              onClick={() => switchMobileTab('stage')}
+            >
+              <span>Ver Escenario 🤖</span>
+            </button>
+          </div>
         </section>
 
         {/* PANEL DERECHO: Visualizador / Escenario del Juego */}
-        <section className="robot-game" aria-label="Escenario de simulación">
+        <section className="robot-game tab-panel-stage" aria-label="Escenario de simulación">
           {showConfetti && (
             <div className="confetti-burst" aria-hidden="true">
               {Array.from({ length: 18 }, (_, idx) => (
@@ -662,6 +740,15 @@ export default function BlocklyMission({
               >
                 <ArrowCounterClockwise size={15} weight="bold" />
                 <span>Reiniciar</span>
+              </button>
+
+              <button
+                type="button"
+                className="media-ctrl-btn switch-blocks-btn"
+                onClick={() => switchMobileTab('editor')}
+                title="Volver al constructor de bloques"
+              >
+                <span>🧩 Bloques</span>
               </button>
             </div>
           </div>

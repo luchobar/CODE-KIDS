@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   ArrowCounterClockwise,
   ArrowLeft,
@@ -134,6 +134,24 @@ export default function PythonMission({ completed = [], onComplete, onClose }) {
   const [success, setSuccess] = useState(false);
   const [hintIndex, setHintIndex] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
+  const textareaRef = useRef(null);
+
+  const insertSnippet = (snippet, cursorOffset) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart ?? code.length;
+    const end = textarea.selectionEnd ?? code.length;
+    const next = `${code.slice(0, start)}${snippet}${code.slice(end)}`;
+    setCode(next);
+    setResult('');
+    setSuccess(false);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const pos = typeof cursorOffset === 'number' ? start + cursorOffset : start + snippet.length;
+      textarea.setSelectionRange(pos, pos);
+    });
+  };
   const canUnlock = (index) => index === 0 || completed.includes(missions[index - 1].id);
 
   const selectMission = (index) => {
@@ -149,6 +167,11 @@ export default function PythonMission({ completed = [], onComplete, onClose }) {
 
   const runCode = async () => {
     if (running) return;
+
+    if (typeof window !== 'undefined' && window.innerWidth <= 860) {
+      setMobileTab('preview');
+    }
+
     setRunning(true);
     setResult('');
     setSuccess(false);
@@ -288,8 +311,33 @@ export default function PythonMission({ completed = [], onComplete, onClose }) {
           </p>
         )}
 
-        <div className="python-workspace">
-          <div className="python-editor-card">
+        {/* Selector de pestañas para móvil */}
+        <div className="python-mobile-tabs-bar" role="tablist" aria-label="Selector de vista de Python">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'editor'}
+            className={`python-mobile-tab-btn${mobileTab === 'editor' ? ' active' : ''}`}
+            onClick={() => setMobileTab('editor')}
+          >
+            <span className="tab-icon">💻</span>
+            <span>Editor Python</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'preview'}
+            className={`python-mobile-tab-btn${mobileTab === 'preview' ? ' active' : ''}`}
+            onClick={() => setMobileTab('preview')}
+          >
+            <span className="tab-icon">🤖</span>
+            <span>Tablero del Robot</span>
+            {running && <span className="tab-live-pulse" />}
+          </button>
+        </div>
+
+        <div className={`python-workspace mobile-active-${mobileTab}`}>
+          <div className="python-editor-card tab-panel-python-editor">
             <div className="python-editor-header">
               <span>
                 <TerminalWindow size={15} weight="regular" /> main.py
@@ -305,8 +353,38 @@ export default function PythonMission({ completed = [], onComplete, onClose }) {
                 <ArrowCounterClockwise size={13} weight="regular" /> Restaurar código
               </button>
             </div>
+
+            {/* Barra de atajos de código pensada especialmente para teclear en celulares */}
+            <div className="python-mobile-syntax-bar" aria-label="Teclado rápido de código Python">
+              <button type="button" className="syntax-chip" onClick={() => insertSnippet('avanzar()\n')}>
+                <code>avanzar()</code>
+              </button>
+              <button type="button" className="syntax-chip" onClick={() => insertSnippet('girar_derecha()\n')}>
+                <code>girar_derecha()</code>
+              </button>
+              <button type="button" className="syntax-chip" onClick={() => insertSnippet('girar_izquierda()\n')}>
+                <code>girar_izquierda()</code>
+              </button>
+              <button type="button" className="syntax-chip" onClick={() => insertSnippet('for paso in range(2):\n    ', 20)}>
+                <code>for ... in range():</code>
+              </button>
+              <button type="button" className="syntax-chip" onClick={() => insertSnippet('if hay_pared():\n    ', 19)}>
+                <code>if hay_pared():</code>
+              </button>
+              <button type="button" className="syntax-chip indent-chip" onClick={() => insertSnippet('    ')}>
+                <span>⇥ 4 esp</span>
+              </button>
+              <button type="button" className="syntax-chip char-chip" onClick={() => insertSnippet(':')}>
+                <span>:</span>
+              </button>
+              <button type="button" className="syntax-chip char-chip" onClick={() => insertSnippet('()', 1)}>
+                <span>( )</span>
+              </button>
+            </div>
+
             <label className="sr-only" htmlFor="python-code-editor">Editor de código Python</label>
             <textarea
+              ref={textareaRef}
               id="python-code-editor"
               aria-label="Escribe tu código Python"
               spellCheck="false"
@@ -326,12 +404,12 @@ export default function PythonMission({ completed = [], onComplete, onClose }) {
               </small>
               <button type="button" className="python-run" onClick={runCode} disabled={running}>
                 <Play size={15} weight="fill" />
-                <span>{running ? 'Ejecutando' : 'Ejecutar código'}</span>
+                <span>{running ? 'Ejecutando en Tablero...' : 'Ejecutar código ▶️'}</span>
               </button>
             </div>
           </div>
 
-          <div className="python-preview">
+          <div className="python-preview tab-panel-python-preview">
             <div className="python-preview-title">
               <span>{mission.stageLabel}</span>
               <b>{mission.objective}</b>
@@ -360,6 +438,24 @@ export default function PythonMission({ completed = [], onComplete, onClose }) {
                   </span>
                 );
               })}
+            </div>
+            <div className="python-preview-actions-mobile">
+              <button
+                type="button"
+                className="python-back-to-editor-btn"
+                onClick={() => setMobileTab('editor')}
+              >
+                <span>💻 Volver al Editor de Código</span>
+              </button>
+              <button
+                type="button"
+                className="python-preview-run-btn"
+                onClick={runCode}
+                disabled={running}
+              >
+                <Play size={15} weight="fill" />
+                <span>{running ? 'Probando...' : 'Reejecutar'}</span>
+              </button>
             </div>
             <small className="python-attempts">Intentos realizados: {attempts}</small>
           </div>

@@ -411,6 +411,78 @@
   cursor: pointer;
 }
 
+/* ==========================================================================
+   OPTIMIZACIÓN MOBILE-FIRST PARA LABORATORIO DE PYTHON
+   ========================================================================== */
+
+.python-mobile-tabs-bar {
+  display: none;
+}
+
+.python-mobile-syntax-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom: 1px solid var(--color-hairline, rgba(255, 255, 255, 0.12));
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.python-mobile-syntax-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.syntax-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--color-canvas, rgba(15, 23, 42, 0.9));
+  color: #38BDF8;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.syntax-chip:active {
+  transform: scale(0.95);
+  background: rgba(56, 189, 248, 0.25);
+}
+
+.syntax-chip code {
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.syntax-chip.char-chip {
+  min-width: 36px;
+  color: #FACC15;
+  font-weight: 800;
+}
+
+.syntax-chip.indent-chip {
+  color: #A78BFA;
+  font-weight: 700;
+}
+
+.python-preview-actions-mobile {
+  display: none;
+}
+
 @media (max-width: 960px) {
   .python-stages {
     width: 100%;
@@ -429,35 +501,156 @@
   }
 }
 
+@media (max-width: 860px) {
+  .python-mobile-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 18px;
+    background: var(--color-surface-tile-2, rgba(19, 27, 46, 0.9));
+    border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.25));
+    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+    margin-bottom: 8px;
+    touch-action: manipulation;
+  }
+
+  .python-mobile-tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 8px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    color: var(--color-ink-subtle, #94A3B8);
+    font-family: var(--font-display, inherit);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .python-mobile-tab-btn.active {
+    background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+    color: #FFFFFF;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+  }
+
+  /* Control de vista de pestañas en móvil */
+  .python-workspace.mobile-active-editor .tab-panel-python-preview {
+    display: none !important;
+  }
+
+  .python-workspace.mobile-active-preview .tab-panel-python-editor {
+    display: none !important;
+  }
+
+  .python-preview-actions-mobile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin: 14px auto 0;
+  }
+
+  .python-back-to-editor-btn {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.3));
+    background: var(--color-canvas, rgba(15, 23, 42, 0.9));
+    color: var(--color-ink, #FFFFFF);
+    font-family: var(--font-display, inherit);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .python-preview-run-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #10B981, #06B6D4);
+    color: #FFFFFF;
+    font-family: var(--font-display, inherit);
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+}
+
 @media (max-width: 640px) {
   .python-stages {
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 8px;
+    padding: 4px 2px 10px;
   }
+
+  .python-stage {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+    min-height: 48px;
+    padding: 8px 12px;
+  }
+
   .python-teaching-row {
     flex-direction: column;
     align-items: flex-start;
+    padding: 12px 14px;
+    gap: 10px;
   }
+
   .python-teaching-row > button {
     width: 100%;
     justify-content: center;
+    padding: 10px 14px;
   }
+
   .python-editor-card textarea {
-    min-height: 230px;
-    padding: 14px 16px;
-    font-size: 13px;
+    min-height: 250px;
+    padding: 14px;
+    font-size: 15px;
+    line-height: 1.5;
   }
+
   .python-editor-footer {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
   }
+
   .python-run {
     width: 100%;
+    padding: 14px 18px;
+    font-size: 0.95rem;
   }
+
   .python-result {
     flex-direction: column;
     align-items: stretch;
+    padding: 14px;
   }
+
   .python-result button {
     justify-content: center;
+    padding: 12px 18px;
+    font-size: 0.9rem;
   }
 }

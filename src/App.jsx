@@ -3104,6 +3104,52 @@ export default function App() {
         onAssessment={openAssessment}
       />
 
+      {/* Barra de navegación inferior móvil estilo nativo para estudiantes */}
+      {state.user?.role === 'student' && !activePython && !activeSkill && !activeAssignment && (
+        <nav className="mobile-bottom-bar" aria-label="Navegación móvil inferior">
+          <button
+            type="button"
+            className={`mobile-bottom-item${view === 'home' ? ' active' : ''}`}
+            onClick={resetToHome}
+          >
+            <Compass size={22} weight={view === 'home' ? 'fill' : 'duotone'} />
+            <span>Inicio</span>
+          </button>
+          <button
+            type="button"
+            className="mobile-bottom-item"
+            onClick={goToMissions}
+          >
+            <RocketLaunch size={22} weight="duotone" />
+            <span>Misiones</span>
+          </button>
+          <button
+            type="button"
+            className="mobile-bottom-item"
+            onClick={openPythonLab}
+          >
+            <TerminalWindow size={22} weight="duotone" />
+            <span>Python</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-bottom-item${view === 'assessment' ? ' active' : ''}`}
+            onClick={openAssessment}
+          >
+            <Sparkle size={22} weight={view === 'assessment' ? 'fill' : 'duotone'} />
+            <span>Diagnóstico</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-bottom-item${avatarShop ? ' active' : ''}`}
+            onClick={() => setAvatarShop(true)}
+          >
+            <Coins size={22} weight="fill" />
+            <span>Tienda</span>
+          </button>
+        </nav>
+      )}
+
       {feedbackPrompt && <AiFeedback prompt={feedbackPrompt} onClose={() => setFeedbackPrompt('')} />}
       {avatarShop && state.user?.role === 'student' && (
         <AvatarShop state={state} onClose={() => setAvatarShop(false)} onBuy={buyAvatar} onSelect={selectAvatar} />
