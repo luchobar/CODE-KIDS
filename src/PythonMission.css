@@ -173,9 +173,9 @@
 .python-editor-card {
   min-width: 0;
   overflow: hidden;
-  border: 1.5px solid #2a2a2c;
+  border: 1px solid #2a2a2c;
   border-radius: var(--rounded-lg, 18px);
-  background: #161618;
+  background: var(--color-surface-tile-3, #252527);
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -187,8 +187,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: #202024;
-  border-bottom: 1px solid #2e2e32;
+  background: var(--color-surface-tile-1, #272729);
+  border-bottom: 1px solid #2a2a2c;
   color: #ffffff;
 }
 
@@ -207,10 +207,10 @@
   gap: 6px;
   border: 0;
   background: transparent;
-  color: #2997ff;
+  color: var(--color-primary-on-dark, #2997ff);
   font-family: var(--font-text);
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -223,8 +223,8 @@
   border: 0;
   outline: none;
   padding: 20px 24px;
-  background: #161618;
-  color: #f5f5f7;
+  background: var(--color-surface-tile-3, #252527);
+  color: #ffffff;
   font: 15px/1.75 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   tab-size: 4;
   white-space: pre;
@@ -237,26 +237,26 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 20px;
-  background: #202024;
-  border-top: 1px solid #2e2e32;
+  background: var(--color-surface-tile-1, #272729);
+  border-top: 1px solid #2a2a2c;
 }
 
 .python-editor-footer small {
   color: #cccccc;
   font-family: var(--font-text);
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: 0.875rem;
+  line-height: 1.43;
 }
 
 .python-editor-footer code {
-  color: #6ee7b7;
+  color: var(--color-primary-on-dark, #2997ff);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .python-run {
   flex: none;
   min-height: 44px;
-  padding: 11px 24px;
+  padding: 11px 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -266,8 +266,10 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-family: var(--font-text);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
   cursor: pointer;
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }

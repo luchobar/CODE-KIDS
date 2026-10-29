@@ -206,7 +206,7 @@ const initialState = {
 };
 
 const defaultA11y = {
-  theme: 'dark',
+  theme: 'light',
   fontScale: 'normal',
   reducedMotion: false,
   highContrast: false,
@@ -523,7 +523,7 @@ function Header({
           <div className="sub-nav-controls">
             {!user ? (
               <span className="sub-nav-caption">
-                {a11y.theme === 'light' ? '☀️ Tema Claro' : '🌌 Tema Neón Oscuro'}
+                {a11y.theme === 'dark' ? 'Galería Oscura' : 'Galería Clara'}
               </span>
             ) : user.role === 'student' ? (
               <>
