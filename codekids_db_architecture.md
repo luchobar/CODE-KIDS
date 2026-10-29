@@ -54,7 +54,7 @@ erDiagram
 #### A. Tabla `usuarios` (Identidad y Acceso)
 | Columna | Tipo de Dato | Restricciones | Propósito en CODEKIDS |
 | :--- | :--- | :--- | :--- |
-| `id` | `UUID` | `PK`, `DEFAULT gen_random_uuid()` | Identificador único universal del usuario. |
+| `id` | `BIGINT` | `PK`, `IDENTITY (1, 2, 3...)` | Identificador numérico limpio y correlativo del usuario. |
 | `correo` | `CITEXT` | `NOT NULL`, `UNIQUE` | Correo electrónico insensible a mayúsculas/minúsculas. |
 | `nombre` | `VARCHAR(120)` | `NOT NULL` | Nombre o apodo mostrado en el HUD y selector de aula (ej. *Sofi*). |
 | `rol` | `VARCHAR(20)` | `NOT NULL`, `CHECK IN ('estudiante','docente','admin')` | Define si accede al Mapa de Aventura o a la Consola Docente. |
@@ -82,7 +82,7 @@ erDiagram
 #### C. Tabla `perfiles_gamificacion` (HUD Superior de Progreso)
 | Columna | Tipo de Dato | Restricciones | Propósito en CODEKIDS |
 | :--- | :--- | :--- | :--- |
-| `usuario_id` | `UUID` | `PK`, `FK -> usuarios(id) ON DELETE CASCADE` | Vincula el perfil gamificado con el usuario. |
+| `usuario_id` | `BIGINT` | `PK`, `FK -> usuarios(id) ON DELETE CASCADE` | Vincula el perfil gamificado con el usuario. |
 | `puntos_xp` | `INTEGER` | `NOT NULL DEFAULT 0`, `CHECK >= 0` | Puntos de experiencia totales acumulados. |
 | `nivel_actual` | `INTEGER` | `GENERATED ALWAYS AS ((puntos_xp / 100) + 1) STORED` | Nivel calculado automáticamente cada 100 XP. |
 | `saldo_monedas` | `INTEGER` | `NOT NULL DEFAULT 0`, `CHECK >= 0` | Saldo actual de monedas para gastar en la tienda de avatares. |
@@ -96,7 +96,7 @@ erDiagram
 #### D. Tabla `inventario_avatares_usuario` (Inventario de Avatares Desbloqueados)
 | Columna | Tipo de Dato | Restricciones | Propósito en CODEKIDS |
 | :--- | :--- | :--- | :--- |
-| `usuario_id` | `UUID` | `PK (compuesta)`, `FK -> usuarios(id)` | Propietario del avatar. |
+| `usuario_id` | `BIGINT` | `PK (compuesta)`, `FK -> usuarios(id)` | Propietario del avatar. |
 | `avatar_id` | `VARCHAR(32)` | `PK (compuesta)`, `FK -> catalogo_avatares(id)` | Avatar desbloqueado o adquirido. |
 | `desbloqueado_en` | `TIMESTAMPTZ` | `NOT NULL DEFAULT NOW()` | Fecha y hora de adquisición. |
 
