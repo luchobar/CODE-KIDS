@@ -3469,3 +3469,283 @@ textarea {
   color: #f87171;
   border: 1px solid rgba(248, 113, 113, 0.4);
 }
+
+/* ==========================================================================
+   Mobile Navigation & Comprehensive Responsive Enhancements
+   ========================================================================== */
+
+.subsection-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.mobile-quick-nav {
+  display: none;
+}
+
+.mobile-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--rounded-pill);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-canvas-parchment);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.mobile-quick-btn:active {
+  transform: scale(0.96);
+}
+
+.auth-tabs-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.auth-tabs-bar .configurator-option-chip {
+  justify-content: center;
+  text-align: center;
+  padding: 10px 8px;
+  min-height: 42px;
+  font-size: 0.82rem;
+}
+
+.auth-tabs-bar .chip-copy {
+  justify-items: center;
+}
+
+@media (max-width: 833px) {
+  .mobile-quick-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px var(--space-md);
+    background-color: var(--color-surface-frosted);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--color-hairline);
+  }
+
+  .sub-nav-frosted {
+    height: auto;
+    min-height: 48px;
+    padding: 8px 0;
+  }
+
+  .sub-nav-inner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sub-nav-controls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .global-nav-inner,
+  .sub-nav-inner,
+  .tile-container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .global-nav-actions {
+    gap: 6px;
+  }
+
+  .theme-toggle-pill span,
+  .signout-pill span {
+    display: none;
+  }
+
+  .theme-toggle-pill,
+  .signout-pill {
+    padding: 6px 10px;
+  }
+
+  .mobile-quick-nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 8px 12px;
+    gap: 5px;
+  }
+
+  .mobile-quick-btn {
+    padding: 7px 6px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
+  .sub-nav-inner {
+    justify-content: space-between;
+  }
+
+  .sub-nav-product-title {
+    font-size: 0.95rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .hud-mode-pill {
+    font-size: 0.92rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hud-badge-cloud {
+    font-size: 0.68rem;
+    padding: 2px 7px;
+  }
+
+  .sub-nav-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .hud-xp-pill {
+    padding: 4px 9px;
+    gap: 6px;
+  }
+
+  .sub-nav-cta {
+    padding: 6px 11px;
+    font-size: 0.74rem;
+  }
+
+  .login-hero-tile {
+    padding: 24px 0 40px;
+  }
+
+  .glass-auth-card {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .auth-tabs-bar {
+    gap: 4px;
+  }
+
+  .auth-tabs-bar .configurator-option-chip {
+    padding: 8px 4px;
+    min-height: 38px;
+  }
+
+  .auth-tabs-bar .chip-copy b {
+    font-size: 0.74rem;
+  }
+
+  .floating-achievement-badge {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+  }
+
+  .floating-achievement-badge.top-badge {
+    top: 8px;
+    left: 8px;
+  }
+
+  .floating-achievement-badge.bottom-badge {
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .world-showcase-row {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .world-render-img {
+    height: 180px;
+  }
+
+  .adventure-filters-bar {
+    padding: 12px;
+  }
+
+  .filter-pill-group {
+    width: 100%;
+  }
+
+  .map-filter-chip {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .assignment-utility-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .assignment-utility-row .button-primary-pill {
+    width: 100%;
+  }
+
+  .companion-summary-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ai-route-header,
+  .card-header-row,
+  .proposed-exercises-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .challenge-skill-tabs,
+  .condition-options {
+    grid-template-columns: 1fr;
+  }
+
+  .proposed-exercise-actions {
+    width: 100%;
+  }
+
+  .proposed-exercise-actions button {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .feedback-modal,
+  .avatar-shop {
+    padding: 18px 14px;
+    width: calc(100vw - 16px);
+  }
+
+  .modal-header-block h2,
+  .avatar-shop h2 {
+    font-size: 1.35rem;
+  }
+
+  .shop-balance {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .workspace-reward-badges {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}

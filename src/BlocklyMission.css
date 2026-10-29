@@ -786,3 +786,44 @@
     height: clamp(360px, 52dvh, 480px);
   }
 }
+
+@media (max-width: 640px) {
+  .mission-briefing-panel,
+  .blockly-editor-panel,
+  .robot-simulator-panel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .mission-briefing-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-panel-toolbar {
+    padding: 10px 12px;
+  }
+
+  .blockly-editor-area {
+    height: clamp(330px, 48dvh, 420px);
+  }
+
+  .robot-grid {
+    gap: 5px;
+    padding: 10px;
+  }
+
+  .robot-cell {
+    border-radius: 10px;
+  }
+
+  .media-secondary-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .media-ctrl-btn,
+  .robot-reset {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+}

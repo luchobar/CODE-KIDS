@@ -334,12 +334,44 @@ body {
 
 .sortable-item {
     background: white;
-    padding: 1.2rem;
+    padding: 1rem 1.2rem;
     border-radius: 10px;
     cursor: move;
     border: 2px solid var(--border-color);
     transition: all 0.3s;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sortable-item-controls {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.sort-step-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: #f8f9fa;
+    color: var(--text-primary);
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.sort-step-btn:hover,
+.sort-step-btn:active {
+    background: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
 }
 
 .sortable-item:hover {
@@ -589,8 +621,39 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .nav-container {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0 1rem;
+    }
+
+    .nav-menu {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 1.25rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .hero-banner {
+        padding: 2.5rem 1rem 2rem;
+    }
+
     .hero-banner h1 {
-        font-size: 2rem;
+        font-size: 1.85rem;
+    }
+
+    .content-wrapper {
+        padding: 0 1rem;
+        margin: 1.5rem auto;
+    }
+
+    .lesson-card,
+    .theory-box,
+    .interactive-box,
+    .final-project {
+        padding: 1.25rem;
     }
 
     .lesson-header {
@@ -600,10 +663,6 @@ body {
 
     .lesson-number {
         margin: 0 auto;
-    }
-
-    .nav-menu {
-        display: none;
     }
 
     .weather-options {

@@ -9,14 +9,14 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">
+            <div class="logo" onclick="window.location.href='index.html'">
                 <span class="logo-icon">👾</span>
                 <span class="logo-text">CodeKids</span>
             </div>
             <ul class="nav-menu">
                 <li><a href="index.html">Inicio</a></li>
                 <li><a href="recusos.html">Recursos</a></li>
-                <li><a href="#contacto">Contacto</a></li>
+                <li><a href="recusos.html#contacto">Contacto</a></li>
             </ul>
             <button class="btn-primary" onclick="window.location.href='recusos.html'">Volver a Recursos</button>
         </div>
@@ -65,12 +65,36 @@
 
                 <div class="interactive-box">
                     <h3>🎯 Ejercicio Interactivo</h3>
-                    <p>Ordena los pasos para hacer un sándwich:</p>
+                    <p>Ordena los pasos para hacer un sándwich (arrastra o usa las flechas ↑ ↓):</p>
                     <div class="sortable-container" id="sortable1">
-                        <div class="sortable-item" draggable="true" data-order="3">Agregar jamón y queso</div>
-                        <div class="sortable-item" draggable="true" data-order="1">Tomar dos rebanadas de pan</div>
-                        <div class="sortable-item" draggable="true" data-order="4">Cerrar el sándwich</div>
-                        <div class="sortable-item" draggable="true" data-order="2">Untar mantequilla</div>
+                        <div class="sortable-item" draggable="true" data-order="3">
+                            <span>Agregar jamón y queso</span>
+                            <div class="sortable-item-controls">
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, -1)" aria-label="Subir paso">↑</button>
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, 1)" aria-label="Bajar paso">↓</button>
+                            </div>
+                        </div>
+                        <div class="sortable-item" draggable="true" data-order="1">
+                            <span>Tomar dos rebanadas de pan</span>
+                            <div class="sortable-item-controls">
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, -1)" aria-label="Subir paso">↑</button>
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, 1)" aria-label="Bajar paso">↓</button>
+                            </div>
+                        </div>
+                        <div class="sortable-item" draggable="true" data-order="4">
+                            <span>Cerrar el sándwich</span>
+                            <div class="sortable-item-controls">
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, -1)" aria-label="Subir paso">↑</button>
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, 1)" aria-label="Bajar paso">↓</button>
+                            </div>
+                        </div>
+                        <div class="sortable-item" draggable="true" data-order="2">
+                            <span>Untar mantequilla</span>
+                            <div class="sortable-item-controls">
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, -1)" aria-label="Subir paso">↑</button>
+                                <button type="button" class="sort-step-btn" onclick="moveStep(this, 1)" aria-label="Bajar paso">↓</button>
+                            </div>
+                        </div>
                     </div>
                     <button class="btn-check" onclick="checkOrder(1)">Verificar Orden ✓</button>
                     <div class="feedback" id="feedback1"></div>
@@ -321,6 +345,17 @@ FinPara</pre>
             });
         });
 
+        function moveStep(btn, direction) {
+            const item = btn.closest('.sortable-item');
+            if (!item || !item.parentNode) return;
+            const container = item.parentNode;
+            if (direction < 0 && item.previousElementSibling) {
+                container.insertBefore(item, item.previousElementSibling);
+            } else if (direction > 0 && item.nextElementSibling) {
+                container.insertBefore(item.nextElementSibling, item);
+            }
+        }
+
         function checkOrder(exerciseNum) {
             const items = document.querySelectorAll('#sortable1 .sortable-item');
             let correct = true;
@@ -430,7 +465,7 @@ FinPara</pre>
 
         function generateCertificate() {
             alert('🎓 ¡Felicitaciones! Has completado el Nivel 1.\n\nCertificado de Principiante en Pensamiento Computacional\n\n✅ Algoritmos\n✅ Variables\n✅ Decisiones\n✅ Bucles\n\n¡Continúa al Nivel 2!');
-            window.location.href = 'recursos.html';
+            window.location.href = 'nivel2-intermedio.html';
         }
     </script>
 </body>

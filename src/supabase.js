@@ -45,6 +45,8 @@ export const QUICK_PROFILE_IDS = {
   profe: 4,
 };
 
+const LOCAL_ACCOUNTS_KEY = 'codekids-registered-accounts';
+
 // Cuentas oficiales para sustentación y presentación universitaria
 export const UNIVERSITY_ACCOUNTS = {
   'sofi@codekids.edu.co': {
@@ -85,8 +87,27 @@ export const UNIVERSITY_ACCOUNTS = {
   },
 };
 
+function getLocalRegisteredAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveLocalRegisteredAccount(email, accountData) {
+  try {
+    const current = getLocalRegisteredAccounts();
+    current[email] = accountData;
+    localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(current));
+  } catch {
+    /* localStorage opcional */
+  }
+}
+
 /**
- * Autentica al usuario por correo y contraseña.
+ * Autentica al usuario por correo y contraseña verificando que realmente exista en la base de datos
+ * y que la contraseña coincida exactamente con la que fue creada para ese correo.
  */
 export async function authenticateUser(email, password) {
   const normalizedEmail = (email || '').trim().toLowerCase();
@@ -99,50 +120,105 @@ export async function authenticateUser(email, password) {
     return { ok: false, error: 'Por favor ingresa tu contraseña.' };
   }
 
-  // 1. Si Supabase está conectado, buscar en la tabla 'usuarios'
+  // 1. Si Supabase está conectado, buscar en la tabla 'usuarios' y validar su contraseña real
   if (supabase) {
     try {
       const { data: dbUser, error } = await supabase
         .from('usuarios')
-        .select('id, nombre, correo, rol, etiqueta_rapida')
+        .select('id, nombre, correo, rol, contrasena_hash, etiqueta_rapida, activo')
         .eq('correo', normalizedEmail)
-        .single();
+        .maybeSingle();
 
-      if (!error && dbUser) {
-        const known = UNIVERSITY_ACCOUNTS[normalizedEmail];
-        const isKnownPassword = known ? known.passwords.includes(trimmedPassword) : false;
-
-        // Aceptar contraseña oficial o clave >= 8 caracteres
-        if (isKnownPassword || trimmedPassword === 'CodeKids2026*' || trimmedPassword.length >= 8) {
-          const { data: perfil } = await supabase
-            .from('perfiles_gamificacion')
-            .select('avatar_activo_id')
-            .eq('usuario_id', dbUser.id)
-            .single();
-
-          return {
-            ok: true,
-            user: {
-              id: dbUser.id,
-              name: dbUser.nombre,
-              email: dbUser.correo,
-              role: dbUser.rol === 'docente' ? 'teacher' : 'student',
-              avatar: perfil?.avatar_activo_id || known?.avatar || 'dragon',
-            },
-          };
-        } else {
-          return { ok: false, error: 'Contraseña incorrecta. Recuerda usar: CodeKids2026*' };
-        }
+      if (error) {
+        console.warn('[Supabase Auth Query Error]', error);
       }
+
+      if (dbUser) {
+        if (dbUser.activo === false) {
+          return { ok: false, error: 'Esta cuenta se encuentra desactivada.' };
+        }
+
+        const storedHash = dbUser.contrasena_hash ? String(dbUser.contrasena_hash).trim() : '';
+        const known = UNIVERSITY_ACCOUNTS[normalizedEmail];
+
+        let passwordMatches = false;
+        if (storedHash) {
+          // Si el usuario tiene contraseña guardada en la BD, DEBE coincidir exactamente con ella
+          passwordMatches = storedHash === trimmedPassword;
+        } else if (known) {
+          // Cuentas semilla de demostración creadas sin contrasena_hash en el SQL inicial
+          passwordMatches = known.passwords.includes(trimmedPassword);
+        }
+
+        if (!passwordMatches) {
+          return {
+            ok: false,
+            error: 'Contraseña incorrecta para este correo electrónico. Verifica e intenta de nuevo.',
+          };
+        }
+
+        // Actualizar fecha de último acceso en segundo plano
+        supabase
+          .from('usuarios')
+          .update({ ultimo_acceso_en: new Date().toISOString() })
+          .eq('id', dbUser.id)
+          .then(() => {})
+          .catch(() => {});
+
+        const { data: perfil } = await supabase
+          .from('perfiles_gamificacion')
+          .select('avatar_activo_id')
+          .eq('usuario_id', dbUser.id)
+          .maybeSingle();
+
+        return {
+          ok: true,
+          user: {
+            id: dbUser.id,
+            name: dbUser.nombre,
+            email: dbUser.correo,
+            role: dbUser.rol === 'docente' ? 'teacher' : 'student',
+            avatar: perfil?.avatar_activo_id || known?.avatar || 'dragon',
+          },
+        };
+      }
+
+      // Si está conectado a Supabase y NO existe en la tabla 'usuarios', rechazar el acceso
+      return {
+        ok: false,
+        error: 'No existe ninguna cuenta registrada con este correo en la base de datos. Ve a la pestaña «Crear cuenta» para registrarte.',
+      };
     } catch (err) {
-      console.warn('[Supabase Auth]', err);
+      console.warn('[Supabase Auth Exception]', err);
     }
   }
 
-  // 2. Comprobar contra las cuentas universitarias estándar
+  // 2. Respaldo local (solo cuando Supabase no está configurado en el entorno):
+  // Verificar cuentas registradas localmente o las 4 cuentas semilla
+  const localAccounts = getLocalRegisteredAccounts();
+  const localUser = localAccounts[normalizedEmail];
+  if (localUser) {
+    if (localUser.password !== trimmedPassword) {
+      return {
+        ok: false,
+        error: 'Contraseña incorrecta para este correo electrónico. Verifica e intenta de nuevo.',
+      };
+    }
+    return {
+      ok: true,
+      user: {
+        id: localUser.id,
+        name: localUser.name,
+        email: localUser.email,
+        role: localUser.role,
+        avatar: localUser.avatar || 'dragon',
+      },
+    };
+  }
+
   const academic = UNIVERSITY_ACCOUNTS[normalizedEmail];
   if (academic) {
-    if (academic.passwords.includes(trimmedPassword) || trimmedPassword === 'CodeKids2026*') {
+    if (academic.passwords.includes(trimmedPassword)) {
       return {
         ok: true,
         user: {
@@ -154,54 +230,60 @@ export async function authenticateUser(email, password) {
         },
       };
     }
-    return { ok: false, error: 'Contraseña incorrecta. La clave es: CodeKids2026*' };
+    return { ok: false, error: 'Contraseña incorrecta para esta cuenta institucional.' };
   }
 
-  // 3. Si no es una de las 4 pero tiene formato de correo y contraseña >= 8
-  if (trimmedPassword.length >= 8) {
-    const isTeacher = normalizedEmail.includes('profe') || normalizedEmail.includes('docente');
-    const autoName = normalizedEmail.split('@')[0].replace(/[._-]/g, ' ');
-    const formattedName = autoName.charAt(0).toUpperCase() + autoName.slice(1);
-    return {
-      ok: true,
-      user: {
-        id: Date.now(),
-        name: formattedName || (isTeacher ? 'Docente' : 'Explorador'),
-        email: normalizedEmail,
-        role: isTeacher ? 'teacher' : 'student',
-        avatar: isTeacher ? 'unicorn' : 'dragon',
-      },
-    };
-  }
-
-  return { ok: false, error: 'Credenciales inválidas. Revisa tu correo y contraseña.' };
+  return {
+    ok: false,
+    error: 'No existe ninguna cuenta registrada con este correo. Primero debes registrarte en «Crear cuenta».',
+  };
 }
 
 /**
- * Registra un nuevo usuario en la base de datos de Supabase.
+ * Registra un nuevo usuario en la base de datos de Supabase enlazando su correo y contraseña.
  */
 export async function registerUser({ name, email, password, role = 'student', avatar = 'dragon' }) {
   const normalizedEmail = (email || '').trim().toLowerCase();
+  const trimmedPassword = (password || '').trim();
   const userName = (name || '').trim() || (role === 'teacher' ? 'Docente' : 'Explorador');
   const userRole = role === 'teacher' ? 'docente' : 'estudiante';
 
   if (!normalizedEmail) {
     return { ok: false, error: 'Por favor ingresa un correo electrónico.' };
   }
-  if (!password || password.length < 8) {
+  if (!trimmedPassword || trimmedPassword.length < 8) {
     return { ok: false, error: 'La contraseña debe tener mínimo 8 caracteres.' };
   }
 
-  // 1. Si Supabase no está configurado, informar claramente el error
+  // 1. Si Supabase no está configurado, guardar en el registro local verificable
   if (!supabase) {
+    const localAccounts = getLocalRegisteredAccounts();
+    if (localAccounts[normalizedEmail] || UNIVERSITY_ACCOUNTS[normalizedEmail]) {
+      return { ok: false, error: 'Este correo ya está registrado. Por favor inicia sesión con tu contraseña.' };
+    }
+    const newLocalUser = {
+      id: Date.now(),
+      name: userName,
+      email: normalizedEmail,
+      password: trimmedPassword,
+      role,
+      avatar,
+    };
+    saveLocalRegisteredAccount(normalizedEmail, newLocalUser);
     return {
-      ok: false,
-      error: 'Supabase no está conectado todavía. Si estás en Vercel, asegúrate de guardar VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en Settings > Environment Variables y hacer un Redeploy.',
+      ok: true,
+      user: {
+        id: newLocalUser.id,
+        name: newLocalUser.name,
+        email: newLocalUser.email,
+        role: newLocalUser.role,
+        avatar: newLocalUser.avatar,
+      },
     };
   }
 
   try {
-    // Comprobar si ya existe
+    // Comprobar si ya existe en Supabase
     const { data: existente } = await supabase
       .from('usuarios')
       .select('id')
@@ -212,7 +294,7 @@ export async function registerUser({ name, email, password, role = 'student', av
       return { ok: false, error: 'Este correo ya está registrado en la base de datos. Por favor inicia sesión.' };
     }
 
-    // Insertar en tabla usuarios
+    // Insertar en tabla usuarios con su contraseña enlazada
     const { data: nuevo, error: errInsert } = await supabase
       .from('usuarios')
       .insert([
@@ -220,7 +302,8 @@ export async function registerUser({ name, email, password, role = 'student', av
           correo: normalizedEmail,
           nombre: userName,
           rol: userRole,
-          contrasena_hash: password,
+          contrasena_hash: trimmedPassword,
+          correo_verificado_en: new Date().toISOString(),
           es_perfil_rapido: false,
           activo: true,
         },
@@ -247,6 +330,16 @@ export async function registerUser({ name, email, password, role = 'student', av
       newUserId = buscado?.id;
     }
 
+    // Guardar también en caché local de respaldo
+    saveLocalRegisteredAccount(normalizedEmail, {
+      id: newUserId || Date.now(),
+      name: userName,
+      email: normalizedEmail,
+      password: trimmedPassword,
+      role,
+      avatar,
+    });
+
     // Si es estudiante, crear su perfil gamificado inicial
     if (userRole === 'estudiante' && newUserId) {
       await supabase.from('perfiles_gamificacion').upsert({
@@ -259,6 +352,10 @@ export async function registerUser({ name, email, password, role = 'student', av
       });
 
       // Asignar avatar al inventario
+      await supabase.from('inventario_avatares_usuario').upsert({
+        usuario_id: newUserId,
+        avatar_id: 'astronaut',
+      });
       await supabase.from('inventario_avatares_usuario').upsert({
         usuario_id: newUserId,
         avatar_id: avatar || 'dragon',
@@ -279,6 +376,69 @@ export async function registerUser({ name, email, password, role = 'student', av
     console.error('[Supabase Register Exception]', e);
     return { ok: false, error: `Excepción al conectar con Supabase: ${e?.message || e}` };
   }
+}
+
+/**
+ * Actualiza la contraseña de un correo registrado en Supabase (y en el respaldo local).
+ */
+export async function updatePasswordForEmail(email, newPassword) {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const trimmedPassword = (newPassword || '').trim();
+
+  if (!normalizedEmail) {
+    return { ok: false, error: 'Por favor ingresa tu correo electrónico.' };
+  }
+  if (!trimmedPassword || trimmedPassword.length < 8) {
+    return { ok: false, error: 'La nueva contraseña debe tener mínimo 8 caracteres.' };
+  }
+
+  if (supabase) {
+    try {
+      const { data: existing, error: findErr } = await supabase
+        .from('usuarios')
+        .select('id, correo')
+        .eq('correo', normalizedEmail)
+        .maybeSingle();
+
+      if (findErr) {
+        return { ok: false, error: `Error al consultar la base de datos: ${findErr.message}` };
+      }
+      if (!existing) {
+        return { ok: false, error: 'No encontramos ninguna cuenta registrada con ese correo electrónico.' };
+      }
+
+      const { error: updateErr } = await supabase
+        .from('usuarios')
+        .update({
+          contrasena_hash: trimmedPassword,
+          actualizado_en: new Date().toISOString(),
+        })
+        .eq('id', existing.id);
+
+      if (updateErr) {
+        return { ok: false, error: `No se pudo actualizar la contraseña: ${updateErr.message}` };
+      }
+
+      const localAccounts = getLocalRegisteredAccounts();
+      if (localAccounts[normalizedEmail]) {
+        localAccounts[normalizedEmail].password = trimmedPassword;
+        saveLocalRegisteredAccount(normalizedEmail, localAccounts[normalizedEmail]);
+      }
+
+      return { ok: true, message: '¡Contraseña actualizada en la base de datos! Ya puedes iniciar sesión.' };
+    } catch (err) {
+      return { ok: false, error: `Error al actualizar contraseña: ${err?.message || err}` };
+    }
+  }
+
+  const localAccounts = getLocalRegisteredAccounts();
+  if (localAccounts[normalizedEmail]) {
+    localAccounts[normalizedEmail].password = trimmedPassword;
+    saveLocalRegisteredAccount(normalizedEmail, localAccounts[normalizedEmail]);
+    return { ok: true, message: 'Contraseña actualizada correctamente. Ya puedes iniciar sesión.' };
+  }
+
+  return { ok: false, error: 'No encontramos ninguna cuenta registrada con ese correo electrónico.' };
 }
 
 /**
@@ -430,6 +590,27 @@ export async function syncAvatarPurchase(userId, avatarId, cost = 0) {
     return true;
   } catch (err) {
     console.error('[Supabase] Error guardando avatar:', err);
+    return false;
+  }
+}
+
+/**
+ * Sincroniza únicamente el cambio de avatar activo en Supabase.
+ */
+export async function syncAvatarSelection(userId, avatarId) {
+  if (!supabase) return false;
+  try {
+    const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+    await supabase
+      .from('perfiles_gamificacion')
+      .update({
+        avatar_activo_id: avatarId,
+        actualizado_en: new Date().toISOString(),
+      })
+      .eq('usuario_id', numericId);
+    return true;
+  } catch (err) {
+    console.error('[Supabase] Error equipando avatar:', err);
     return false;
   }
 }

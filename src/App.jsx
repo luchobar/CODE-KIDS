@@ -53,8 +53,10 @@ import {
   loadStudentFromSupabase,
   syncMissionSuccess,
   syncAvatarPurchase,
+  syncAvatarSelection,
   authenticateUser,
   registerUser,
+  updatePasswordForEmail,
   UNIVERSITY_ACCOUNTS,
 } from './supabase.js';
 
@@ -429,6 +431,8 @@ function Header({
   onToggleSound,
   onAssessment,
   onPython,
+  onHome,
+  onGoMissions,
 }) {
   const [a11yOpen, setA11yOpen] = useState(false);
   const points = state?.points || 0;
@@ -439,15 +443,38 @@ function Header({
     <div className="apple-nav-stack">
       <header className="global-nav" aria-label="Navegación global">
         <div className="global-nav-inner">
-          <a className="global-nav-brand" href="#top">
+          <a
+            className="global-nav-brand"
+            href="#top"
+            onClick={(event) => {
+              event.preventDefault();
+              if (onHome) onHome();
+            }}
+          >
             <span className="brand-badge-icon">
               <RocketLaunch size={16} weight="duotone" />
             </span>
             <span>CODEKIDS</span>
           </a>
           <nav className="global-nav-links" aria-label="Secciones principales">
-            <a href="#top">Mapa</a>
-            <a href="#curriculum">Misiones</a>
+            <button
+              type="button"
+              className="global-nav-link-btn"
+              onClick={() => {
+                if (onHome) onHome();
+              }}
+            >
+              Mapa
+            </button>
+            <button
+              type="button"
+              className="global-nav-link-btn"
+              onClick={() => {
+                if (onGoMissions) onGoMissions();
+              }}
+            >
+              Misiones
+            </button>
             {user?.role === 'student' && (
               <>
                 <button type="button" className="global-nav-link-btn" onClick={onAssessment}>
@@ -538,11 +565,38 @@ function Header({
           </div>
         </div>
       </div>
+
+      {user?.role === 'student' && (
+        <nav className="mobile-quick-nav" aria-label="Accesos rápidos móviles">
+          <button type="button" className="mobile-quick-btn" onClick={onHome}>
+            <Compass size={15} weight="duotone" />
+            <span>Inicio</span>
+          </button>
+          <button type="button" className="mobile-quick-btn" onClick={onGoMissions}>
+            <RocketLaunch size={15} weight="duotone" />
+            <span>Misiones</span>
+          </button>
+          <button type="button" className="mobile-quick-btn" onClick={onAssessment}>
+            <Sparkle size={15} weight="duotone" />
+            <span>Diagnóstico</span>
+          </button>
+          <button type="button" className="mobile-quick-btn" onClick={onPython}>
+            <TerminalWindow size={15} weight="duotone" />
+            <span>Python</span>
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
 
-function Footer() {
+function Footer({ onHome, onGoMissions, onPython, onAssessment, user }) {
+  const handleNav = (event, action) => {
+    event.preventDefault();
+    if (action) action();
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <footer className="apple-footer">
       <div className="apple-footer-inner">
@@ -550,26 +604,26 @@ function Footer() {
           <div className="apple-footer-col">
             <h4>Aprendizaje</h4>
             <ul>
-              <li><a href="#top">Secuencias lógicas</a></li>
-              <li><a href="#top">Bucles e iteración</a></li>
-              <li><a href="#top">Estructuras condicionales</a></li>
-              <li><a href="#top">Depuración guiada</a></li>
+              <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Secuencias lógicas</a></li>
+              <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Bucles e iteración</a></li>
+              <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Estructuras condicionales</a></li>
+              <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Depuración guiada</a></li>
             </ul>
           </div>
           <div className="apple-footer-col">
             <h4>Laboratorios</h4>
             <ul>
-              <li><a href="#top">Entorno visual Blockly</a></li>
-              <li><a href="#top">Transición a Python</a></li>
-              <li><a href="#top">Diagnóstico adaptativo</a></li>
+              <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Entorno visual Blockly</a></li>
+              <li><a href="#top" onClick={(e) => handleNav(e, user?.role === 'student' ? onPython : onGoMissions)}>Transición a Python</a></li>
+              <li><a href="#top" onClick={(e) => handleNav(e, user?.role === 'student' ? onAssessment : onHome)}>Diagnóstico adaptativo</a></li>
             </ul>
           </div>
           <div className="apple-footer-col">
             <h4>Para Colegios</h4>
             <ul>
-              <li><a href="#top">Panel de seguimiento docente</a></li>
-              <li><a href="#top">Biblioteca de ejercicios</a></li>
-              <li><a href="#top">Recomendaciones con Ollama</a></li>
+              <li><a href="#top" onClick={(e) => handleNav(e, onHome)}>Panel de seguimiento docente</a></li>
+              <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Biblioteca de ejercicios</a></li>
+              <li><a href="#top" onClick={(e) => handleNav(e, onHome)}>Recomendaciones con IA</a></li>
             </ul>
           </div>
         </div>
@@ -668,32 +722,47 @@ function Login({ onEnter }) {
         }
         onEnter(authResult.user);
       } else if (authMode === 'reset') {
-        if (!resetToken.trim()) {
-          const res = await fetchWithCsrf('/api/v1/auth/password-reset/request', {
-            method: 'POST',
-            body: JSON.stringify({ email }),
-          });
-          const data = await res.json();
-          setStatusMessage(
-            data.message || 'Si el correo está registrado, recibirás instrucciones de recuperación.',
-          );
-          if (data.devPreviewUrl) {
-            setPreviewEmailUrl(data.devPreviewUrl);
-          }
-        } else {
-          const res = await fetchWithCsrf('/api/v1/auth/password-reset/confirm', {
-            method: 'POST',
-            body: JSON.stringify({
-              token: resetToken.trim(),
-              newPassword: password,
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            setErrorMessage(data.error || 'Token inválido o expirado.');
+        if (!isEmailValid) {
+          setErrorMessage('Por favor ingresa el correo electrónico de tu cuenta.');
+          return;
+        }
+        if (password.trim().length >= 8) {
+          // Si ya escribió una nueva contraseña válida, actualizar directamente en Supabase / almacén
+          const updateRes = await updatePasswordForEmail(email, password);
+          if (!updateRes.ok) {
+            setErrorMessage(updateRes.error || 'No se pudo actualizar la contraseña.');
             return;
           }
-          setStatusMessage(data.message || 'Contraseña actualizada. Ya puedes iniciar sesión.');
+          setStatusMessage(updateRes.message || 'Contraseña actualizada. Ya puedes iniciar sesión.');
+          setAuthMode('login');
+          setPassword('');
+          setResetToken('');
+          return;
+        }
+        if (!resetToken.trim()) {
+          try {
+            const res = await fetchWithCsrf('/api/v1/auth/password-reset/request', {
+              method: 'POST',
+              body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            setStatusMessage(
+              data.message || 'Si el correo está registrado, escribe tu nueva contraseña abajo para actualizarla.',
+            );
+            if (data.devPreviewUrl) {
+              setPreviewEmailUrl(data.devPreviewUrl);
+            }
+          } catch {
+            setResetToken('direct-reset');
+            setStatusMessage('Ingresa tu nueva contraseña (mínimo 8 caracteres) para actualizarla en tu cuenta.');
+          }
+        } else {
+          const updateRes = await updatePasswordForEmail(email, password);
+          if (!updateRes.ok) {
+            setErrorMessage(updateRes.error || 'No se pudo actualizar la contraseña.');
+            return;
+          }
+          setStatusMessage(updateRes.message || 'Contraseña actualizada. Ya puedes iniciar sesión.');
           setAuthMode('login');
           setPassword('');
           setResetToken('');
@@ -808,6 +877,24 @@ function Login({ onEnter }) {
                       />
                     </div>
                   </div>
+
+                  <div className="configurator-group">
+                    <span className="field-label">Elige tu compañero avatar inicial</span>
+                    <div className="avatar-pills-row" role="group" aria-label="Selecciona tu avatar">
+                      {AVATAR_SHOP.map((item) => (
+                        <button
+                          type="button"
+                          key={item.avatar}
+                          aria-pressed={selectedAvatar === item.avatar}
+                          className={`avatar-mini-pill${selectedAvatar === item.avatar ? ' selected' : ''}`}
+                          onClick={() => setSelectedAvatar(item.avatar)}
+                        >
+                          <AvatarGlyph avatar={item.avatar} size={16} />
+                          <span>{item.name.split(' ')[0]}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </>
               )}
 
@@ -832,67 +919,45 @@ function Login({ onEnter }) {
                     autoComplete="email"
                     required
                     className={`search-input has-icon${email.length > 0 ? (isEmailValid ? ' input-valid' : ' input-warning') : ''}`}
-                    placeholder="explorador@codekids.edu.co"
+                    placeholder="tu.correo@gmail.com"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                   />
                 </div>
               </div>
 
-              {authMode === 'reset' && (
-                <div className="form-field-block">
-                  <label className="field-label" htmlFor="auth-reset-token">
-                    Token de recuperación (si ya lo recibiste)
+              <div className="form-field-block">
+                <div className="field-label-row">
+                  <label className="field-label" htmlFor="auth-password">
+                    {authMode === 'reset' ? 'Nueva contraseña (mín. 8 caracteres)' : 'Contraseña secreta'}
                   </label>
-                  <div className="input-with-icon">
-                    <span className="input-leading-icon">
-                      <Sparkle size={18} weight="duotone" />
+                  {password.length > 0 && (
+                    <span className={`validation-pill ${isPasswordValid ? 'valid' : 'pending'}`}>
+                      {isPasswordValid ? '✓ Escudo activo (8+)' : `${password.length}/8 caracteres`}
                     </span>
-                    <input
-                      id="auth-reset-token"
-                      className="search-input has-icon"
-                      placeholder="selector.verificador (deja vacío para solicitar uno nuevo)"
-                      value={resetToken}
-                      onChange={(event) => setResetToken(event.target.value)}
-                    />
-                  </div>
+                  )}
                 </div>
-              )}
-
-              {(authMode !== 'reset' || resetToken.trim().length > 0) && (
-                <div className="form-field-block">
-                  <div className="field-label-row">
-                    <label className="field-label" htmlFor="auth-password">
-                      {authMode === 'reset' ? 'Nueva contraseña (mín. 8 caracteres)' : 'Contraseña secreta'}
-                    </label>
-                    {password.length > 0 && (
-                      <span className={`validation-pill ${isPasswordValid ? 'valid' : 'pending'}`}>
-                        {isPasswordValid ? '✓ Escudo activo (8+)' : `${password.length}/8 caracteres`}
-                      </span>
-                    )}
-                  </div>
-                  <div className="input-with-icon">
-                    <span className="input-leading-icon">
-                      <Lock size={18} weight="duotone" />
-                    </span>
-                    <input
-                      id="auth-password"
-                      type="password"
-                      autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
-                      required
-                      minLength={8}
-                      maxLength={128}
-                      className={`search-input has-icon${password.length > 0 ? (isPasswordValid ? ' input-valid' : ' input-warning') : ''}`}
-                      placeholder="Mínimo 8 caracteres"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                    />
-                  </div>
-                  <small className="field-helper">
-                    Cifrado Argon2id, cookies HttpOnly, protección CSRF y escudo anti-fuerza bruta.
-                  </small>
+                <div className="input-with-icon">
+                  <span className="input-leading-icon">
+                    <Lock size={18} weight="duotone" />
+                  </span>
+                  <input
+                    id="auth-password"
+                    type="password"
+                    autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                    required
+                    minLength={8}
+                    maxLength={128}
+                    className={`search-input has-icon${password.length > 0 ? (isPasswordValid ? ' input-valid' : ' input-warning') : ''}`}
+                    placeholder="Mínimo 8 caracteres"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
                 </div>
-              )}
+                <small className="field-helper">
+                  Tu contraseña queda enlazada directamente a tu correo en la base de datos.
+                </small>
+              </div>
 
               {errorMessage && (
                 <p role="alert" className="auth-alert-box error">
@@ -925,9 +990,7 @@ function Login({ onEnter }) {
                       : authMode === 'register'
                         ? 'Crear cuenta y comenzar'
                         : authMode === 'reset'
-                          ? resetToken.trim()
-                            ? 'Confirmar nueva clave'
-                            : 'Enviar enlace de recuperación'
+                          ? 'Actualizar contraseña'
                           : 'Iniciar sesión en CODEKIDS'}
                   </span>
                   <ArrowRight size={16} weight="bold" />
@@ -1034,6 +1097,7 @@ function StudentDashboard({
   onPython,
   pythonProgress,
   group,
+  onGroupChange,
   onOpenAssignment,
   onOpenShop,
 }) {
@@ -1431,9 +1495,25 @@ function StudentDashboard({
         <div className="tile-container">
           <div className="student-Dual-grid">
             <div className="assignments-column">
-              <div className="subsection-header">
-                <h2 className="display-md">Retos del colegio ({group})</h2>
-                <p className="body-copy">Actividades publicadas por tu docente para tu grupo.</p>
+              <div className="subsection-header subsection-header-row">
+                <div>
+                  <h2 className="display-md">Retos del colegio ({group})</h2>
+                  <p className="body-copy">Actividades publicadas por tu docente para tu grupo.</p>
+                </div>
+                {onGroupChange && (
+                  <div className="course-selector-group" role="group" aria-label="Seleccionar mi curso">
+                    {['5° A', '6° B'].map((courseName) => (
+                      <button
+                        type="button"
+                        key={courseName}
+                        className={group === courseName ? 'configurator-option-chip selected' : 'configurator-option-chip'}
+                        onClick={() => onGroupChange(courseName)}
+                      >
+                        <span>{courseName}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {assignments.length ? (
@@ -2334,10 +2414,20 @@ function TeacherDashboard({ state, onCreate }) {
         ? Math.round(roster.reduce((acc, s) => acc + (s.score || 0), 0) / roster.length)
         : 75;
       setAiInsights({
-        summary: `Informe pedagógico para ${targetGroup}: Promedio general de ${avgScore}%. El curso demuestra buen dominio en secuencias lógicas, con oportunidad de refuerzo en bucles repetitivos y bifurcaciones condicionales.`,
+        overview: `Informe pedagógico para ${targetGroup}: Promedio general de ${avgScore}%. El curso demuestra buen dominio en secuencias lógicas, con oportunidad de refuerzo en bucles repetitivos y bifurcaciones condicionales.`,
         model: 'CodeKids Pedagogic AI Engine',
-        strengths: ['Comprensión de secuencias y orden lógico', 'Resolución de caminos básicos sin bloqueos'],
-        weaknesses: ['Optimización de instrucciones con bucles', 'Anticipación de colisiones con condicionales'],
+        focusSkills: [
+          {
+            skill: 'Bucles',
+            evidence: 'Varios estudiantes repiten bloques de avance en lugar de agruparlos en un ciclo.',
+            activity: 'Resolver «El puente» identificando el patrón antes de arrastrar bloques.',
+          },
+          {
+            skill: 'Condicionales',
+            evidence: 'Oportunidad de mejora al anticipar obstáculos con el sensor de pared.',
+            activity: 'Practicar «El desvío» verificando hacia qué lado está libre la ruta.',
+          },
+        ],
         nextSteps: [
           'Sesión guiada de 20 minutos enfocada en el bloque «repetir».',
           'Dinámicas de programación en parejas para depurar códigos antes de la meta.',
@@ -2348,6 +2438,8 @@ function TeacherDashboard({ state, onCreate }) {
             missionId: 'loop-bridge',
             templateId: 'loop-count',
             skill: 'Bucles',
+            targetSkill: 'Bucles',
+            level: 'Inicio',
             title: 'Refuerzo de Bucles: El puente iterativo',
             instructions: 'Usa el bloque «repetir» para cruzar el puente ahorrando energía.',
             reason: 'Identificado como la falencia más común en el diagnóstico de los estudiantes.',
@@ -2356,6 +2448,8 @@ function TeacherDashboard({ state, onCreate }) {
             missionId: 'condition-detour',
             templateId: 'if-choice',
             skill: 'Condicionales',
+            targetSkill: 'Condicionales',
+            level: 'Inicio',
             title: 'Lógica condicional: Desvío inteligente',
             instructions: 'Si el sensor detecta una pared, hazlo girar para buscar un camino alterno.',
             reason: 'Fortalece el pensamiento computacional aplicado a toma de decisiones.',
@@ -2808,8 +2902,12 @@ export default function App() {
     }
   };
 
-  const selectAvatar = (avatar) =>
+  const selectAvatar = (avatar) => {
     setState((current) => ((current.ownedAvatars || ['astronaut']).includes(avatar) ? { ...current, avatar } : current));
+    if (isSupabaseConfigured && state.user) {
+      syncAvatarSelection(state.user.id || state.user.name?.toLowerCase(), avatar).catch(() => {});
+    }
+  };
 
   const toggleSound = () => setState((current) => ({ ...current, soundEnabled: !current.soundEnabled }));
 
@@ -2882,6 +2980,37 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [view, activeSkill, activeAssignment, activePython]);
 
+  const resetToHome = () => {
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(false);
+    setView('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToMissions = () => {
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(false);
+    setView('home');
+    window.setTimeout(() => {
+      document.getElementById('curriculum')?.scrollIntoView({ behavior: 'smooth' });
+    }, 60);
+  };
+
+  const openAssessment = () => {
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(false);
+    setView('assessment');
+  };
+
+  const openPythonLab = () => {
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(true);
+  };
+
   return (
     <div className="portal-shell">
       <Header
@@ -2892,17 +3021,10 @@ export default function App() {
         onExit={exit}
         onOpenShop={() => setAvatarShop(true)}
         onToggleSound={toggleSound}
-        onAssessment={() => {
-          setActiveSkill('');
-          setActiveAssignment(null);
-          setActivePython(false);
-          setView('assessment');
-        }}
-        onPython={() => {
-          setActiveSkill('');
-          setActiveAssignment(null);
-          setActivePython(true);
-        }}
+        onAssessment={openAssessment}
+        onPython={openPythonLab}
+        onHome={resetToHome}
+        onGoMissions={goToMissions}
       />
 
       {!state.user ? (
@@ -2937,9 +3059,9 @@ export default function App() {
       ) : (
         <StudentDashboard
           state={state}
-          onAssessment={() => setView('assessment')}
+          onAssessment={openAssessment}
           onPractice={setActiveSkill}
-          onPython={() => setActivePython(true)}
+          onPython={openPythonLab}
           pythonProgress={state.pythonProgress || []}
           group={state.user.group || '5° A'}
           onGroupChange={changeStudentGroup}
@@ -2950,7 +3072,13 @@ export default function App() {
         />
       )}
 
-      <Footer />
+      <Footer
+        user={state.user}
+        onHome={resetToHome}
+        onGoMissions={goToMissions}
+        onPython={openPythonLab}
+        onAssessment={openAssessment}
+      />
 
       {feedbackPrompt && <AiFeedback prompt={feedbackPrompt} onClose={() => setFeedbackPrompt('')} />}
       {avatarShop && state.user?.role === 'student' && (

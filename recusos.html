@@ -11,20 +11,20 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">
+            <div class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
                 <span class="logo-icon">👾</span>
                 <span class="logo-text">CodeKids</span>
             </div>
             <ul class="nav-menu">
                 <li><a href="index.html">Inicio</a></li>
-                <li><a href="recursos.html" class="active">Recursos</a></li>
+                <li><a href="recusos.html" class="active">Recursos</a></li>
                 <li><a href="#contacto">Contacto</a></li>
             </ul>
-   
+            <button class="btn-primary" onclick="window.location.href='index.html'">Ir a la Plataforma</button>
         </div>
     </nav>
 
-    <section class="courses">
+    <section class="courses" id="rutas">
         <h2 class="section-title">Rutas de Aprendizaje</h2>
         <div class="courses-container">
             <div class="course-card">
@@ -39,7 +39,7 @@
                 </ul>
                 <div class="course-footer">
                     <span class="course-duration">⏱️ 4 semanas</span>
-                    <a href="nivel1-principiante.html"><button class="btn-course">Inscribirse</button></a>
+                    <button type="button" class="btn-course" onclick="window.location.href='nivel1-principiante.html'">Inscribirse</button>
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
                 </ul>
                 <div class="course-footer">
                     <span class="course-duration">⏱️ 6 semanas</span>
-                   <a href="nivel2-intermedio.html"><button class="btn-course">Inscribirse</button></a> 
+                    <button type="button" class="btn-course" onclick="window.location.href='nivel2-intermedio.html'">Inscribirse</button>
                 </div>
             </div>
 
@@ -72,19 +72,18 @@
                 </ul>
                 <div class="course-footer">
                     <span class="course-duration">⏱️ 8 semanas</span>
-                   <a href="nivel3-avanzado.html"><button class="btn-course">Inscribirse</button></a> 
-                    
+                    <button type="button" class="btn-course" onclick="window.location.href='nivel3-avanzado.html'">Inscribirse</button>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="menu-demo">
+    <section class="menu-demo" id="herramientas">
         <h2 class="section-title">Herramientas de Proyecto</h2>
         <div class="demo-container">
             <div class="menu-card">
                 <ul class="menu-list">
-                    <li class="menu-element">
+                    <li class="menu-element active" onclick="selectTool('edit', this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path
@@ -94,7 +93,7 @@
                         </svg>
                         <p class="menu-label">Editar Proyecto</p>
                     </li>
-                    <li class="menu-element">
+                    <li class="menu-element" onclick="selectTool('share', this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path d="M2 21a8 8 0 0 1 13.292-6"></path>
@@ -107,7 +106,7 @@
                 </ul>
                 <div class="menu-separator"></div>
                 <ul class="menu-list">
-                    <li class="menu-element">
+                    <li class="menu-element" onclick="selectTool('settings', this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path
@@ -117,7 +116,7 @@
                         </svg>
                         <p class="menu-label">Configuración</p>
                     </li>
-                    <li class="menu-element save">
+                    <li class="menu-element save" onclick="selectTool('save', this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -128,10 +127,12 @@
                     </li>
                 </ul>
             </div>
-            <div class="demo-description">
-                <h3>Gestiona tus proyectos fácilmente</h3>
-                <p>Organiza, edita y comparte tus creaciones con una interfaz intuitiva diseñada para jóvenes
-                    programadores.</p>
+            <div class="demo-description" id="toolDescriptionBox">
+                <h3 id="toolTitle">Gestiona tus proyectos fácilmente</h3>
+                <p id="toolDescription">Organiza, edita y comparte tus creaciones con una interfaz intuitiva diseñada para jóvenes programadores.</p>
+                <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" id="toolActionBtn" onclick="window.location.href='nivel1-principiante.html'">Abrir Editor Interactivo</button>
+                </div>
             </div>
         </div>
     </section>
@@ -145,25 +146,66 @@
             <div class="footer-section">
                 <h4>Enlaces</h4>
                 <ul>
-                    <li><a href="#">Acerca de</a></li>
-                    <li><a href="#">Blog</a></li>
-                    <li><a href="#">Ayuda</a></li>
-                    <li><a href="#">Soporte</a></li>
+                    <li><a href="#rutas">Acerca de las Rutas</a></li>
+                    <li><a href="nivel1-principiante.html">Nivel 1: PSeInt</a></li>
+                    <li><a href="nivel2-intermedio.html">Nivel 2: HTML y CSS</a></li>
+                    <li><a href="nivel3-avanzado.html">Nivel 3: Python</a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h4>Legal</h4>
+                <h4>Legal y Soporte</h4>
                 <ul>
-                    <li><a href="#">Privacidad</a></li>
-                    <li><a href="#">Términos</a></li>
-                    <li><a href="#">Seguridad</a></li>
+                    <li><a href="index.html">Acceso a Plataforma</a></li>
+                    <li><a href="#herramientas">Herramientas de Proyecto</a></li>
+                    <li><a href="#rutas">Seguridad y Aprendizaje</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 CodeKids. Todos los derechos reservados.</p>
+            <p>&copy; 2026 CodeKids. Todos los derechos reservados.</p>
         </div>
     </footer>
+
+    <script>
+        const toolDetails = {
+            edit: {
+                title: 'Editar Proyecto en Vivo',
+                desc: 'Modifica bloques lógicos, código HTML/CSS o scripts en Python con vista previa instantánea.',
+                btnText: 'Abrir Nivel 1 (PSeInt)',
+                href: 'nivel1-principiante.html'
+            },
+            share: {
+                title: 'Compartir con tu Clase',
+                desc: 'Muestra tus logros, certificados e insignias a tu docente y compañeros desde la plataforma.',
+                btnText: 'Ir a la Plataforma Principal',
+                href: 'index.html'
+            },
+            settings: {
+                title: 'Configuración de Aprendizaje',
+                desc: 'Personaliza tu nivel de dificultad, tema visual y avatar desde tu perfil de explorador.',
+                btnText: 'Configurar en CodeKids',
+                href: 'index.html'
+            },
+            save: {
+                title: 'Guardado Automático Activo ✅',
+                desc: 'Tu progreso en cada lección se guarda automáticamente en el navegador y en la nube de CodeKids.',
+                btnText: 'Continuar en Nivel 2 (Web)',
+                href: 'nivel2-intermedio.html'
+            }
+        };
+
+        function selectTool(key, el) {
+            document.querySelectorAll('.menu-element').forEach((item) => item.classList.remove('active'));
+            if (el) el.classList.add('active');
+            const info = toolDetails[key];
+            if (!info) return;
+            document.getElementById('toolTitle').textContent = info.title;
+            document.getElementById('toolDescription').textContent = info.desc;
+            const btn = document.getElementById('toolActionBtn');
+            btn.textContent = info.btnText;
+            btn.onclick = () => { window.location.href = info.href; };
+        }
+    </script>
 </body>
 
 </html>

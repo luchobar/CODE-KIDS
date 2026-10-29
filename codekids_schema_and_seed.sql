@@ -233,11 +233,11 @@ INSERT INTO catalogo_insignias (id, titulo, descripcion, tematica_habilidad, nom
 
 -- Usuarios con IDs limpios:
 -- 1: Sofi | 2: Mateo | 3: Valeria | 4: Profe Alex
-INSERT INTO usuarios (id, correo, nombre, rol, correo_verificado_en, es_perfil_rapido, etiqueta_rapida) VALUES
-    (1, 'sofi@codekids.edu.co',       'Sofi',       'estudiante', NOW(), TRUE, 'Nvl. 3 · Secuencias'),
-    (2, 'mateo@codekids.edu.co',      'Mateo',      'estudiante', NOW(), TRUE, 'Nvl. 2 · Bucles'),
-    (3, 'valeria@codekids.edu.co',    'Valeria',    'estudiante', NOW(), TRUE, 'Nvl. 4 · Python'),
-    (4, 'alex.profe@codekids.edu.co', 'Profe Alex', 'docente',    NOW(), TRUE, 'Docente · 5° A');
+INSERT INTO usuarios (id, correo, nombre, rol, contrasena_hash, correo_verificado_en, es_perfil_rapido, etiqueta_rapida) VALUES
+    (1, 'sofi@codekids.edu.co',       'Sofi',       'estudiante', 'CodeKids2026*', NOW(), TRUE, 'Nvl. 3 · Secuencias'),
+    (2, 'mateo@codekids.edu.co',      'Mateo',      'estudiante', 'CodeKids2026*', NOW(), TRUE, 'Nvl. 2 · Bucles'),
+    (3, 'valeria@codekids.edu.co',    'Valeria',    'estudiante', 'CodeKids2026*', NOW(), TRUE, 'Nvl. 4 · Python'),
+    (4, 'alex.profe@codekids.edu.co', 'Profe Alex', 'docente',    'CodeKids2026*', NOW(), TRUE, 'Docente · 5° A');
 
 -- Ajustar la secuencia automática para que el próximo usuario registrado sea el ID 5
 ALTER TABLE usuarios ALTER COLUMN id RESTART WITH 5;
