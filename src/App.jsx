@@ -723,6 +723,18 @@ function Login({ onEnter }) {
 
             {/* Tarjeta Flotante con Efecto Glassmorphism */}
             <form className="apple-login-form glass-auth-card" onSubmit={handleAuthSubmit} noValidate>
+              <div className="auth-connection-bar">
+                {isSupabaseConfigured ? (
+                  <span className="auth-status-chip online" title="Base de datos Supabase conectada en vivo">
+                    🟢 Supabase Conectado
+                  </span>
+                ) : (
+                  <span className="auth-status-chip offline" title="Faltan las variables de entorno en Vercel">
+                    🔴 Sin conexión a Supabase (Falta Redeploy en Vercel)
+                  </span>
+                )}
+              </div>
+
               <div className="configurator-group">
                 <div className="course-selector-group auth-tabs-bar" role="tablist" aria-label="Modo de acceso">
                   {[

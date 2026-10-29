@@ -170,89 +170,93 @@ export async function registerUser({ name, email, password, role = 'student', av
     return { ok: false, error: 'La contraseña debe tener mínimo 8 caracteres.' };
   }
 
-  // 1. Si Supabase está conectado, guardar en PostgreSQL
-  if (supabase) {
-    try {
-      // Comprobar si ya existe
-      const { data: existente } = await supabase
-        .from('usuarios')
-        .select('id')
-        .eq('correo', normalizedEmail)
-        .maybeSingle();
+  // 1. Si Supabase no está configurado, informar claramente el error
+  if (!supabase) {
+    return {
+      ok: false,
+      error: 'Supabase no está conectado todavía. Si estás en Vercel, asegúrate de guardar VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en Settings > Environment Variables y hacer un Redeploy.',
+    };
+  }
 
-      if (existente) {
-        return { ok: false, error: 'Este correo ya está registrado en la base de datos. Por favor inicia sesión.' };
-      }
+  try {
+    // Comprobar si ya existe
+    const { data: existente } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('correo', normalizedEmail)
+      .maybeSingle();
 
-      // Insertar en tabla usuarios
-      const { data: nuevo, error: errInsert } = await supabase
-        .from('usuarios')
-        .insert({
+    if (existente) {
+      return { ok: false, error: 'Este correo ya está registrado en la base de datos. Por favor inicia sesión.' };
+    }
+
+    // Insertar en tabla usuarios
+    const { data: nuevo, error: errInsert } = await supabase
+      .from('usuarios')
+      .insert([
+        {
           correo: normalizedEmail,
           nombre: userName,
           rol: userRole,
           contrasena_hash: password,
           es_perfil_rapido: false,
           activo: true,
-        })
-        .select('id, nombre, correo, rol')
-        .single();
-
-      if (errInsert || !nuevo) {
-        console.error('[Supabase Register Error]', errInsert);
-        return {
-          ok: false,
-          error: `Error de Supabase: ${errInsert?.message || 'No se pudo registrar'}.`,
-        };
-      }
-
-      const newUserId = nuevo.id;
-
-      // Si es estudiante, crear su perfil gamificado inicial
-      if (userRole === 'estudiante') {
-        await supabase.from('perfiles_gamificacion').insert({
-          usuario_id: newUserId,
-          puntos_xp: 0,
-          saldo_monedas: 20,
-          dias_racha: 1,
-          avatar_activo_id: avatar || 'dragon',
-          sonido_habilitado: true,
-        });
-
-        // Asignar avatar al inventario
-        await supabase.from('inventario_avatares_usuario').insert({
-          usuario_id: newUserId,
-          avatar_id: avatar || 'dragon',
-        });
-      }
-
-      return {
-        ok: true,
-        user: {
-          id: newUserId,
-          name: nuevo.nombre,
-          email: nuevo.correo,
-          role,
-          avatar,
         },
-      };
-    } catch (e) {
-      console.error('[Supabase Register Exception]', e);
-      return { ok: false, error: 'Error de conexión con Supabase.' };
-    }
-  }
+      ])
+      .select('id, nombre, correo, rol');
 
-  // 2. Fallback si no está configurado Supabase
-  return {
-    ok: true,
-    user: {
-      id: Date.now(),
-      name: userName,
-      email: normalizedEmail,
-      role,
-      avatar,
-    },
-  };
+    if (errInsert) {
+      console.error('[Supabase Register Error]', errInsert);
+      return {
+        ok: false,
+        error: `Error de Supabase: ${errInsert.message || errInsert.details || 'Permiso denegado'}. Si dice "violates row-level security policy", ejecuta el script de permisos en SQL Editor.`,
+      };
+    }
+
+    const usuarioInsertado = Array.isArray(nuevo) ? nuevo[0] : nuevo;
+    let newUserId = usuarioInsertado?.id;
+
+    if (!newUserId) {
+      const { data: buscado } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('correo', normalizedEmail)
+        .maybeSingle();
+      newUserId = buscado?.id;
+    }
+
+    // Si es estudiante, crear su perfil gamificado inicial
+    if (userRole === 'estudiante' && newUserId) {
+      await supabase.from('perfiles_gamificacion').upsert({
+        usuario_id: newUserId,
+        puntos_xp: 0,
+        saldo_monedas: 20,
+        dias_racha: 1,
+        avatar_activo_id: avatar || 'dragon',
+        sonido_habilitado: true,
+      });
+
+      // Asignar avatar al inventario
+      await supabase.from('inventario_avatares_usuario').upsert({
+        usuario_id: newUserId,
+        avatar_id: avatar || 'dragon',
+      });
+    }
+
+    return {
+      ok: true,
+      user: {
+        id: newUserId || Date.now(),
+        name: userName,
+        email: normalizedEmail,
+        role,
+        avatar,
+      },
+    };
+  } catch (e) {
+    console.error('[Supabase Register Exception]', e);
+    return { ok: false, error: `Excepción al conectar con Supabase: ${e?.message || e}` };
+  }
 }
 
 /**

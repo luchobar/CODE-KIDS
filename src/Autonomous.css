@@ -3441,3 +3441,31 @@ textarea {
   width: 100%;
   justify-content: center;
 }
+
+/* ==========================================================================
+   Auth Connection Bar Indicator
+   ========================================================================== */
+.auth-connection-bar {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+.auth-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+.auth-status-chip.online {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+.auth-status-chip.offline {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
