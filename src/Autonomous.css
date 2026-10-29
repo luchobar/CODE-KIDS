@@ -3418,3 +3418,21 @@ textarea {
     display: none;
   }
 }
+
+/* ==========================================================================
+   Supabase Live Sync Indicator
+   ========================================================================== */
+.hud-badge-cloud {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+}

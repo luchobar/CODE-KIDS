@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@supabase/supabase-js": "^2.118.0",
     "argon2": "^0.45.1",
     "blockly": "^13.3.0",
     "cookie-parser": "^1.4.7",

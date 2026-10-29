@@ -48,6 +48,12 @@ import {
   challengeCategory,
   getBlocklyChallenge,
 } from './blocklyChallenges.js';
+import {
+  isSupabaseConfigured,
+  loadStudentFromSupabase,
+  syncMissionSuccess,
+  syncAvatarPurchase,
+} from './supabase.js';
 
 const STORAGE_KEY = 'codekids-demo-state';
 const A11Y_STORAGE_KEY = 'codekids-a11y-settings';
@@ -476,6 +482,11 @@ function Header({
               <Sparkle size={14} weight="fill" />
               <span>{!user ? 'Portal de Acceso' : user.role === 'teacher' ? 'Consola Docente' : `Explorador · ${user.name}`}</span>
             </span>
+            {isSupabaseConfigured && (
+              <span className="hud-badge-cloud" title="Conectado a la base de datos de Supabase en tiempo real">
+                ⚡ Supabase Online
+              </span>
+            )}
           </div>
           <div className="sub-nav-controls">
             {!user ? (
@@ -2672,7 +2683,7 @@ export default function App() {
     document.documentElement.setAttribute('data-high-contrast', String(Boolean(a11y.highContrast)));
   }, [a11y]);
 
-  const enter = (user) => {
+  const enter = async (user) => {
     setState((current) => ({
       ...current,
       avatar: user.avatar || current.avatar || 'dragon',
@@ -2680,6 +2691,26 @@ export default function App() {
       user: { ...user, group: user.role === 'student' ? '5° A' : undefined },
     }));
     setView('home');
+
+    if (isSupabaseConfigured) {
+      try {
+        const studentData = await loadStudentFromSupabase(user.id || user.name?.toLowerCase());
+        if (studentData) {
+          setState((current) => ({
+            ...current,
+            points: studentData.points,
+            coins: studentData.coins,
+            streak: studentData.streak,
+            avatar: studentData.avatar,
+            ownedAvatars: Array.from(new Set([...(current.ownedAvatars || []), ...studentData.ownedAvatars])),
+            completedMissions: Array.from(new Set([...(current.completedMissions || []), ...studentData.completedMissions])),
+            scores: studentData.scores || current.scores,
+          }));
+        }
+      } catch (err) {
+        console.warn('[Supabase Sync] No se pudo cargar perfil:', err);
+      }
+    }
   };
 
   const exit = async () => {
@@ -2728,10 +2759,15 @@ export default function App() {
       };
     });
     if (state.soundEnabled) playSfx('win');
+
+    if (isSupabaseConfigured && state.user) {
+      syncMissionSuccess(state.user.id || state.user.name?.toLowerCase(), missionId, 3, 10, 10).catch(() => {});
+    }
+
     return isNewMission;
   };
 
-  const buyAvatar = (item) =>
+  const buyAvatar = (item) => {
     setState((current) => {
       if ((current.ownedAvatars || ['astronaut']).includes(item.avatar) || (current.coins || 0) < item.cost) {
         return current;
@@ -2743,6 +2779,11 @@ export default function App() {
         avatar: item.avatar,
       };
     });
+
+    if (isSupabaseConfigured && state.user) {
+      syncAvatarPurchase(state.user.id || state.user.name?.toLowerCase(), item.avatar, item.cost).catch(() => {});
+    }
+  };
 
   const selectAvatar = (avatar) =>
     setState((current) => ((current.ownedAvatars || ['astronaut']).includes(avatar) ? { ...current, avatar } : current));
