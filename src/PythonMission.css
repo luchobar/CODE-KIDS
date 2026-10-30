@@ -654,3 +654,219 @@
     font-size: 0.9rem;
   }
 }
+
+/* ==========================================================================
+   PAQUETE DE EXPANSIÓN MULTILENGUAJE (PYTHON AVANZADO, HTML5, JAVASCRIPT)
+   ========================================================================== */
+
+.python-topbar-expanded {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.python-stages.python-stages-six {
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 1200px) {
+  .python-stages.python-stages-six {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.mission-brief-card {
+  align-items: flex-start;
+}
+
+.mission-brief-content {
+  display: grid;
+  gap: 8px;
+}
+
+.mission-brief-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mission-reward-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--color-primary);
+  font-family: var(--font-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mission-reward-tag.coins {
+  background: rgba(250, 204, 21, 0.16);
+  color: #f59e0b;
+}
+
+.md-instructions-box {
+  display: grid;
+  gap: 8px;
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.md-instruction-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.md-instruction-paragraph {
+  margin: 0;
+  color: var(--color-ink-muted-80, var(--color-ink));
+}
+
+.md-instruction-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  color: var(--color-ink);
+}
+
+.md-instruction-callout {
+  margin: 2px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 8px;
+  background: var(--color-canvas);
+  font-size: 0.86rem;
+  color: var(--color-ink-muted-80, var(--color-ink));
+}
+
+.md-inline-code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--color-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.code-lab-preview {
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 22px 20px;
+}
+
+.html-hologram-stage,
+.js-console-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  flex: 1;
+}
+
+.html-hologram-iframe {
+  width: 100%;
+  min-height: 215px;
+  border: 1.5px solid var(--color-hairline);
+  border-radius: 14px;
+  background: #0d1626;
+}
+
+.lab-console-placeholder {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 20px;
+  border: 1.5px dashed var(--color-hairline);
+  border-radius: 14px;
+  background: var(--color-canvas);
+  color: var(--color-ink-muted-80, var(--color-ink));
+}
+
+.lab-console-placeholder p {
+  margin: 0;
+  font-size: 0.88rem;
+  max-width: 30ch;
+}
+
+.lab-test-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lab-test-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-hairline);
+  background: var(--color-canvas);
+  text-align: left;
+}
+
+.lab-test-item.pass {
+  border-color: rgba(16, 185, 129, 0.55);
+}
+
+.lab-test-item.fail {
+  border-color: rgba(249, 115, 22, 0.6);
+}
+
+.lab-test-status {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.18);
+  color: #10b981;
+}
+
+.lab-test-item.fail .lab-test-status {
+  background: rgba(249, 115, 22, 0.18);
+  color: #f97316;
+}
+
+.lab-test-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lab-test-copy b {
+  font-size: 0.85rem;
+  color: var(--color-ink);
+}
+
+.lab-test-copy small {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted-80, var(--color-ink));
+  word-break: break-word;
+}
+
+.lab-test-copy code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--color-primary);
+}

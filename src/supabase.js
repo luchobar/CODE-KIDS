@@ -469,21 +469,34 @@ export async function loadStudentFromSupabase(userId) {
       .eq('usuario_id', numericId)
       .single();
 
-    // 3. Progreso de misiones
+    // 3. Progreso de misiones (resolviendo tanto IDs clásicos como slugs de expansión)
     const { data: progreso } = await supabase
       .from('progreso_misiones_usuario')
       .select('mision_id, estado, estrellas_ganadas')
       .eq('usuario_id', numericId);
+
+    const rawCompletedIds = (progreso || [])
+      .filter((p) => p.estado === 'completada')
+      .map((p) => p.mision_id);
+
+    let completedMissions = [...rawCompletedIds];
+    if (rawCompletedIds.length > 0) {
+      const { data: misionesMeta } = await supabase
+        .from('misiones')
+        .select('id, slug')
+        .in('id', rawCompletedIds);
+
+      if (Array.isArray(misionesMeta)) {
+        const mappedSlugs = misionesMeta.map((m) => m.slug || m.id).filter(Boolean);
+        completedMissions = Array.from(new Set([...rawCompletedIds, ...mappedSlugs]));
+      }
+    }
 
     // 4. Inventario de avatares desbloqueados
     const { data: avatares } = await supabase
       .from('inventario_avatares_usuario')
       .select('avatar_id')
       .eq('usuario_id', numericId);
-
-    const completedMissions = (progreso || [])
-      .filter((p) => p.estado === 'completada')
-      .map((p) => p.mision_id);
 
     const ownedAvatars = (avatares || []).map((a) => a.avatar_id);
 
@@ -511,25 +524,37 @@ export async function loadStudentFromSupabase(userId) {
 }
 
 /**
- * Guarda en Supabase cuando un estudiante supera una misión.
+ * Guarda en Supabase cuando un estudiante supera una misión (compatible con IDs clásicos y slugs UUID).
  */
-export async function syncMissionSuccess(userId, missionId, stars = 3, xp = 10, coins = 10) {
+export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp = 10, coins = 10) {
   if (!supabase) return false;
 
   try {
     const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
 
-    // 1. Guardar progreso en la tabla de misiones
+    // 1. Resolver el ID primario real en 'misiones' buscando por slug o por id
+    let resolvedMissionId = missionIdOrSlug;
+    const { data: bySlug } = await supabase
+      .from('misiones')
+      .select('id')
+      .eq('slug', missionIdOrSlug)
+      .maybeSingle();
+
+    if (bySlug?.id) {
+      resolvedMissionId = bySlug.id;
+    }
+
+    // 2. Guardar progreso en la tabla de misiones
     await supabase.from('progreso_misiones_usuario').upsert({
       usuario_id: numericId,
-      mision_id: missionId,
+      mision_id: resolvedMissionId,
       estado: 'completada',
       estrellas_ganadas: stars,
       completada_en: new Date().toISOString(),
       actualizado_en: new Date().toISOString(),
     });
 
-    // 2. Incrementar puntos de experiencia y monedas en el perfil
+    // 3. Incrementar puntos de experiencia y monedas en el perfil
     const { data: perfil } = await supabase
       .from('perfiles_gamificacion')
       .select('puntos_xp, saldo_monedas')
@@ -613,4 +638,91 @@ export async function syncAvatarSelection(userId, avatarId) {
     console.error('[Supabase] Error equipando avatar:', err);
     return false;
   }
+}
+
+/**
+ * Carga dinámicamente los mundos y misiones del paquete de expansión desde Supabase (si la migración ya fue aplicada).
+ */
+export async function loadExpansionFromSupabase() {
+  if (!supabase) return null;
+
+  try {
+    const { data: mundos, error: errMundos } = await supabase
+      .from('mundos')
+      .select('id, titulo, slug, descripcion, tecnologia, orden, icono')
+      .in('slug', ['laboratorio-python', 'ciudadela-html', 'neo-tokio-javascript'])
+      .order('orden', { ascending: true });
+
+    if (errMundos || !Array.isArray(mundos) || mundos.length === 0) {
+      return null;
+    }
+
+    const idToSlug = Object.fromEntries(mundos.map((m) => [m.id, m.slug]));
+    const mundoIds = mundos.map((m) => m.id);
+
+    const { data: misiones, error: errMisiones } = await supabase
+      .from('misiones')
+      .select(
+        'id, mundo_id, titulo, slug, contexto_narrativo, instrucciones_md, codigo_inicial, codigo_solucion, reglas_validacion, pistas, xp_recompensa, monedas_recompensa, orden',
+      )
+      .in('mundo_id', mundoIds)
+      .order('orden', { ascending: true });
+
+    if (errMisiones || !Array.isArray(misiones) || misiones.length === 0) {
+      return null;
+    }
+
+    const normalizedMissions = misiones
+      .filter((m) => m.codigo_inicial && m.slug)
+      .map((m) => ({
+        ...m,
+        mundo_slug: idToSlug[m.mundo_id] || '',
+      }));
+
+    return {
+      mundos,
+      misiones: normalizedMissions,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Inyecta el paquete de expansión vía API (@supabase/supabase-js) resolviendo dinámicamente slug -> mundo_id.
+ */
+export async function inyectarPaqueteExpansion(expansionPayload) {
+  if (!supabase) {
+    throw new Error('Supabase no está configurado en las variables de entorno.');
+  }
+
+  const { data: mundosDB, error: errMundos } = await supabase
+    .from('mundos')
+    .upsert(expansionPayload.mundos, { onConflict: 'slug' })
+    .select('id, slug');
+
+  if (errMundos) {
+    throw new Error(`Error al hacer upsert de mundos: ${errMundos.message}`);
+  }
+
+  const mapaSlugAId = Object.fromEntries((mundosDB || []).map((mundo) => [mundo.slug, mundo.id]));
+
+  const misionesConFk = expansionPayload.misiones.map(({ mundo_slug, ...mision }) => {
+    const mundo_id = mapaSlugAId[mundo_slug];
+    if (!mundo_id) {
+      throw new Error(`No se encontró el mundo con slug "${mundo_slug}"`);
+    }
+    return { ...mision, mundo_id };
+  });
+
+  const { data: misionesDB, error: errMisiones } = await supabase
+    .from('misiones')
+    .upsert(misionesConFk, { onConflict: 'slug' })
+    .select('id, slug, titulo, mundo_id');
+
+  if (errMisiones) {
+    throw new Error(`Error al hacer upsert de misiones: ${errMisiones.message}`);
+  }
+
+  return { mundos: mundosDB, misiones: misionesDB };
 }

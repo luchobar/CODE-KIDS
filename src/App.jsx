@@ -14,6 +14,8 @@ import {
   Compass,
   Cpu,
   Eye,
+  FileHtml,
+  FileJs,
   Flame,
   GraduationCap,
   Lightning,
@@ -41,7 +43,9 @@ import {
   X,
 } from '@phosphor-icons/react';
 import BlocklyMission from './BlocklyMission.jsx';
+import CodeWorldLab from './CodeWorldLab.jsx';
 import PythonMission from './PythonMission.jsx';
+import { EXPANSION_MISSIONS, EXPANSION_WORLDS } from './expansionCatalog.js';
 import {
   BLOCKLY_CHALLENGES,
   BLOCKLY_SKILLS,
@@ -51,6 +55,7 @@ import {
 import {
   isSupabaseConfigured,
   loadStudentFromSupabase,
+  loadExpansionFromSupabase,
   syncMissionSuccess,
   syncAvatarPurchase,
   syncAvatarSelection,
@@ -127,6 +132,9 @@ function SkillGlyph({ skill, size = 20 }) {
   if (skill === 'Secuencias') return <Compass size={size} weight="regular" />;
   if (skill === 'Bucles') return <SlidersHorizontal size={size} weight="regular" />;
   if (skill === 'Condicionales') return <Wall size={size} weight="regular" />;
+  if (skill === 'Python') return <TerminalWindow size={size} weight="regular" />;
+  if (skill === 'HTML5') return <FileHtml size={size} weight="regular" />;
+  if (skill === 'JavaScript') return <FileJs size={size} weight="regular" />;
   return <Cpu size={size} weight="regular" />;
 }
 
@@ -1048,9 +1056,9 @@ function Login({ onEnter }) {
       <section id="curriculum" className="product-tile-dark">
         <div className="tile-container">
           <div className="section-header-stack">
-            <h2 className="display-lg">De los bloques visuales al código en Python.</h2>
+            <h2 className="display-lg">De los bloques visuales a Python, HTML5 y JavaScript.</h2>
             <p className="lead-subcopy">
-              Explora mundos interactivos diseñados para desarrollar pensamiento computacional paso a paso.
+              Explora mundos interactivos diseñados para desarrollar pensamiento computacional y programación real paso a paso.
             </p>
           </div>
 
@@ -1084,8 +1092,8 @@ function Login({ onEnter }) {
             <article className="bento-cell bento-cell-featured">
               <div className="bento-cell-copy">
                 <TerminalWindow size={24} weight="regular" />
-                <h3>Laboratorio de Python</h3>
-                <p>Pasa de los bloques al código escrito controlando al robot mediante comandos reales en Python.</p>
+                <h3>Laboratorio de Código Python</h3>
+                <p>Avanza desde comandos del robot hasta funciones cuánticas, listas filtradas y diccionarios estelares en 6 etapas.</p>
               </div>
               <img
                 className="product-render-shadow bento-render"
@@ -1093,6 +1101,24 @@ function Login({ onEnter }) {
                 alt="Estación del Laboratorio de Python con tablero del robot"
                 loading="lazy"
               />
+            </article>
+
+            <article className="bento-cell bento-cell-surface">
+              <Cpu size={24} weight="regular" />
+              <h3>Estación de Funciones</h3>
+              <p>Depura módulos orbitales y organiza subrutinas reutilizables libres de errores.</p>
+            </article>
+
+            <article className="bento-cell bento-cell-surface">
+              <FileHtml size={24} weight="regular" />
+              <h3>Ciudadela HTML</h3>
+              <p>Reconstruye hologramas y portales espaciales con etiquetas semánticas HTML5 en tiempo real.</p>
+            </article>
+
+            <article className="bento-cell bento-cell-surface">
+              <FileJs size={24} weight="regular" />
+              <h3>Neo-Tokio JavaScript</h3>
+              <p>Programa los neones y drones autónomos de la metrópolis cibernética con funciones JS.</p>
             </article>
           </div>
         </div>
@@ -1119,6 +1145,8 @@ function StudentDashboard({
   onAssessment,
   onPractice,
   onPython,
+  onOpenCodeWorld,
+  expansionData,
   pythonProgress,
   group,
   onGroupChange,
@@ -1130,14 +1158,28 @@ function StudentDashboard({
   const [skillFilter, setSkillFilter] = useState('Todos');
   const [difficultyFilter, setDifficultyFilter] = useState('Todas');
   const completed = state.completedMissions || [];
+  const allCompleted = Array.from(new Set([...completed, ...(pythonProgress || [])]));
   const assignments = (state.assignments || []).filter((assignment) => assignment.group === group);
   const submissions = state.submissions || [];
+
+  const activeExpansionWorlds =
+    expansionData?.mundos?.length > 0 ? expansionData.mundos : EXPANSION_WORLDS;
+  const activeExpansionMissions =
+    expansionData?.misiones?.length > 0 ? expansionData.misiones : EXPANSION_MISSIONS;
+
+  const findWorldMeta = (slug) => activeExpansionWorlds.find((w) => w.slug === slug);
+  const findMissionMeta = (slug) => activeExpansionMissions.find((m) => m.slug === slug);
+
+  const pyMeta = findWorldMeta('laboratorio-python');
+  const htmlMeta = findWorldMeta('ciudadela-html');
+  const jsMeta = findWorldMeta('neo-tokio-javascript');
 
   const worlds = [
     {
       title: 'El Bosque de las Secuencias',
       subtitle: 'Guía a los robots por nuevos caminos paso a paso',
       skill: 'Secuencias',
+      mode: 'blockly',
       color: 'forest',
       image: '/images/world-forest.png',
       ids: ['sequence-forest', 'sequence-city', 'sequence-moon'],
@@ -1146,6 +1188,7 @@ function StudentDashboard({
       title: 'La Isla de los Bucles',
       subtitle: 'Descubre patrones que se repiten para ahorrar energía',
       skill: 'Bucles',
+      mode: 'blockly',
       color: 'island',
       image: '/images/world-island.png',
       ids: ['loop-bridge', 'loop-zigzag', 'loop-garden'],
@@ -1154,6 +1197,7 @@ function StudentDashboard({
       title: 'La Cueva de las Decisiones',
       subtitle: 'Elige qué hacer ante cada obstáculo con sensores',
       skill: 'Condicionales',
+      mode: 'blockly',
       color: 'cave',
       image: '/images/world-cave.png',
       ids: ['condition-detour', 'condition-cave', 'condition-river'],
@@ -1162,11 +1206,105 @@ function StudentDashboard({
       title: 'Estación de Funciones y Depuración',
       subtitle: 'Repara módulos de código y domina rutinas avanzadas',
       skill: 'Funciones',
+      mode: 'blockly',
       color: 'forest',
       image: '/images/python-lab.png',
       ids: ['debug-sequence', 'debug-loop', 'debug-condition'],
     },
+    {
+      title: pyMeta?.titulo || 'Laboratorio de Código Python',
+      subtitle:
+        pyMeta?.descripcion ||
+        'Domina comandos del robot, funciones cuánticas, listas filtradas y diccionarios estelares.',
+      skill: 'Python',
+      mode: 'python',
+      worldSlug: 'laboratorio-python',
+      color: 'island',
+      image: '/images/python-lab.png',
+      ids: [
+        'python-sequence',
+        'python-loop',
+        'python-condition',
+        'py-protocolo-escudo-cuantico',
+        'py-radar-senales-corruptas',
+        'py-nucleo-decodificador-estelar',
+      ],
+      nodeNames: [
+        'Etapa 1 · Primer comando',
+        'Etapa 2 · Bucle for',
+        'Etapa 3 · Sensor if',
+        `Etapa 4 · ${findMissionMeta('py-protocolo-escudo-cuantico')?.titulo || 'Escudo Cuántico'}`,
+        `Etapa 5 · ${findMissionMeta('py-radar-senales-corruptas')?.titulo || 'Radar de Señales'}`,
+        `Etapa 6 · ${findMissionMeta('py-nucleo-decodificador-estelar')?.titulo || 'Decodificador Estelar'}`,
+      ],
+      nodeLevels: ['Inicio', 'En camino', 'Explorador', 'Inicio', 'En camino', 'Explorador'],
+      nodeXp: [
+        15,
+        15,
+        15,
+        findMissionMeta('py-protocolo-escudo-cuantico')?.xp_recompensa || 45,
+        findMissionMeta('py-radar-senales-corruptas')?.xp_recompensa || 55,
+        findMissionMeta('py-nucleo-decodificador-estelar')?.xp_recompensa || 70,
+      ],
+    },
+    {
+      title: htmlMeta?.titulo || 'Ciudadela HTML',
+      subtitle:
+        htmlMeta?.descripcion ||
+        'Reconstruye hologramas y portales espaciales con etiquetas semánticas HTML5 en vivo.',
+      skill: 'HTML5',
+      mode: 'code-world',
+      worldSlug: 'ciudadela-html',
+      color: 'island',
+      image: '/images/world-island.png',
+      ids: ['html-faro-holografico', 'html-portal-suministros'],
+      nodeNames: [
+        `Misión 1 · ${findMissionMeta('html-faro-holografico')?.titulo || 'El Faro Holográfico'}`,
+        `Misión 2 · ${findMissionMeta('html-portal-suministros')?.titulo || 'Portal de Suministros'}`,
+      ],
+      nodeLevels: ['Inicio', 'En camino'],
+      nodeXp: [
+        findMissionMeta('html-faro-holografico')?.xp_recompensa || 25,
+        findMissionMeta('html-portal-suministros')?.xp_recompensa || 35,
+      ],
+    },
+    {
+      title: jsMeta?.titulo || 'Neo-Tokio JavaScript',
+      subtitle:
+        jsMeta?.descripcion ||
+        'Programa la red de neones y los drones autónomos de la metrópolis con lógica JavaScript.',
+      skill: 'JavaScript',
+      mode: 'code-world',
+      worldSlug: 'neo-tokio-javascript',
+      color: 'cave',
+      image: '/images/world-cave.png',
+      ids: ['js-neones-shibuya', 'js-dron-mensajero'],
+      nodeNames: [
+        `Misión 1 · ${findMissionMeta('js-neones-shibuya')?.titulo || 'Encendiendo los Neones de Shibuya'}`,
+        `Misión 2 · ${findMissionMeta('js-dron-mensajero')?.titulo || 'Dron Mensajero Autónomo'}`,
+      ],
+      nodeLevels: ['Inicio', 'Explorador'],
+      nodeXp: [
+        findMissionMeta('js-neones-shibuya')?.xp_recompensa || 30,
+        findMissionMeta('js-dron-mensajero')?.xp_recompensa || 45,
+      ],
+    },
   ];
+
+  const blocklyWorlds = worlds.slice(0, 4);
+
+  const openMissionById = (missionId) => {
+    if (!missionId) return;
+    if (missionId.startsWith('python-') || missionId.startsWith('py-')) {
+      onPython(missionId);
+    } else if (missionId.startsWith('html-')) {
+      onOpenCodeWorld('ciudadela-html', missionId);
+    } else if (missionId.startsWith('js-')) {
+      onOpenCodeWorld('neo-tokio-javascript', missionId);
+    } else {
+      onPractice(missionId);
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1187,7 +1325,7 @@ function StudentDashboard({
             success: Boolean(gameOutcome?.success),
             attempts: gameOutcome?.attempts || 1,
           })),
-        missionCatalog: worlds.flatMap((world) =>
+        missionCatalog: blocklyWorlds.flatMap((world) =>
           world.ids.map((id, index) => ({ id, skill: world.skill, level: index + 1 })),
         ),
       }),
@@ -1209,7 +1347,7 @@ function StudentDashboard({
           const weakest = sorted[0] || 'Bucles';
           const secondWeakest = sorted[1] || 'Condicionales';
 
-          const worldForWeakest = worlds.find((w) => w.skill === weakest) || worlds[0];
+          const worldForWeakest = blocklyWorlds.find((w) => w.skill === weakest) || blocklyWorlds[0];
           const pending = (worldForWeakest?.ids || []).filter((id) => !completed.includes(id));
           const recommendedMissions = pending.length > 0 ? pending : (worldForWeakest?.ids || ['loop-bridge']);
 
@@ -1250,11 +1388,20 @@ function StudentDashboard({
     return () => controller.abort();
   }, [state.scores, state.completedMissions, state.submissions, state.user.name]);
 
-  const firstOpen = worlds.flatMap((world) => world.ids).find((id) => !completed.includes(id)) || 'sequence-forest';
+  const firstOpen =
+    worlds.flatMap((world) => world.ids).find((id) => !allCompleted.includes(id)) || 'sequence-forest';
+  const totalMissionCount = worlds.reduce((sum, world) => sum + world.ids.length, 0);
+  const completedMissionCount = worlds.reduce(
+    (sum, world) => sum + world.ids.filter((id) => allCompleted.includes(id)).length,
+    0,
+  );
+  const pythonWorldIds = worlds.find((w) => w.skill === 'Python')?.ids || [];
+  const pythonDoneCount = pythonWorldIds.filter((id) => allCompleted.includes(id)).length;
+
   const earnedBadges = [
-    completed.length >= 1,
-    ['loop-bridge', 'loop-zigzag', 'loop-garden'].every((id) => completed.includes(id)),
-    ['condition-detour', 'condition-cave', 'condition-river'].every((id) => completed.includes(id)),
+    allCompleted.length >= 1,
+    ['loop-bridge', 'loop-zigzag', 'loop-garden'].every((id) => allCompleted.includes(id)),
+    ['condition-detour', 'condition-cave', 'condition-river'].every((id) => allCompleted.includes(id)),
   ].filter(Boolean).length;
 
   const filteredWorlds = worlds.filter((world) => skillFilter === 'Todos' || world.skill === skillFilter);
@@ -1268,10 +1415,10 @@ function StudentDashboard({
             <span className="hero-eyebrow">🚀 TU MODO HISTORIA · MAPA DE AVENTURA</span>
             <h1 className="hero-display">¡Hola, {state.user.name}!</h1>
             <p className="hero-lead">
-              Cada bloque conectado suma XP a tu rango de explorador. ¿Listo para desbloquear tu siguiente misión?
+              Cada misión completada en bloques, Python, HTML5 o JavaScript suma XP a tu rango de explorador. ¿Listo para tu siguiente reto?
             </p>
             <div className="hero-cta-row">
-              <button type="button" className="button-primary adventure-cta-btn cta-3d-lime" onClick={() => onPractice(firstOpen)}>
+              <button type="button" className="button-primary adventure-cta-btn cta-3d-lime" onClick={() => openMissionById(firstOpen)}>
                 <Play size={16} weight="fill" />
                 <span>Continuar misión actual</span>
               </button>
@@ -1322,7 +1469,7 @@ function StudentDashboard({
               icon={<Trophy size={24} weight="fill" />}
               label="Insignias y Medallas"
               value={`${earnedBadges} de 3`}
-              note={`${completed.length} de 12 misiones superadas`}
+              note={`${completedMissionCount} de ${totalMissionCount} misiones superadas`}
               tone="lav"
             />
           </div>
@@ -1356,7 +1503,9 @@ function StudentDashboard({
                     type="button"
                     className="button-primary"
                     onClick={() =>
-                      onPractice(aiRoute.recommendedMissionIds.find((id) => !completed.includes(id)) || firstOpen)
+                      openMissionById(
+                        aiRoute.recommendedMissionIds.find((id) => !allCompleted.includes(id)) || firstOpen,
+                      )
                     }
                   >
                     <span>Practicar misión sugerida</span>
@@ -1382,14 +1531,14 @@ function StudentDashboard({
             <span className="hero-eyebrow">🗺️ MAPA DE MUNDOS DESBLOQUEABLES</span>
             <h2 className="display-lg">Elige tu próxima misión.</h2>
             <p className="lead-subcopy">
-              Supera las etapas para ganar estrellas, medallas y desbloquear nuevos territorios ({completed.length} de 12 misiones).
+              Supera las etapas para ganar estrellas, medallas y dominar nuevos lenguajes ({completedMissionCount} de {totalMissionCount} misiones).
             </p>
           </div>
 
           {/* Barra de Filtros Rápidos por Temática y Dificultad */}
           <div className="adventure-filters-bar" aria-label="Filtros del mapa de misiones">
-            <div className="filter-pill-group" role="group" aria-label="Filtrar por temática de bloques">
-              {['Todos', 'Secuencias', 'Bucles', 'Condicionales', 'Funciones'].map((topic) => (
+            <div className="filter-pill-group" role="group" aria-label="Filtrar por temática o lenguaje">
+              {['Todos', 'Secuencias', 'Bucles', 'Condicionales', 'Funciones', 'Python', 'HTML5', 'JavaScript'].map((topic) => (
                 <button
                   type="button"
                   key={topic}
@@ -1426,7 +1575,8 @@ function StudentDashboard({
           <div className="worlds-stack">
             {filteredWorlds.map((world) => {
               const worldIndex = worlds.findIndex((w) => w.skill === world.skill);
-              const worldDoneCount = world.ids.filter((id) => completed.includes(id)).length;
+              const totalInWorld = world.ids.length;
+              const worldDoneCount = world.ids.filter((id) => allCompleted.includes(id)).length;
               return (
                 <article className={`world-showcase-row world-tone-${world.color}`} key={world.skill}>
                   <div className="world-showcase-media">
@@ -1445,26 +1595,39 @@ function StudentDashboard({
                           <SkillGlyph skill={world.skill} size={14} /> {world.skill}
                         </span>
                         <span className="world-progress-pill">
-                          <Star size={13} weight="fill" /> {worldDoneCount * 3} / 9 estrellas
+                          <Star size={13} weight="fill" /> {worldDoneCount * 3} / {totalInWorld * 3} estrellas
                         </span>
                       </div>
                       <h3>{world.title}</h3>
                       <p>{world.subtitle}</p>
-                      <small className="world-completion-meta">{worldDoneCount} de 3 misiones completadas</small>
+                      <small className="world-completion-meta">
+                        {worldDoneCount} de {totalInWorld} misiones completadas
+                      </small>
                     </div>
                     <div className="world-nodes-grid">
                       {world.ids.map((id, index) => {
-                        const done = completed.includes(id);
+                        const done = allCompleted.includes(id);
                         const previousWorldComplete =
                           worldIndex === 0 ||
-                          worldIndex === 3 ||
-                          worlds[worldIndex - 1].ids.every((prevId) => completed.includes(prevId));
-                        const locked = !previousWorldComplete || (index > 0 && !completed.includes(world.ids[index - 1]));
+                          worldIndex >= 3 ||
+                          worlds[worldIndex - 1].ids.every((prevId) => allCompleted.includes(prevId));
+                        const unlockedEntryIndex =
+                          index === 0 || (world.mode === 'python' && index === 3);
+                        const locked =
+                          !previousWorldComplete ||
+                          (!unlockedEntryIndex && !allCompleted.includes(world.ids[index - 1]));
                         const active = !done && !locked;
-                        const nodeLevels = ['Inicio', 'En camino', 'Explorador'];
-                        const nodeNames = ['Misión 1 · Primer paso', 'Misión 2 · Nuevo camino', 'Misión 3 · Gran jefe'];
+                        const defaultLevels = ['Inicio', 'En camino', 'Explorador'];
+                        const defaultNames = [
+                          'Misión 1 · Primer paso',
+                          'Misión 2 · Nuevo camino',
+                          'Misión 3 · Gran jefe',
+                        ];
+                        const levelLabel = world.nodeLevels?.[index] || defaultLevels[index] || 'Explorador';
+                        const nodeLabel = world.nodeNames?.[index] || defaultNames[index] || `Misión ${index + 1}`;
+                        const xpValue = world.nodeXp?.[index] || 10;
                         const matchesDifficulty =
-                          difficultyFilter === 'Todas' || nodeLevels[index] === difficultyFilter;
+                          difficultyFilter === 'Todas' || levelLabel === difficultyFilter;
 
                         if (!matchesDifficulty) return null;
 
@@ -1473,8 +1636,8 @@ function StudentDashboard({
                             type="button"
                             key={id}
                             disabled={locked}
-                            onClick={() => onPractice(id)}
-                            aria-label={`${nodeNames[index]}${locked ? ', bloqueado' : done ? ', completado con 3 estrellas' : ', disponible'}`}
+                            onClick={() => openMissionById(id)}
+                            aria-label={`${nodeLabel}${locked ? ', bloqueado' : done ? ', completado con 3 estrellas' : ', disponible'}`}
                             className={`world-stage-pill${done ? ' done' : ''}${active ? ' active' : ''}${locked ? ' locked' : ''}`}
                           >
                             <span className="world-stage-icon">
@@ -1487,9 +1650,13 @@ function StudentDashboard({
                               )}
                             </span>
                             <span className="world-stage-text">
-                              <b>{nodeNames[index]}</b>
+                              <b>{nodeLabel}</b>
                               <small>
-                                {done ? 'Completado · +10 XP' : locked ? '🔒 Bloqueado' : '⚡ ¡Disponible ahora!'}
+                                {done
+                                  ? `Completado · +${xpValue} XP`
+                                  : locked
+                                    ? '🔒 Bloqueado'
+                                    : `⚡ ¡Disponible! · +${xpValue} XP`}
                               </small>
                               <span className="mission-node-stars" aria-hidden="true">
                                 {[1, 2, 3].map((starIdx) => (
@@ -1526,7 +1693,10 @@ function StudentDashboard({
                 </div>
                 {onGroupChange && (
                   <div className="course-selector-group" role="group" aria-label="Seleccionar mi curso">
-                    {['5° A', '6° B'].map((courseName) => (
+                    {[
+                      '5° A',
+                      '6° B',
+                    ].map((courseName) => (
                       <button
                         type="button"
                         key={courseName}
@@ -1589,7 +1759,7 @@ function StudentDashboard({
                   <div className="companion-summary-copy">
                     <h3>{state.user.name}</h3>
                     <p>
-                      {completed.length} retos | {state.points} XP | {state.coins || 0} monedas
+                      {completedMissionCount} retos | {state.points} XP | {state.coins || 0} monedas
                     </p>
                     <button type="button" className="text-link" onClick={onOpenShop}>
                       <span>Personalizar avatar</span>
@@ -1601,13 +1771,13 @@ function StudentDashboard({
                 <article className="store-utility-card badges-utility-card">
                   <h3>Mi colección de insignias</h3>
                   <div className="badges-grid">
-                    <div className={completed.length >= 1 ? 'badge-item earned' : 'badge-item'}>
+                    <div className={allCompleted.length >= 1 ? 'badge-item earned' : 'badge-item'}>
                       <Compass size={24} weight="duotone" />
                       <b>Primer código</b>
                     </div>
                     <div
                       className={
-                        ['loop-bridge', 'loop-zigzag', 'loop-garden'].every((id) => completed.includes(id))
+                        ['loop-bridge', 'loop-zigzag', 'loop-garden'].every((id) => allCompleted.includes(id))
                           ? 'badge-item earned'
                           : 'badge-item'
                       }
@@ -1617,7 +1787,7 @@ function StudentDashboard({
                     </div>
                     <div
                       className={
-                        ['condition-detour', 'condition-cave', 'condition-river'].every((id) => completed.includes(id))
+                        ['condition-detour', 'condition-cave', 'condition-river'].every((id) => allCompleted.includes(id))
                           ? 'badge-item earned'
                           : 'badge-item'
                       }
@@ -1633,18 +1803,35 @@ function StudentDashboard({
         </div>
       </section>
 
-      {/* Tile 5: Python Lab Feature Tile */}
+      {/* Tile 5: Multi-Language Code Labs Feature Tile */}
       <section className="product-tile-dark-2 python-feature-tile">
         <div className="tile-container split-hero-grid">
           <div className="split-hero-copy">
-            <h2 className="display-lg">Laboratorio de Python.</h2>
+            <span className="hero-eyebrow">⚡ EXPANSIÓN MULTILENGUAJE</span>
+            <h2 className="display-lg">Laboratorios de Código Real.</h2>
             <p className="lead-subcopy">
-              Practica código escrito paso a paso. Llevas {pythonProgress.length} de 3 mini-retos completados.
+              Escribe código en vivo en Python ({pythonDoneCount} de 6 etapas), construye interfaces en Ciudadela HTML o programa drones en Neo-Tokio JavaScript.
             </p>
             <div className="hero-cta-row">
-              <button type="button" className="button-primary" onClick={onPython}>
+              <button type="button" className="button-primary" onClick={() => onPython('')}>
                 <TerminalWindow size={16} weight="regular" />
-                <span>Abrir Laboratorio</span>
+                <span>Python (6 etapas)</span>
+              </button>
+              <button
+                type="button"
+                className="button-secondary-pill"
+                onClick={() => onOpenCodeWorld('ciudadela-html', '')}
+              >
+                <FileHtml size={16} weight="regular" />
+                <span>Ciudadela HTML</span>
+              </button>
+              <button
+                type="button"
+                className="button-secondary-pill"
+                onClick={() => onOpenCodeWorld('neo-tokio-javascript', '')}
+              >
+                <FileJs size={16} weight="regular" />
+                <span>Neo-Tokio JS</span>
               </button>
             </div>
           </div>
@@ -1652,7 +1839,7 @@ function StudentDashboard({
             <img
               className="product-render-shadow hero-product-image"
               src="/images/python-lab.png"
-              alt="Laboratorio de programación Python de CodeKids"
+              alt="Laboratorios de programación Python, HTML5 y JavaScript de CodeKids"
               loading="lazy"
             />
           </div>
@@ -2810,7 +2997,19 @@ export default function App() {
   const [activeSkill, setActiveSkill] = useState('');
   const [activeAssignment, setActiveAssignment] = useState(null);
   const [activePython, setActivePython] = useState(false);
+  const [activePythonMissionId, setActivePythonMissionId] = useState('');
+  const [activeCodeWorld, setActiveCodeWorld] = useState(null);
+  const [remoteExpansion, setRemoteExpansion] = useState(null);
   const [avatarShop, setAvatarShop] = useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    loadExpansionFromSupabase()
+      .then((data) => {
+        if (data) setRemoteExpansion(data);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2837,6 +3036,9 @@ export default function App() {
       try {
         const studentData = await loadStudentFromSupabase(user.id || user.name?.toLowerCase());
         if (studentData) {
+          const remotePythonIds = (studentData.completedMissions || []).filter(
+            (slug) => typeof slug === 'string' && (slug.startsWith('python-') || slug.startsWith('py-')),
+          );
           setState((current) => ({
             ...current,
             points: studentData.points,
@@ -2845,6 +3047,7 @@ export default function App() {
             avatar: studentData.avatar,
             ownedAvatars: Array.from(new Set([...(current.ownedAvatars || []), ...studentData.ownedAvatars])),
             completedMissions: Array.from(new Set([...(current.completedMissions || []), ...studentData.completedMissions])),
+            pythonProgress: Array.from(new Set([...(current.pythonProgress || []), ...remotePythonIds])),
             scores: studentData.scores || current.scores,
           }));
         }
@@ -2873,18 +3076,67 @@ export default function App() {
   const changeStudentGroup = (group) =>
     setState((current) => ({ ...current, user: { ...current.user, group } }));
 
-  const completePythonMission = (missionId) =>
+  const completePythonMission = (missionId, xpReward = 15, coinReward = 10) => {
+    const alreadyDone =
+      (state.pythonProgress || []).includes(missionId) ||
+      (state.completedMissions || []).includes(missionId);
+
     setState((current) => {
       const progress = current.pythonProgress || [];
-      if (progress.includes(missionId)) return current;
+      const completed = current.completedMissions || [];
+      const firstCompletion = !progress.includes(missionId) && !completed.includes(missionId);
+      if (!firstCompletion) return current;
       return {
         ...current,
-        pythonProgress: [...progress, missionId],
-        points: current.points + 10,
-        coins: (current.coins || 0) + 5,
+        pythonProgress: Array.from(new Set([...progress, missionId])),
+        completedMissions: Array.from(new Set([...completed, missionId])),
+        points: current.points + xpReward,
+        coins: (current.coins || 0) + coinReward,
         ...progressStreak(current),
       };
     });
+
+    if (state.soundEnabled) playSfx('win');
+
+    if (!alreadyDone && isSupabaseConfigured && state.user) {
+      syncMissionSuccess(
+        state.user.id || state.user.name?.toLowerCase(),
+        missionId,
+        3,
+        xpReward,
+        coinReward,
+      ).catch(() => {});
+    }
+  };
+
+  const completeCodeWorldMission = (missionSlug, xpReward = 25, coinReward = 15) => {
+    const alreadyDone = (state.completedMissions || []).includes(missionSlug);
+
+    setState((current) => {
+      const completed = current.completedMissions || [];
+      const firstCompletion = !completed.includes(missionSlug);
+      if (!firstCompletion) return current;
+      return {
+        ...current,
+        completedMissions: [...completed, missionSlug],
+        points: current.points + xpReward,
+        coins: (current.coins || 0) + coinReward,
+        ...progressStreak(current),
+      };
+    });
+
+    if (state.soundEnabled) playSfx('win');
+
+    if (!alreadyDone && isSupabaseConfigured && state.user) {
+      syncMissionSuccess(
+        state.user.id || state.user.name?.toLowerCase(),
+        missionSlug,
+        3,
+        xpReward,
+        coinReward,
+      ).catch(() => {});
+    }
+  };
 
   const completeStoryMission = (missionId) => {
     const isNewMission = !(state.completedMissions || []).includes(missionId);
@@ -3002,12 +3254,14 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [view, activeSkill, activeAssignment, activePython]);
+  }, [view, activeSkill, activeAssignment, activePython, activeCodeWorld]);
 
   const resetToHome = () => {
     setActiveSkill('');
     setActiveAssignment(null);
     setActivePython(false);
+    setActivePythonMissionId('');
+    setActiveCodeWorld(null);
     setView('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -3016,6 +3270,8 @@ export default function App() {
     setActiveSkill('');
     setActiveAssignment(null);
     setActivePython(false);
+    setActivePythonMissionId('');
+    setActiveCodeWorld(null);
     setView('home');
     window.setTimeout(() => {
       document.getElementById('curriculum')?.scrollIntoView({ behavior: 'smooth' });
@@ -3026,13 +3282,30 @@ export default function App() {
     setActiveSkill('');
     setActiveAssignment(null);
     setActivePython(false);
+    setActivePythonMissionId('');
+    setActiveCodeWorld(null);
     setView('assessment');
   };
 
-  const openPythonLab = () => {
+  const openPythonLab = (missionId = '') => {
+    const targetId = typeof missionId === 'string' ? missionId : '';
     setActiveSkill('');
     setActiveAssignment(null);
+    setActiveCodeWorld(null);
+    setActivePythonMissionId(targetId);
     setActivePython(true);
+  };
+
+  const openCodeWorldLab = (worldSlug, missionSlug = '') => {
+    if (!worldSlug) return;
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(false);
+    setActivePythonMissionId('');
+    setActiveCodeWorld({
+      worldSlug,
+      missionSlug: typeof missionSlug === 'string' ? missionSlug : '',
+    });
   };
 
   return (
@@ -3057,9 +3330,26 @@ export default function App() {
         <TeacherDashboard state={state} onAnalyze={setFeedbackPrompt} onCreate={createAssignment} />
       ) : activePython ? (
         <PythonMission
-          completed={state.pythonProgress || []}
+          completed={Array.from(
+            new Set([...(state.pythonProgress || []), ...(state.completedMissions || [])]),
+          )}
+          initialMissionId={activePythonMissionId}
+          customMissions={remoteExpansion?.misiones || null}
           onComplete={completePythonMission}
-          onClose={() => setActivePython(false)}
+          onClose={() => {
+            setActivePython(false);
+            setActivePythonMissionId('');
+          }}
+        />
+      ) : activeCodeWorld ? (
+        <CodeWorldLab
+          worldSlug={activeCodeWorld.worldSlug}
+          initialMissionSlug={activeCodeWorld.missionSlug}
+          customWorlds={remoteExpansion?.mundos || null}
+          customMissions={remoteExpansion?.misiones || null}
+          completed={state.completedMissions || []}
+          onComplete={completeCodeWorldMission}
+          onClose={() => setActiveCodeWorld(null)}
         />
       ) : activeSkill ? (
         <StudentPractice
@@ -3086,6 +3376,8 @@ export default function App() {
           onAssessment={openAssessment}
           onPractice={setActiveSkill}
           onPython={openPythonLab}
+          onOpenCodeWorld={openCodeWorldLab}
+          expansionData={remoteExpansion}
           pythonProgress={state.pythonProgress || []}
           group={state.user.group || '5° A'}
           onGroupChange={changeStudentGroup}
@@ -3105,7 +3397,7 @@ export default function App() {
       />
 
       {/* Barra de navegación inferior móvil estilo nativo para estudiantes */}
-      {state.user?.role === 'student' && !activePython && !activeSkill && !activeAssignment && (
+      {state.user?.role === 'student' && !activePython && !activeCodeWorld && !activeSkill && !activeAssignment && (
         <nav className="mobile-bottom-bar" aria-label="Navegación móvil inferior">
           <button
             type="button"

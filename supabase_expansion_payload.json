@@ -1,0 +1,285 @@
+{
+  "mundos": [
+    {
+      "titulo": "Laboratorio de Código Python",
+      "slug": "laboratorio-python",
+      "descripcion": "Domina desde secuencias tácticas hasta funciones modulares, filtrado de listas y diccionarios estelares en la estación orbital.",
+      "tecnologia": "Python",
+      "orden": 5,
+      "icono": "TerminalWindow"
+    },
+    {
+      "titulo": "Ciudadela HTML",
+      "slug": "ciudadela-html",
+      "descripcion": "Reconstruye los faros holográficos y portales de una metrópolis flotante ensamblando etiquetas semánticas de la web.",
+      "tecnologia": "HTML5",
+      "orden": 6,
+      "icono": "FileHtml"
+    },
+    {
+      "titulo": "Neo-Tokio JavaScript",
+      "slug": "neo-tokio-javascript",
+      "descripcion": "Da energía reactiva a rascacielos de neón y programa drones autónomos con variables dinámicas, funciones y lógica en tiempo real.",
+      "tecnologia": "JavaScript",
+      "orden": 7,
+      "icono": "FileJs"
+    }
+  ],
+  "misiones": [
+    {
+      "mundo_slug": "laboratorio-python",
+      "titulo": "Protocolo Prisma: Escudo Cuántico Modular",
+      "slug": "py-protocolo-escudo-cuantico",
+      "contexto_narrativo": "¡Alerta en el puente orbital! Una lluvia de micrometeoritos se acerca a la estación. Prisma Orbital y Pipo necesitan un módulo reutilizable que calcule la potencia del escudo sin sobrecargar el reactor por encima del 100%.",
+      "instrucciones_md": "### 🛡️ Misión: Calibrar el Escudo Cuántico\n\nCompleta la función `calcular_escudo(energia_base, multiplicador)` siguiendo estas reglas:\n\n1. Multiplica `energia_base` por `multiplicador` y guarda el resultado en una variable llamada `potencia`.\n2. **Protección anti-sobrecarga:** Si `potencia` es mayor que `100`, la función debe devolver exactamente `100`.\n3. En cualquier otro caso, devuelve el valor de `potencia`.\n\n> 💡 **Recuerda:** En Python, todo el código dentro de `def` lleva **4 espacios** de sangría, y lo que va dentro de `if` lleva **8 espacios**.",
+      "codigo_inicial": "def calcular_escudo(energia_base, multiplicador):\n    # 1. Calcula la potencia multiplicando los dos parámetros\n    potencia = 0\n\n    # 2. Si supera 100, limita el retorno a 100\n    \n    return potencia",
+      "codigo_solucion": "def calcular_escudo(energia_base, multiplicador):\n    potencia = energia_base * multiplicador\n    if potencia > 100:\n        return 100\n    return potencia",
+      "reglas_validacion": {
+        "motor": "python-runner",
+        "funcion_objetivo": "calcular_escudo",
+        "tokens_requeridos": ["def calcular_escudo", "*", "if ", "return"],
+        "casos_prueba": [
+          { "entrada": [20, 3], "esperado": 60, "descripcion": "Carga normal sin sobrecarga" },
+          { "entrada": [40, 4], "esperado": 100, "descripcion": "Sobrecarga limitada a 100" },
+          { "entrada": [25, 4], "esperado": 100, "descripcion": "Límite exacto en 100" },
+          { "entrada": [0, 5], "esperado": 0, "descripcion": "Energía base en cero" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "Una función recibe datos en sus parámetros y usa la palabra clave return para enviar el resultado a la nave."
+        },
+        {
+          "nivel": 2,
+          "texto": "Cambia potencia = 0 por potencia = energia_base * multiplicador y debajo evalúa: if potencia > 100:"
+        },
+        {
+          "nivel": 3,
+          "texto": "Dentro del bloque if (con 8 espacios) escribe return 100, y en la última línea (con 4 espacios) deja return potencia."
+        }
+      ],
+      "xp_recompensa": 45,
+      "monedas_recompensa": 30,
+      "orden": 4
+    },
+    {
+      "mundo_slug": "laboratorio-python",
+      "titulo": "Radar de Cristal: Filtrado de Señales Corruptas",
+      "slug": "py-radar-senales-corruptas",
+      "contexto_narrativo": "La Unidad Rover captó frecuencias misteriosas desde un sector inexplorado, pero la tormenta solar mezcló ruido electromagnético en la lista. Gato Pixel necesita aislar únicamente las señales limpias para triangular la baliza.",
+      "instrucciones_md": "### 📡 Misión: Limpiar la Matriz de Frecuencias\n\nCompleta la función `filtrar_senales(lecturas)` para depurar los datos del radar:\n\n1. Crea una lista vacía llamada `limpias = []`.\n2. Recorre cada número de `lecturas` usando un bucle `for`.\n3. Una señal es **válida** solo si es **mayor o igual a `10`** `and` **menor o igual a `500`**.\n4. Agrega cada señal válida a `limpias` usando `.append(...)` y al final devuelve `limpias`.\n\n**Ejemplo:** `filtrar_senales([-5, 120, 900, 10, 450])` debe devolver `[120, 10, 450]`.",
+      "codigo_inicial": "def filtrar_senales(lecturas):\n    limpias = []\n    # Recorre cada señal en lecturas y guarda solo las que estén entre 10 y 500\n    \n    return limpias",
+      "codigo_solucion": "def filtrar_senales(lecturas):\n    limpias = []\n    for senal in lecturas:\n        if senal >= 10 and senal <= 500:\n            limpias.append(senal)\n    return limpias",
+      "reglas_validacion": {
+        "motor": "python-runner",
+        "funcion_objetivo": "filtrar_senales",
+        "tokens_requeridos": ["def filtrar_senales", "for ", "if ", "append", "return"],
+        "casos_prueba": [
+          { "entrada": [[-5, 120, 900, 10, 450]], "esperado": [120, 10, 450], "descripcion": "Filtra negativos y picos mayores a 500" },
+          { "entrada": [[9, 500, 501]], "esperado": [500], "descripcion": "Respeta bordes exactos 10 y 500" },
+          { "entrada": [[-20, 0, 800]], "esperado": [], "descripcion": "Lista sin señales válidas" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "Para revisar todos los elementos de una lista uno por uno, usa un bucle for y evalúa cada valor antes de guardarlo."
+        },
+        {
+          "nivel": 2,
+          "texto": "Escribe for senal in lecturas: y dentro comprueba ambas condiciones con if senal >= 10 and senal <= 500:"
+        },
+        {
+          "nivel": 3,
+          "texto": "Dentro del if usa limpias.append(senal). Asegúrate de que return limpias quede alineado con for (fuera del bucle)."
+        }
+      ],
+      "xp_recompensa": 55,
+      "monedas_recompensa": 35,
+      "orden": 5
+    },
+    {
+      "mundo_slug": "laboratorio-python",
+      "titulo": "Núcleo Rover: Decodificador de Carga Estelar",
+      "slug": "py-nucleo-decodificador-estelar",
+      "contexto_narrativo": "¡Última prueba antes del salto hiperespacial! Zorro Ágil debe auditar las cápsulas recolectadas en la bodega. Algunas contienen cristales energéticos registrados en el catálogo oficial, pero otras contienen simple roca espacial.",
+      "instrucciones_md": "### 💎 Misión: Auditar Cristales con Diccionarios\n\nCompleta la función `energia_total(capsulas)` usando el diccionario `catalogo`:\n\n- `\"cian\"` aporta **`15`** unidades.\n- `\"violeta\"` aporta **`30`** unidades.\n- `\"solar\"` aporta **`50`** unidades.\n\n**Pasos a programar:**\n1. Inicia un acumulador `total = 0`.\n2. Recorre cada elemento de la lista `capsulas`.\n3. Si el elemento existe en `catalogo` (usa `if item in catalogo:`), suma su valor energético a `total`. Si no existe (como `\"roca\"`), ignóralo.\n4. Devuelve `total`.",
+      "codigo_inicial": "def energia_total(capsulas):\n    catalogo = {\n        \"cian\": 15,\n        \"violeta\": 30,\n        \"solar\": 50\n    }\n    total = 0\n    # Recorre capsulas y suma la energía solo si el cristal existe en catalogo\n    \n    return total",
+      "codigo_solucion": "def energia_total(capsulas):\n    catalogo = {\n        \"cian\": 15,\n        \"violeta\": 30,\n        \"solar\": 50\n    }\n    total = 0\n    for item in capsulas:\n        if item in catalogo:\n            total += catalogo[item]\n    return total",
+      "reglas_validacion": {
+        "motor": "python-runner",
+        "funcion_objetivo": "energia_total",
+        "tokens_requeridos": ["def energia_total", "catalogo", "for ", " in ", "return"],
+        "casos_prueba": [
+          { "entrada": [["cian", "solar", "roca", "cian"]], "esperado": 80, "descripcion": "Suma cristales válidos e ignora roca" },
+          { "entrada": [["violeta", "violeta", "solar"]], "esperado": 110, "descripcion": "Acumula cristales repetidos" },
+          { "entrada": [["polvo", "chatarra"]], "esperado": 0, "descripcion": "Carga sin cristales registrados" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "Un diccionario guarda pares clave: valor. Si intentas leer una clave que no existe dará error, así que primero verifica si está dentro del diccionario."
+        },
+        {
+          "nivel": 2,
+          "texto": "Recorre la lista con for item in capsulas: y comprueba si es un cristal válido escribiendo if item in catalogo:"
+        },
+        {
+          "nivel": 3,
+          "texto": "Dentro del if suma el valor con total += catalogo[item] (o total = total + catalogo[item]) y devuelve return total al final."
+        }
+      ],
+      "xp_recompensa": 70,
+      "monedas_recompensa": 45,
+      "orden": 6
+    },
+    {
+      "mundo_slug": "ciudadela-html",
+      "titulo": "El Faro Holográfico: Estructura de la Torre",
+      "slug": "html-faro-holografico",
+      "contexto_narrativo": "¡Bienvenido a la Ciudadela HTML! Una tormenta de estática apagó el panel principal del puerto aéreo. Sin su encabezado holográfico, las naves de los Ciber-Exploradores no pueden identificar la pista de aterrizaje.",
+      "instrucciones_md": "### 🏗️ Misión: Encender el Panel del Faro\n\nEscribe la estructura HTML dentro de `<header>` para proyectar la señal de bienvenida:\n\n1. Crea un título principal `<h1>` con el texto exacto: `Ciudadela HTML`\n2. Debajo, agrega un párrafo `<p>` con el texto: `Estado del faro: ` seguido de la palabra `Activo` envuelta en una etiqueta `<strong>`.\n\n> ✨ **Consejo de Pipo:** Verifica que cada etiqueta abierta tenga su etiqueta de cierre con `/` (por ejemplo, `<h1>...</h1>`).",
+      "codigo_inicial": "<header>\n  <!-- Escribe aquí el título h1 y el párrafo p con strong -->\n\n</header>",
+      "codigo_solucion": "<header>\n  <h1>Ciudadela HTML</h1>\n  <p>Estado del faro: <strong>Activo</strong></p>\n</header>",
+      "reglas_validacion": {
+        "motor": "html-dom",
+        "tokens_requeridos": ["<header>", "<h1>", "</h1>", "<p>", "</p>", "<strong>", "</strong>", "</header>"],
+        "selectores_dom": [
+          { "selector": "header > h1", "texto_exacto": "Ciudadela HTML" },
+          { "selector": "header > p", "contiene_texto": "Estado del faro:" },
+          { "selector": "header > p > strong", "texto_exacto": "Activo" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "En HTML, <h1> define el título más importante de la página y <p> define un párrafo de texto."
+        },
+        {
+          "nivel": 2,
+          "texto": "Coloca <h1>Ciudadela HTML</h1> en la primera línea dentro de <header>, y debajo abre tu etiqueta <p>."
+        },
+        {
+          "nivel": 3,
+          "texto": "El párrafo completo debe quedar exactamente así: <p>Estado del faro: <strong>Activo</strong></p>."
+        }
+      ],
+      "xp_recompensa": 25,
+      "monedas_recompensa": 15,
+      "orden": 1
+    },
+    {
+      "mundo_slug": "ciudadela-html",
+      "titulo": "Portal de Suministros: Inventario y Enlace Orbital",
+      "slug": "html-portal-suministros",
+      "contexto_narrativo": "El Faro ya brilla sobre las nubes, pero la terminal de carga de Dragón Chispa está desconectada. Debes listar el equipo básico de exploración y activar el hipervínculo hacia la plataforma de despegue.",
+      "instrucciones_md": "### 📦 Misión: Conectar Inventario y Portal\n\nDentro de `<section>`, construye estos dos bloques:\n\n1. Una lista desordenada `<ul>` con **3 elementos `<li>`** en este orden:\n   - `Batería Solar`\n   - `Escudo Nano`\n   - `Mapa Estelar`\n2. Debajo de la lista, crea un enlace `<a>` cuyo atributo `href` apunte a `\"#lanzamiento\"` y cuyo texto visible sea `Iniciar despegue`.",
+      "codigo_inicial": "<section>\n  <h2>Equipo de Misión</h2>\n  <!-- 1. Crea la lista ul con los 3 elementos li -->\n\n  <!-- 2. Crea el enlace hacia #lanzamiento -->\n</section>",
+      "codigo_solucion": "<section>\n  <h2>Equipo de Misión</h2>\n  <ul>\n    <li>Batería Solar</li>\n    <li>Escudo Nano</li>\n    <li>Mapa Estelar</li>\n  </ul>\n  <a href=\"#lanzamiento\">Iniciar despegue</a>\n</section>",
+      "reglas_validacion": {
+        "motor": "html-dom",
+        "tokens_requeridos": ["<ul>", "</ul>", "<li>", "</li>", "<a ", "href=", "</a>"],
+        "selectores_dom": [
+          { "selector": "section ul li", "cantidad": 3 },
+          { "selector": "section ul li:nth-child(1)", "texto_exacto": "Batería Solar" },
+          { "selector": "section ul li:nth-child(2)", "texto_exacto": "Escudo Nano" },
+          { "selector": "section ul li:nth-child(3)", "texto_exacto": "Mapa Estelar" },
+          { "selector": "section a[href='#lanzamiento']", "texto_exacto": "Iniciar despegue" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "Una lista con viñetas se envuelve con <ul>...</ul> y cada ítem individual lleva su propia etiqueta <li>...</li>."
+        },
+        {
+          "nivel": 2,
+          "texto": "Los enlaces usan la etiqueta <a> con el atributo de destino dentro de la apertura: <a href=\"...\">Texto</a>."
+        },
+        {
+          "nivel": 3,
+          "texto": "Después de cerrar </ul>, escribe exactamente: <a href=\"#lanzamiento\">Iniciar despegue</a>."
+        }
+      ],
+      "xp_recompensa": 35,
+      "monedas_recompensa": 20,
+      "orden": 2
+    },
+    {
+      "mundo_slug": "neo-tokio-javascript",
+      "titulo": "Neones de Shibuya: Variables y Mensaje Reactivo",
+      "slug": "js-neones-shibuya",
+      "contexto_narrativo": "Aterrizaste en Neo-Tokio JavaScript, donde cada rascacielos responde a eventos en vivo. Las pantallas del cruce central están en modo espera y Zorro Ágil necesita que inyectes el cálculo de energía en tiempo real.",
+      "instrucciones_md": "### ⚡ Misión: Reactivar las Pantallas de Neón\n\nCompleta la función `activarNeones(bateriasActivas)`:\n\n1. Declara una constante `distrito` con el texto `\"Shibuya\"`.\n2. Calcula la energía multiplicando `bateriasActivas * 25` y guárdala en una variable `energiaTotal`.\n3. Devuelve (`return`) una plantilla de texto (*template literal*) con este formato exacto:\n   `Distrito Shibuya: 75% de energía` (cuando `bateriasActivas` vale `3`).",
+      "codigo_inicial": "function activarNeones(bateriasActivas) {\n  const distrito = \"Shibuya\";\n  // 1. Calcula energiaTotal multiplicando bateriasActivas por 25\n\n  // 2. Retorna el mensaje usando comillas invertidas (`) y ${...}\n  return \"\";\n}",
+      "codigo_solucion": "function activarNeones(bateriasActivas) {\n  const distrito = \"Shibuya\";\n  const energiaTotal = bateriasActivas * 25;\n  return `Distrito ${distrito}: ${energiaTotal}% de energía`;\n}",
+      "reglas_validacion": {
+        "motor": "javascript-sandbox",
+        "funcion_objetivo": "activarNeones",
+        "tokens_requeridos": ["const ", "*", "`", "${", "return"],
+        "casos_prueba": [
+          { "entrada": [3], "esperado": "Distrito Shibuya: 75% de energía", "descripcion": "3 baterías activas (75%)" },
+          { "entrada": [4], "esperado": "Distrito Shibuya: 100% de energía", "descripcion": "Carga máxima (100%)" },
+          { "entrada": [1], "esperado": "Distrito Shibuya: 25% de energía", "descripcion": "1 batería activa (25%)" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "En JavaScript puedes combinar texto y variables fácilmente usando comillas invertidas (`) y colocando cada variable dentro de ${...}."
+        },
+        {
+          "nivel": 2,
+          "texto": "Crea la variable con const energiaTotal = bateriasActivas * 25; o let energiaTotal = bateriasActivas * 25;."
+        },
+        {
+          "nivel": 3,
+          "texto": "Reemplaza el return final por: return `Distrito ${distrito}: ${energiaTotal}% de energía`;"
+        }
+      ],
+      "xp_recompensa": 30,
+      "monedas_recompensa": 20,
+      "orden": 1
+    },
+    {
+      "mundo_slug": "neo-tokio-javascript",
+      "titulo": "Dron Mensajero: Ruta Aérea Condicional",
+      "slug": "js-dron-mensajero",
+      "contexto_narrativo": "Las autopistas aéreas de Neo-Tokio están llenas de drones mensajeros. Antes de despegar entre hologramas y lluvias eléctricas, tu dron necesita un algoritmo de decisión seguro.",
+      "instrucciones_md": "### 🚁 Misión: Programar el Piloto Automático\n\nCompleta la función `decidirVuelo(bateria, hayTormenta)` respetando el orden de prioridad:\n\n1. **Prioridad máxima:** Si `hayTormenta` es `true`, devuelve `\"Aterrizaje de emergencia\"`.\n2. Si no hay tormenta y `bateria` es **mayor o igual a `50`** (`>= 50`), devuelve `\"Ruta turbo activada\"`.\n3. En cualquier otro caso (batería menor a `50` sin tormenta), devuelve `\"Recargar en estación\"`.",
+      "codigo_inicial": "function decidirVuelo(bateria, hayTormenta) {\n  // Evalúa primero si hay tormenta, luego el nivel de batería\n  \n}",
+      "codigo_solucion": "function decidirVuelo(bateria, hayTormenta) {\n  if (hayTormenta) {\n    return \"Aterrizaje de emergencia\";\n  } else if (bateria >= 50) {\n    return \"Ruta turbo activada\";\n  } else {\n    return \"Recargar en estación\";\n  }\n}",
+      "reglas_validacion": {
+        "motor": "javascript-sandbox",
+        "funcion_objetivo": "decidirVuelo",
+        "tokens_requeridos": ["if", "else", ">=", "return"],
+        "casos_prueba": [
+          { "entrada": [95, true], "esperado": "Aterrizaje de emergencia", "descripcion": "Tormenta activa con batería alta" },
+          { "entrada": [20, true], "esperado": "Aterrizaje de emergencia", "descripcion": "Tormenta activa con batería baja" },
+          { "entrada": [50, false], "esperado": "Ruta turbo activada", "descripcion": "Batería en el umbral mínimo de 50" },
+          { "entrada": [85, false], "esperado": "Ruta turbo activada", "descripcion": "Vuelo despejado con carga óptima" },
+          { "entrada": [30, false], "esperado": "Recargar en estación", "descripcion": "Sin tormenta pero batería insuficiente" }
+        ]
+      },
+      "pistas": [
+        {
+          "nivel": 1,
+          "texto": "Comprueba primero hayTormenta: si revisaras la batería antes, un dron con 90% de carga intentaría volar en medio de una tormenta."
+        },
+        {
+          "nivel": 2,
+          "texto": "Estructura tres ramas encadenadas: if (hayTormenta) { ... } else if (bateria >= 50) { ... } else { ... }."
+        },
+        {
+          "nivel": 3,
+          "texto": "Coloca un return en cada bloque con los textos exactos: \"Aterrizaje de emergencia\", \"Ruta turbo activada\" y \"Recargar en estación\"."
+        }
+      ],
+      "xp_recompensa": 40,
+      "monedas_recompensa": 25,
+      "orden": 2
+    }
+  ]
+}
