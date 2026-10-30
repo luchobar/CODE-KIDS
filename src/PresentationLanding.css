@@ -1,0 +1,490 @@
+/* =============================================================================
+   CODEKIDS — Página de Presentación Oficial (Landing Page)
+   Estilos modernos, accesibles y responsivos inspirados en diseño Apple/EdTech
+   ============================================================================= */
+
+.landing-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1. HERO DE PRESENTACIÓN */
+.landing-hero-tile {
+  position: relative;
+  overflow: hidden;
+  padding: 64px 0 80px;
+}
+
+.landing-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--rounded-pill);
+  background: rgba(27, 126, 220, 0.12);
+  border: 1px solid rgba(27, 126, 220, 0.3);
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+[data-theme="dark"] .landing-badge-chip {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.landing-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--color-on-light);
+  margin: 0;
+}
+
+[data-theme="dark"] .landing-hero-title {
+  color: #ffffff;
+}
+
+.landing-hero-description {
+  font-family: var(--font-text);
+  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--color-body-muted);
+  max-width: 620px;
+  margin: 0;
+}
+
+.landing-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.landing-access-btn {
+  font-size: 1.0625rem !important;
+  padding: 16px 28px !important;
+  box-shadow: 0 10px 24px rgba(184, 236, 99, 0.32);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.landing-access-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(184, 236, 99, 0.45);
+}
+
+.landing-secondary-btn {
+  font-size: 0.95rem;
+  padding: 14px 22px;
+}
+
+/* TIRA DE ESTADÍSTICAS RÁPIDAS */
+.landing-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding: 20px 24px;
+  border-radius: var(--rounded-lg);
+  background: var(--color-surface-tile-1);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .landing-stats-strip {
+  background: rgba(18, 25, 41, 0.75);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.landing-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.landing-stat-number {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .landing-stat-number {
+  color: #38bdf8;
+}
+
+.landing-stat-label {
+  font-family: var(--font-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-body-muted);
+}
+
+/* 2. PILARES DEL OBJETIVO FORMATIVO */
+.objective-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+
+.objective-card {
+  padding: var(--space-xl);
+  border-radius: var(--rounded-lg);
+  background: var(--color-surface-tile-1);
+  border: 1px solid var(--color-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.objective-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .objective-card {
+  background: var(--color-surface-tile-2);
+}
+
+.objective-icon-bubble {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.objective-icon-bubble.bubble-blue {
+  background: rgba(27, 126, 220, 0.12);
+  color: #1b7edc;
+}
+
+.objective-icon-bubble.bubble-purple {
+  background: rgba(139, 92, 246, 0.14);
+  color: #8b5cf6;
+}
+
+.objective-icon-bubble.bubble-lime {
+  background: rgba(132, 204, 22, 0.16);
+  color: #65a30d;
+}
+
+.objective-icon-bubble.bubble-amber {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+[data-theme="dark"] .objective-icon-bubble.bubble-blue {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .objective-icon-bubble.bubble-purple {
+  background: rgba(167, 139, 250, 0.22);
+  color: #c4b5fd;
+}
+
+[data-theme="dark"] .objective-icon-bubble.bubble-lime {
+  background: rgba(163, 230, 53, 0.2);
+  color: #bef264;
+}
+
+[data-theme="dark"] .objective-icon-bubble.bubble-amber {
+  background: rgba(251, 191, 36, 0.22);
+  color: #fde047;
+}
+
+.objective-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--color-on-light);
+}
+
+[data-theme="dark"] .objective-card h3 {
+  color: #ffffff;
+}
+
+.objective-card p {
+  font-family: var(--font-text);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-body-muted);
+  margin: 0;
+}
+
+/* 3. METODOLOGÍA EN 3 FASES */
+.methodology-row-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+
+.methodology-step-card {
+  position: relative;
+  border-radius: var(--rounded-lg);
+  padding: var(--space-xl);
+  background: var(--color-surface-tile-1);
+  border: 1px solid var(--color-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+[data-theme="dark"] .methodology-step-card {
+  background: var(--color-surface-tile-2);
+}
+
+.step-number-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.step-card-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+
+.step-subtitle {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+[data-theme="dark"] .step-subtitle {
+  color: #38bdf8;
+}
+
+.step-card-body {
+  font-family: var(--font-text);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-body-muted);
+}
+
+.step-features-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-sm) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-features-list li {
+  font-family: var(--font-text);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-body-muted);
+}
+
+.step-features-list li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+/* 4. AUDIENCIA DUAL (ESTUDIANTES VS DOCENTES) */
+.audience-dual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+  margin-top: var(--space-xl);
+}
+
+.audience-card {
+  border-radius: var(--rounded-lg);
+  padding: var(--space-xxl);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-surface-tile-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+[data-theme="dark"] .audience-card {
+  background: var(--color-surface-tile-2);
+}
+
+.audience-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: var(--rounded-pill);
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+  width: fit-content;
+}
+
+.audience-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.audience-card p {
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-body-muted);
+  margin: 0;
+}
+
+.audience-checklist {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-sm) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.audience-checklist li {
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.audience-checklist li svg {
+  color: #10b981;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+/* 5. BANNER FINAL CTA */
+.landing-final-banner {
+  border-radius: var(--rounded-lg);
+  padding: 56px 40px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.2), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(184, 236, 99, 0.22), transparent 45%),
+    #0b1329;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-xxl) 0 var(--space-xl);
+}
+
+.landing-final-banner h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.landing-final-banner p {
+  font-family: var(--font-text);
+  font-size: 1.1rem;
+  color: #94a3b8;
+  max-width: 640px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* BOTÓN DE ACCESO EN NAVBAR */
+.nav-access-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+  cursor: pointer;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 960px) {
+  .landing-stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .methodology-row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audience-dual-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-hero-tile {
+    padding: 36px 0 54px;
+  }
+
+  .landing-stats-strip {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+    padding: 16px;
+  }
+
+  .landing-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landing-access-btn,
+  .landing-secondary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .landing-final-banner {
+    padding: 36px 20px;
+  }
+}

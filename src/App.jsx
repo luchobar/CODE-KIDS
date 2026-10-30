@@ -44,6 +44,7 @@ import {
 } from '@phosphor-icons/react';
 import BlocklyMission from './BlocklyMission.jsx';
 import CodeWorldLab from './CodeWorldLab.jsx';
+import PresentationLanding from './PresentationLanding.jsx';
 import PythonMission from './PythonMission.jsx';
 import { EXPANSION_MISSIONS, EXPANSION_WORLDS } from './expansionCatalog.js';
 import {
@@ -441,11 +442,32 @@ function Header({
   onPython,
   onHome,
   onGoMissions,
+  publicView = 'landing',
+  onOpenLogin,
+  onBackToLanding,
 }) {
   const [a11yOpen, setA11yOpen] = useState(false);
   const points = state?.points || 0;
   const level = Math.floor(points / 100) + 1;
   const xpInLevel = points % 100;
+
+  const scrollToLanding = (event, sectionId) => {
+    event.preventDefault();
+    if (publicView !== 'landing' && onBackToLanding) {
+      onBackToLanding();
+      setTimeout(() => {
+        const target = document.getElementById(sectionId);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      return;
+    }
+    const target = document.getElementById(sectionId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="apple-nav-stack">
@@ -456,7 +478,12 @@ function Header({
             href="#top"
             onClick={(event) => {
               event.preventDefault();
-              if (onHome) onHome();
+              if (user) {
+                if (onHome) onHome();
+              } else {
+                if (onBackToLanding) onBackToLanding();
+                else window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
             }}
             title="CodeKids - Plataforma Educativa"
           >
@@ -466,47 +493,105 @@ function Header({
               className="global-nav-logo-horizontal"
             />
           </a>
+
           <nav className="global-nav-links" aria-label="Secciones principales">
-            <button
-              type="button"
-              className="global-nav-link-btn"
-              onClick={() => {
-                if (onHome) onHome();
-              }}
-            >
-              Mapa
-            </button>
-            <button
-              type="button"
-              className="global-nav-link-btn"
-              onClick={() => {
-                if (onGoMissions) onGoMissions();
-              }}
-            >
-              Misiones
-            </button>
-            {user?.role === 'student' && (
+            {user ? (
               <>
-                <button type="button" className="global-nav-link-btn" onClick={onAssessment}>
-                  Diagnóstico
+                <button
+                  type="button"
+                  className="global-nav-link-btn"
+                  onClick={() => {
+                    if (onHome) onHome();
+                  }}
+                >
+                  Mapa
                 </button>
-                <button type="button" className="global-nav-link-btn" onClick={onPython}>
-                  Lab Python
+                <button
+                  type="button"
+                  className="global-nav-link-btn"
+                  onClick={() => {
+                    if (onGoMissions) onGoMissions();
+                  }}
+                >
+                  Misiones
+                </button>
+                {user.role === 'student' && (
+                  <>
+                    <button type="button" className="global-nav-link-btn" onClick={onAssessment}>
+                      Diagnóstico
+                    </button>
+                    <button type="button" className="global-nav-link-btn" onClick={onPython}>
+                      Lab Python
+                    </button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="global-nav-link-btn"
+                  onClick={(e) => scrollToLanding(e, 'top')}
+                >
+                  Inicio
+                </button>
+                <button
+                  type="button"
+                  className="global-nav-link-btn"
+                  onClick={(e) => scrollToLanding(e, 'objetivo')}
+                >
+                  ¿Qué es? y Objetivo
+                </button>
+                <button
+                  type="button"
+                  className="global-nav-link-btn"
+                  onClick={(e) => scrollToLanding(e, 'metodologia')}
+                >
+                  Metodología
+                </button>
+                <button
+                  type="button"
+                  className="global-nav-link-btn"
+                  onClick={(e) => scrollToLanding(e, 'mundos')}
+                >
+                  Mundos
                 </button>
               </>
             )}
           </nav>
+
           <div className="global-nav-actions">
             <AccessibilityMenu
               a11y={a11y}
               onChangeA11y={onChangeA11y}
-              soundEnabled={state.soundEnabled}
+              soundEnabled={state?.soundEnabled}
               onToggleSound={onToggleSound}
               isOpen={a11yOpen}
               onToggleOpen={() => setA11yOpen((prev) => !prev)}
               onClose={() => setA11yOpen(false)}
             />
-            {user && (
+
+            {!user ? (
+              publicView === 'login' ? (
+                <button
+                  type="button"
+                  className="button-secondary-pill nav-access-btn"
+                  onClick={onBackToLanding}
+                >
+                  <ArrowLeft size={15} weight="bold" />
+                  <span>Presentación</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="button-primary-pill nav-access-btn cta-3d-lime"
+                  onClick={onOpenLogin}
+                >
+                  <RocketLaunch size={15} weight="fill" />
+                  <span>Acceder</span>
+                </button>
+              )
+            ) : (
               <button type="button" className="button-dark-utility" onClick={onExit}>
                 Salir
               </button>
@@ -593,7 +678,7 @@ function Header({
   );
 }
 
-function Footer({ onHome, onGoMissions, onPython, onAssessment, user }) {
+function Footer({ onHome, onGoMissions, onPython, onAssessment, user, onOpenLogin }) {
   const handleNav = (event, action) => {
     event.preventDefault();
     if (action) action();
@@ -622,8 +707,15 @@ function Footer({ onHome, onGoMissions, onPython, onAssessment, user }) {
             </ul>
           </div>
           <div className="apple-footer-col">
-            <h4>Para Colegios</h4>
+            <h4>Comunidad y Acceso</h4>
             <ul>
+              {!user && onOpenLogin ? (
+                <li>
+                  <a href="#top" onClick={(e) => handleNav(e, onOpenLogin)} style={{ color: 'var(--color-primary)', fontWeight: 700 }}>
+                    🚀 Acceder a la plataforma
+                  </a>
+                </li>
+              ) : null}
               <li><a href="#top" onClick={(e) => handleNav(e, onHome)}>Panel de seguimiento docente</a></li>
               <li><a href="#curriculum" onClick={(e) => handleNav(e, onGoMissions)}>Biblioteca de ejercicios</a></li>
               <li><a href="#top" onClick={(e) => handleNav(e, onHome)}>Recomendaciones con IA</a></li>
@@ -669,7 +761,7 @@ const QUICK_PROFILES = [
   { id: 'profe', name: 'Profe Alex', role: 'teacher', avatar: 'unicorn', badge: 'Docente · 5° A' },
 ];
 
-function Login({ onEnter }) {
+function Login({ onEnter, onBackToLanding }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'reset'
   const [role, setRole] = useState('student');
   const [selectedAvatar, setSelectedAvatar] = useState('dragon');
@@ -802,6 +894,17 @@ function Login({ onEnter }) {
             <p className="hero-lead">
               Programa al robot Pipo con bloques magnéticos, desbloquea mundos sci-fi y conquista el Laboratorio de Python.
             </p>
+
+            {onBackToLanding && (
+              <button
+                type="button"
+                className="text-link auth-back-link"
+                onClick={onBackToLanding}
+              >
+                <ArrowLeft size={16} weight="bold" />
+                <span>Volver a la página de presentación</span>
+              </button>
+            )}
 
             {/* Tarjeta Flotante con Efecto Glassmorphism */}
             <form className="apple-login-form glass-auth-card" onSubmit={handleAuthSubmit} noValidate>
@@ -2994,6 +3097,15 @@ export default function App() {
   const [activeCodeWorld, setActiveCodeWorld] = useState(null);
   const [remoteExpansion, setRemoteExpansion] = useState(null);
   const [avatarShop, setAvatarShop] = useState(false);
+  const [publicView, setPublicView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('resetToken') || params.get('mode') === 'login') {
+        return 'login';
+      }
+    }
+    return 'landing';
+  });
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -3024,6 +3136,7 @@ export default function App() {
       user: { ...user, group: user.role === 'student' ? '5° A' : undefined },
     }));
     setView('home');
+    setPublicView('landing');
 
     if (isSupabaseConfigured) {
       try {
@@ -3058,6 +3171,7 @@ export default function App() {
     }
     setState((current) => ({ ...current, user: null }));
     setView('home');
+    setPublicView('landing');
   };
 
   const createAssignment = (assignment) =>
@@ -3255,6 +3369,9 @@ export default function App() {
     setActivePython(false);
     setActivePythonMissionId('');
     setActiveCodeWorld(null);
+    if (!state.user) {
+      setPublicView('landing');
+    }
     setView('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -3265,6 +3382,15 @@ export default function App() {
     setActivePython(false);
     setActivePythonMissionId('');
     setActiveCodeWorld(null);
+    if (!state.user) {
+      if (publicView !== 'landing') {
+        setPublicView('landing');
+      }
+      setTimeout(() => {
+        document.getElementById('mundos')?.scrollIntoView({ behavior: 'smooth' });
+      }, 80);
+      return;
+    }
     setView('home');
     window.setTimeout(() => {
       document.getElementById('curriculum')?.scrollIntoView({ behavior: 'smooth' });
@@ -3315,10 +3441,34 @@ export default function App() {
         onPython={openPythonLab}
         onHome={resetToHome}
         onGoMissions={goToMissions}
+        publicView={publicView}
+        onOpenLogin={() => {
+          setPublicView('login');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onBackToLanding={() => {
+          setPublicView('landing');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       {!state.user ? (
-        <Login onEnter={enter} />
+        publicView === 'login' ? (
+          <Login
+            onEnter={enter}
+            onBackToLanding={() => {
+              setPublicView('landing');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        ) : (
+          <PresentationLanding
+            onOpenLogin={() => {
+              setPublicView('login');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )
       ) : state.user.role === 'teacher' ? (
         <TeacherDashboard state={state} onAnalyze={setFeedbackPrompt} onCreate={createAssignment} />
       ) : activePython ? (
@@ -3387,6 +3537,10 @@ export default function App() {
         onGoMissions={goToMissions}
         onPython={openPythonLab}
         onAssessment={openAssessment}
+        onOpenLogin={() => {
+          setPublicView('login');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       {/* Barra de navegación inferior móvil estilo nativo para estudiantes */}
