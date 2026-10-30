@@ -57,6 +57,11 @@ import {
   isSupabaseConfigured,
   loadStudentFromSupabase,
   loadExpansionFromSupabase,
+  loadTeacherClassroomData,
+  createCourseInSupabase,
+  setStudentCourseEnrollment,
+  createClassroomAssignmentInSupabase,
+  syncAssignmentSubmissionInSupabase,
   syncMissionSuccess,
   syncAvatarPurchase,
   syncAvatarSelection,
@@ -1245,6 +1250,8 @@ function StudentDashboard({
   expansionData,
   pythonProgress,
   group,
+  availableCourses = [],
+  enrolledGroups = [],
   onGroupChange,
   onOpenAssignment,
   onOpenShop,
@@ -1789,19 +1796,33 @@ function StudentDashboard({
                 </div>
                 {onGroupChange && (
                   <div className="course-selector-group" role="group" aria-label="Seleccionar mi curso">
-                    {[
-                      '5° A',
-                      '6° B',
-                    ].map((courseName) => (
-                      <button
-                        type="button"
-                        key={courseName}
-                        className={group === courseName ? 'configurator-option-chip selected' : 'configurator-option-chip'}
-                        onClick={() => onGroupChange(courseName)}
-                      >
-                        <span>{courseName}</span>
-                      </button>
-                    ))}
+                    {Array.from(
+                      new Set([
+                        ...(enrolledGroups || []),
+                        ...(availableCourses || []).map((c) => c.codigoGrupo || c),
+                        '5° A',
+                        '6° B',
+                      ]),
+                    ).map((courseName) => {
+                      const isEnrolled = (enrolledGroups || []).includes(courseName);
+                      return (
+                        <button
+                          type="button"
+                          key={courseName}
+                          className={
+                            group === courseName
+                              ? 'configurator-option-chip selected'
+                              : 'configurator-option-chip'
+                          }
+                          onClick={() => onGroupChange(courseName)}
+                        >
+                          <span>
+                            {courseName}
+                            {isEnrolled ? ' ✓' : ''}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -2354,48 +2375,151 @@ function InteractiveExercise({ skill, templateId, onComplete }) {
 }
 
 const SAMPLE_STUDENTS = [
-  { name: 'Valeria', group: '5° A', score: 82, weak: 'Bucles' },
-  { name: 'Mateo', group: '5° A', score: 68, weak: 'Descomposición' },
-  { name: 'Lucía', group: '5° A', score: 91, weak: 'Condicionales' },
-  { name: 'Samuel', group: '6° B', score: 74, weak: 'Secuencias' },
-  { name: 'Mariana', group: '6° B', score: 64, weak: 'Bucles' },
+  { id: 1, name: 'Valeria', email: 'valeria@universidad.edu', group: '5° A', score: 82, weak: 'Bucles', avatar: 'dragon', points: 120, level: 2, completedCount: 3 },
+  { id: 2, name: 'Mateo', email: 'mateo@universidad.edu', group: '5° A', score: 68, weak: 'Descomposición', avatar: 'cat', points: 85, level: 1, completedCount: 2 },
+  { id: 3, name: 'Lucía', email: 'lucia@universidad.edu', group: '5° A', score: 91, weak: 'Condicionales', avatar: 'robot', points: 210, level: 3, completedCount: 6 },
+  { id: 101, name: 'Samuel', email: 'samuel@universidad.edu', group: '6° B', score: 74, weak: 'Secuencias', avatar: 'fox', points: 110, level: 2, completedCount: 2 },
+  { id: 102, name: 'Mariana', email: 'mariana@universidad.edu', group: '6° B', score: 64, weak: 'Bucles', avatar: 'unicorn', points: 95, level: 1, completedCount: 2 },
 ];
 
-function CreateAssignmentPanel({ group, onCreate, draftExercise }) {
-  const [skill, setSkill] = useState(BLOCKLY_SKILLS[0]);
-  const [challengeId, setChallengeId] = useState(BLOCKLY_CHALLENGES[0].id);
-  const challenge = BLOCKLY_CHALLENGES.find((item) => item.id === challengeId) || BLOCKLY_CHALLENGES[0];
+const TEACHER_ACTIVITY_SKILLS = [
+  ...BLOCKLY_SKILLS,
+  'Python',
+  'HTML5',
+  'JavaScript',
+];
+
+function stripMarkdownFormatting(md = '') {
+  return String(md)
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+
+function buildTeacherActivitiesCatalog(remoteExpansion = null) {
+  const blocklyItems = BLOCKLY_CHALLENGES.map((item) => ({
+    ...item,
+    category: challengeCategory(item),
+    isNewExpansion: false,
+  }));
+
+  const pythonBaseItems = [
+    {
+      id: 'python-sequence',
+      templateId: 'python-code',
+      skill: 'Python',
+      category: 'Python',
+      level: 'Inicio',
+      name: 'Python Etapa 1: Primer comando',
+      exerciseTitle: 'Laboratorio Python: Guiar al robot con avanzar() y girar_derecha()',
+      description: 'Sintaxis escrita básica y llamadas a funciones en Python.',
+      instructions:
+        'Escribe los comandos avanzar() y girar_derecha() paso a paso en el editor para llevar al robot hasta la estrella.',
+      isNewExpansion: false,
+    },
+    {
+      id: 'python-loop',
+      templateId: 'python-code',
+      skill: 'Python',
+      category: 'Python',
+      level: 'En camino',
+      name: 'Python Etapa 2: Bucle for',
+      exerciseTitle: 'Laboratorio Python: Cruzar el pasillo con for paso in range()',
+      description: 'Ciclos for e indentación de 4 espacios en Python.',
+      instructions:
+        'Utiliza un bucle for paso in range(): con sangría de 4 espacios para avanzar hasta la meta sin repetir líneas.',
+      isNewExpansion: false,
+    },
+    {
+      id: 'python-condition',
+      templateId: 'python-code',
+      skill: 'Python',
+      category: 'Python',
+      level: 'Explorador',
+      name: 'Python Etapa 3: Sensor if',
+      exerciseTitle: 'Laboratorio Python: Esquivar obstáculo con if hay_pared():',
+      description: 'Condicionales if integrados dentro de un recorrido en Python.',
+      instructions:
+        'Combina for e if hay_pared(): para detectar el muro, girar a tiempo y alcanzar la estrella.',
+      isNewExpansion: false,
+    },
+  ];
+
+  const sourceExpansion =
+    remoteExpansion?.misiones?.length > 0 ? remoteExpansion.misiones : EXPANSION_MISSIONS;
+
+  const expansionItems = sourceExpansion.map((m) => {
+    const isPy = m.mundo_slug === 'laboratorio-python' || String(m.slug).startsWith('py-');
+    const isHtml = m.mundo_slug === 'ciudadela-html' || String(m.slug).startsWith('html-');
+    const category = isPy ? 'Python' : isHtml ? 'HTML5' : 'JavaScript';
+    const templateId = isPy ? 'python-code' : isHtml ? 'html-markup' : 'javascript-script';
+    const levelLabel = m.orden === 1 ? 'Inicio' : m.orden === 2 ? 'En camino' : 'Explorador';
+
+    return {
+      id: m.slug,
+      templateId,
+      skill: category,
+      category,
+      level: levelLabel,
+      name: `⚡ ${m.titulo}`,
+      exerciseTitle: m.titulo,
+      description: m.contexto_narrativo || `Misión interactiva de ${category} (+${m.xp_recompensa} XP)`,
+      instructions: stripMarkdownFormatting(m.instrucciones_md) || m.contexto_narrativo,
+      xpReward: m.xp_recompensa,
+      coinReward: m.monedas_recompensa,
+      isNewExpansion: true,
+    };
+  });
+
+  return [...blocklyItems, ...pythonBaseItems, ...expansionItems];
+}
+
+function CreateAssignmentPanel({
+  group,
+  courses = [],
+  onCreate,
+  draftExercise,
+  remoteExpansion = null,
+}) {
+  const allActivities = buildTeacherActivitiesCatalog(remoteExpansion);
+  const [skill, setSkill] = useState(TEACHER_ACTIVITY_SKILLS[0]);
+  const [challengeId, setChallengeId] = useState(allActivities[0].id);
+  const challenge = allActivities.find((item) => item.id === challengeId) || allActivities[0];
   const [title, setTitle] = useState(challenge.exerciseTitle);
   const [instructions, setInstructions] = useState(challenge.instructions);
-  const [published, setPublished] = useState(false);
+  const [targetScope, setTargetScope] = useState('current');
+  const [publishedMsg, setPublishedMsg] = useState('');
 
   useEffect(() => {
     if (!draftExercise) return;
     const matchedChallenge =
-      BLOCKLY_CHALLENGES.find((item) => item.id === draftExercise.missionId) ||
-      BLOCKLY_CHALLENGES.find((item) => item.skill === draftExercise.skill) ||
-      BLOCKLY_CHALLENGES[0];
-    setSkill(challengeCategory(matchedChallenge));
+      allActivities.find((item) => item.id === draftExercise.missionId) ||
+      allActivities.find((item) => item.category === draftExercise.skill || item.skill === draftExercise.skill) ||
+      allActivities[0];
+    setSkill(matchedChallenge.category);
     setChallengeId(matchedChallenge.id);
     setTitle(draftExercise.title || matchedChallenge.exerciseTitle);
     setInstructions(draftExercise.instructions || matchedChallenge.instructions);
-    setPublished(false);
+    setPublishedMsg('');
   }, [draftExercise]);
 
   const selectSkill = (nextSkill) => {
-    const firstChallenge = BLOCKLY_CHALLENGES.find((item) => challengeCategory(item) === nextSkill);
+    const firstChallenge =
+      allActivities.find((item) => item.category === nextSkill) || allActivities[0];
     setSkill(nextSkill);
     setChallengeId(firstChallenge.id);
     setTitle(firstChallenge.exerciseTitle);
     setInstructions(firstChallenge.instructions);
-    setPublished(false);
+    setPublishedMsg('');
   };
 
   const selectChallenge = (item) => {
     setChallengeId(item.id);
     setTitle(item.exerciseTitle);
     setInstructions(item.instructions);
-    setPublished(false);
+    setPublishedMsg('');
   };
 
   return (
@@ -2404,63 +2528,110 @@ function CreateAssignmentPanel({ group, onCreate, draftExercise }) {
       onSubmit={(event) => {
         event.preventDefault();
         if (!title.trim() || !instructions.trim()) return;
-        onCreate({
-          title: title.trim(),
-          instructions: instructions.trim(),
-          skill: challenge.skill,
-          templateId: challenge.templateId,
-          missionId: challenge.id,
-          group,
+        const targetGroups =
+          targetScope === 'all' && courses.length > 0
+            ? courses.map((c) => c.codigoGrupo)
+            : [group];
+
+        targetGroups.forEach((gCode) => {
+          onCreate({
+            title: title.trim(),
+            instructions: instructions.trim(),
+            skill: challenge.skill,
+            templateId: challenge.templateId,
+            missionId: challenge.id,
+            group: gCode,
+          });
         });
-        setPublished(true);
+
+        setPublishedMsg(
+          targetGroups.length > 1
+            ? `«${title.trim()}» fue asignada a todos los cursos (${targetGroups.join(', ')}).`
+            : `«${title.trim()}» ya está publicada para el curso ${group}.`,
+        );
       }}
     >
       <div className="card-header-row">
         <div>
-          <h3>Diseña un ejercicio</h3>
-          <p>Elige qué habilidad practicar y publica una misión de Blockly para {group}.</p>
+          <h3>Asignar actividad (Blockly, Python, HTML5 o JS)</h3>
+          <p>
+            Elige una misión clásica o una de las <b>nuevas actividades multilenguaje</b> para {group}.
+          </p>
         </div>
         <NotePencil size={22} weight="regular" />
       </div>
 
-      <div className="challenge-skill-tabs" role="group" aria-label="Filtrar retos por habilidad">
-        {BLOCKLY_SKILLS.map((item) => (
-          <button
-            type="button"
-            key={item}
-            aria-pressed={skill === item}
-            className={skill === item ? 'configurator-option-chip selected' : 'configurator-option-chip'}
-            onClick={() => selectSkill(item)}
-          >
-            <SkillGlyph skill={item} size={15} />
-            <span>{item}</span>
-          </button>
-        ))}
+      <div className="challenge-skill-tabs" role="group" aria-label="Filtrar actividades por lenguaje o habilidad">
+        {TEACHER_ACTIVITY_SKILLS.map((item) => {
+          const isNewTech = ['Python', 'HTML5', 'JavaScript'].includes(item);
+          return (
+            <button
+              type="button"
+              key={item}
+              aria-pressed={skill === item}
+              className={skill === item ? 'configurator-option-chip selected' : 'configurator-option-chip'}
+              onClick={() => selectSkill(item)}
+            >
+              <SkillGlyph skill={item} size={15} />
+              <span>{item}</span>
+              {isNewTech && <small className="new-tech-dot">NUEVO</small>}
+            </button>
+          );
+        })}
       </div>
 
       <div className="challenge-picker" aria-label={`Misiones de ${skill}`}>
-        {BLOCKLY_CHALLENGES.filter((item) => challengeCategory(item) === skill).map((item) => (
+        {allActivities
+          .filter((item) => item.category === skill)
+          .map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              aria-pressed={item.id === challenge.id}
+              className={item.id === challenge.id ? 'challenge-option selected' : 'challenge-option'}
+              onClick={() => selectChallenge(item)}
+            >
+              <span className="challenge-option-copy">
+                <b>
+                  {item.name}{' '}
+                  {item.isNewExpansion && <span className="expansion-pill-inline">Expansión</span>}
+                </b>
+                <small>
+                  {item.level} | {item.description}
+                </small>
+              </span>
+              <ArrowRight size={15} weight="regular" />
+            </button>
+          ))}
+      </div>
+
+      <div className="form-field-block">
+        <label className="field-label" htmlFor="exercise-target-scope">
+          Curso destinatario
+        </label>
+        <div className="target-scope-row" id="exercise-target-scope" role="group" aria-label="Elegir curso destino">
           <button
             type="button"
-            key={item.id}
-            aria-pressed={item.id === challenge.id}
-            className={item.id === challenge.id ? 'challenge-option selected' : 'challenge-option'}
-            onClick={() => selectChallenge(item)}
+            className={targetScope === 'current' ? 'configurator-option-chip selected' : 'configurator-option-chip'}
+            onClick={() => setTargetScope('current')}
           >
-            <span className="challenge-option-copy">
-              <b>{item.name}</b>
-              <small>
-                {item.level} | {item.description}
-              </small>
-            </span>
-            <ArrowRight size={15} weight="regular" />
+            <span>Solo curso actual ({group})</span>
           </button>
-        ))}
+          {courses.length > 1 && (
+            <button
+              type="button"
+              className={targetScope === 'all' ? 'configurator-option-chip selected' : 'configurator-option-chip'}
+              onClick={() => setTargetScope('all')}
+            >
+              <span>Todos los cursos ({courses.map((c) => c.codigoGrupo).join(', ')})</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="form-field-block">
         <label className="field-label" htmlFor="exercise-title">
-          Nombre del reto
+          Nombre de la actividad para los estudiantes
         </label>
         <input
           id="exercise-title"
@@ -2468,7 +2639,7 @@ function CreateAssignmentPanel({ group, onCreate, draftExercise }) {
           value={title}
           onChange={(event) => {
             setTitle(event.target.value);
-            setPublished(false);
+            setPublishedMsg('');
           }}
           required
         />
@@ -2484,42 +2655,147 @@ function CreateAssignmentPanel({ group, onCreate, draftExercise }) {
           value={instructions}
           onChange={(event) => {
             setInstructions(event.target.value);
-            setPublished(false);
+            setPublishedMsg('');
           }}
           required
         />
       </div>
 
       <button className="button-primary full-width-btn" type="submit">
-        <span>Publicar ejercicio</span>
+        <span>
+          {targetScope === 'all'
+            ? 'Publicar actividad en todos los cursos'
+            : `Publicar actividad en ${group}`}
+        </span>
         <ArrowRight size={15} weight="regular" />
       </button>
 
-      {published && (
+      {publishedMsg && (
         <p className="publish-success" role="status">
           <CheckCircle size={16} weight="fill" />
-          <span>«{title}» ya está publicado para {group}.</span>
+          <span>{publishedMsg}</span>
         </p>
       )}
     </form>
   );
 }
 
-function StudentAssignmentModal({ assignment, previousSubmission, onSubmit, onClose, soundEnabled }) {
+function StudentAssignmentModal({
+  assignment,
+  previousSubmission,
+  onSubmit,
+  onClose,
+  soundEnabled,
+  remoteExpansion = null,
+}) {
   const [gameOutcome, setGameOutcome] = useState(previousSubmission?.gameOutcome || null);
   const [result, setResult] = useState(previousSubmission || null);
   const [submitting, setSubmitting] = useState(false);
+
+  const missionIdStr = String(assignment.missionId || '');
+  const isPythonAssignment =
+    assignment.templateId === 'python-code' ||
+    assignment.skill === 'Python' ||
+    missionIdStr.startsWith('python-') ||
+    missionIdStr.startsWith('py-');
+  const isHtmlAssignment =
+    assignment.templateId === 'html-markup' ||
+    assignment.skill === 'HTML5' ||
+    missionIdStr.startsWith('html-');
+  const isJsAssignment =
+    assignment.templateId === 'javascript-script' ||
+    assignment.skill === 'JavaScript' ||
+    missionIdStr.startsWith('js-');
   const usesBlockly = ['sequence-order', 'loop-count', 'if-choice'].includes(assignment.templateId);
 
-  const submit = async () => {
-    if (!gameOutcome || submitting) return;
+  const submit = async (overrideOutcome = null) => {
+    const activeOutcome = overrideOutcome || gameOutcome;
+    if (!activeOutcome || submitting) return;
     setSubmitting(true);
     try {
-      setResult(await onSubmit(assignment, gameOutcome.evidence, gameOutcome));
+      setResult(await onSubmit(assignment, activeOutcome.evidence, activeOutcome));
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (!result && (isPythonAssignment || isHtmlAssignment || isJsAssignment)) {
+    return (
+      <div className="code-assignment-wrapper">
+        <div className="code-assignment-banner">
+          <div className="code-assignment-banner-info">
+            <span className="modal-meta-label">
+              Reto del Curso {assignment.group} · {assignment.skill}
+            </span>
+            <strong>{assignment.title}</strong>
+          </div>
+          <div className="code-assignment-banner-actions">
+            {gameOutcome?.success ? (
+              <button
+                type="button"
+                className="button-primary cta-3d-lime"
+                onClick={() => submit(gameOutcome)}
+                disabled={submitting}
+              >
+                <CheckCircle size={16} weight="fill" />
+                <span>{submitting ? 'Enviando entrega...' : '¡Reto superado! Enviar al docente'}</span>
+              </button>
+            ) : (
+              <span className="code-assignment-pending-hint">
+                Resuelve y valida el código abajo para habilitar el envío al docente
+              </span>
+            )}
+            <button type="button" className="button-secondary-pill" onClick={onClose}>
+              <ArrowLeft size={14} weight="bold" />
+              <span>Volver a mis retos</span>
+            </button>
+          </div>
+        </div>
+
+        {isPythonAssignment ? (
+          <PythonMission
+            key={assignment.id}
+            completed={gameOutcome?.success ? [assignment.missionId] : []}
+            initialMissionId={assignment.missionId}
+            customMissions={remoteExpansion?.misiones || null}
+            onComplete={(completedId, _xp, _coins, studentCode, attemptsCount) => {
+              const outcome = {
+                success: true,
+                attempts: attemptsCount || 1,
+                evidence: studentCode
+                  ? `Código Python (${completedId}):\n${studentCode}`
+                  : `Misión Python ${completedId} completada`,
+              };
+              setGameOutcome(outcome);
+              if (soundEnabled) playSfx('win');
+            }}
+            onClose={onClose}
+          />
+        ) : (
+          <CodeWorldLab
+            key={assignment.id}
+            worldSlug={isHtmlAssignment ? 'ciudadela-html' : 'neo-tokio-javascript'}
+            initialMissionSlug={assignment.missionId}
+            customWorlds={remoteExpansion?.mundos || null}
+            customMissions={remoteExpansion?.misiones || null}
+            completed={gameOutcome?.success ? [assignment.missionId] : []}
+            onComplete={(completedSlug, _xp, _coins, studentCode, attemptsCount) => {
+              const outcome = {
+                success: true,
+                attempts: attemptsCount || 1,
+                evidence: studentCode
+                  ? `Código ${assignment.skill} (${completedSlug}):\n${studentCode}`
+                  : `Misión ${completedSlug} completada`,
+              };
+              setGameOutcome(outcome);
+              if (soundEnabled) playSfx('win');
+            }}
+            onClose={onClose}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <main id="top" className="apple-page fullscreen-exercise-page">
@@ -2541,7 +2817,7 @@ function StudentAssignmentModal({ assignment, previousSubmission, onSubmit, onCl
 
           {gameOutcome && !result && (
             <div className="workspace-topbar-actions">
-              <button type="button" className="button-primary" onClick={submit} disabled={submitting}>
+              <button type="button" className="button-primary" onClick={() => submit()} disabled={submitting}>
                 <span>{submitting ? 'Evaluando con Ollama...' : 'Enviar al docente'}</span>
                 <ArrowRight size={15} weight="regular" />
               </button>
@@ -2590,7 +2866,7 @@ function StudentAssignmentModal({ assignment, previousSubmission, onSubmit, onCl
             )}
             {gameOutcome && (
               <div className="assignment-submit-bar">
-                <button type="button" className="button-primary" onClick={submit} disabled={submitting}>
+                <button type="button" className="button-primary" onClick={() => submit()} disabled={submitting}>
                   <span>{submitting ? 'Evaluando con Ollama...' : 'Enviar al docente'}</span>
                   <ArrowRight size={15} weight="regular" />
                 </button>
@@ -2648,16 +2924,52 @@ function AssignmentResults({ submissions }) {
   );
 }
 
-function TeacherDashboard({ state, onCreate }) {
-  const [group, setGroup] = useState('5° A');
+function TeacherDashboard({
+  state,
+  courses = [],
+  dbStudents = [],
+  enrollmentsByGroup = {},
+  onCreateCourse,
+  onToggleEnrollment,
+  onBulkEnrollAll,
+  onCreate,
+  remoteExpansion = null,
+}) {
+  const courseList =
+    courses.length > 0
+      ? courses
+      : [
+          { id: 1, codigoGrupo: '5° A', nombre: 'Grado 5° A - Pensamiento Computacional' },
+          { id: 2, codigoGrupo: '6° B', nombre: 'Grado 6° B - Lógica e Algoritmia' },
+        ];
+
+  const [group, setGroup] = useState(courseList[0]?.codigoGrupo || '5° A');
   const [draftExercise, setDraftExercise] = useState(null);
   const [assignedProposalIds, setAssignedProposalIds] = useState([]);
+
+  // Estado para crear un nuevo curso con estudiantes de la BD
+  const [newCourseCode, setNewCourseCode] = useState('');
+  const [newCourseName, setNewCourseName] = useState('');
+  const [selectedStudentIdsForNewCourse, setSelectedStudentIdsForNewCourse] = useState([]);
+  const [courseFeedback, setCourseFeedback] = useState('');
+  const [creatingCourse, setCreatingCourse] = useState(false);
+
+  // Estado para filtrar e inscribir estudiantes de la BD en el curso activo
+  const [studentSearch, setStudentSearch] = useState('');
+  const [enrollmentFilter, setEnrollmentFilter] = useState('all');
+
+  const allStudents = dbStudents.length > 0 ? dbStudents : SAMPLE_STUDENTS;
+  const enrolledIdsInCurrentGroup = enrollmentsByGroup[group] || [];
+
+  const enrolledDbStudents = allStudents.filter((student) =>
+    enrolledIdsInCurrentGroup.some((id) => String(id) === String(student.id)),
+  );
+
   const groupAssignments = (state.assignments || []).filter((assignment) => assignment.group === group);
   const groupSubmissions = (state.submissions || [])
     .filter((submission) => submission.group === group)
     .sort((a, b) => b.createdAt - a.createdAt);
 
-  const baseStudents = SAMPLE_STUDENTS.filter((student) => student.group === group);
   const submissionStudents = [...new Set(groupSubmissions.map((submission) => submission.studentName))].map((name) => {
     const rows = groupSubmissions.filter((submission) => submission.studentName === name);
     const skillScores = Object.entries(
@@ -2674,9 +2986,58 @@ function TeacherDashboard({ state, onCreate }) {
   });
 
   const visibleStudents = [
-    ...baseStudents.map((base) => submissionStudents.find((sub) => sub.name === base.name) || base),
-    ...submissionStudents.filter((sub) => !baseStudents.some((base) => base.name === sub.name)),
+    ...enrolledDbStudents.map((base) => {
+      const sub = submissionStudents.find((s) => s.name === base.name);
+      return sub ? { ...base, score: sub.score, weak: sub.weak, group } : { ...base, group };
+    }),
+    ...submissionStudents.filter((sub) => !enrolledDbStudents.some((base) => base.name === sub.name)),
   ];
+
+  const filteredDirectoryStudents = allStudents.filter((student) => {
+    const isEnrolledHere = enrolledIdsInCurrentGroup.some((id) => String(id) === String(student.id));
+    if (enrollmentFilter === 'enrolled' && !isEnrolledHere) return false;
+    if (enrollmentFilter === 'unenrolled' && isEnrolledHere) return false;
+    if (!studentSearch.trim()) return true;
+    const q = studentSearch.toLowerCase();
+    return (
+      String(student.name || '').toLowerCase().includes(q) ||
+      String(student.email || '').toLowerCase().includes(q)
+    );
+  });
+
+  const togglePreselectStudent = (studentId) => {
+    setSelectedStudentIdsForNewCourse((current) =>
+      current.includes(studentId)
+        ? current.filter((id) => id !== studentId)
+        : [...current, studentId],
+    );
+  };
+
+  const handleCreateCourseSubmit = async (event) => {
+    event.preventDefault();
+    const cleanCode = newCourseCode.trim();
+    if (!cleanCode || creatingCourse) return;
+    setCreatingCourse(true);
+    setCourseFeedback('');
+    try {
+      await onCreateCourse({
+        codigoGrupo: cleanCode,
+        nombre: newCourseName.trim() || `Curso ${cleanCode}`,
+        studentIds: selectedStudentIdsForNewCourse,
+      });
+      setGroup(cleanCode);
+      setCourseFeedback(
+        `Curso «${cleanCode}» creado con ${selectedStudentIdsForNewCourse.length} estudiante(s) inscrito(s).`,
+      );
+      setNewCourseCode('');
+      setNewCourseName('');
+      setSelectedStudentIdsForNewCourse([]);
+    } catch (err) {
+      setCourseFeedback(err.message || 'No se pudo crear el curso.');
+    } finally {
+      setCreatingCourse(false);
+    }
+  };
 
   const [aiInsights, setAiInsights] = useState(null);
   const [aiStatus, setAiStatus] = useState('idle');
@@ -2700,11 +3061,11 @@ function TeacherDashboard({ state, onCreate }) {
             success: Boolean(row.gameOutcome?.success),
           })),
           assignmentSkills: assignmentsList.map((item) => item.skill),
-          missionCatalog: BLOCKLY_CHALLENGES.map((item) => ({
+          missionCatalog: buildTeacherActivitiesCatalog(remoteExpansion).map((item) => ({
             id: item.id,
             templateId: item.templateId,
             skill: item.skill,
-            category: challengeCategory(item),
+            category: item.category,
             level: item.level,
             name: item.name,
             exerciseTitle: item.exerciseTitle,
@@ -2716,50 +3077,62 @@ function TeacherDashboard({ state, onCreate }) {
       setAiInsights(await response.json());
       setAiStatus('ready');
     } catch {
-      // Motor de analítica pedagógica adaptativa para el aula (Vercel / Cloud)
       const avgScore = roster.length
-        ? Math.round(roster.reduce((acc, s) => acc + (s.score || 0), 0) / roster.length)
-        : 75;
+        ? Math.round(roster.reduce((acc, s) => acc + (s.score || 75), 0) / roster.length)
+        : 78;
       setAiInsights({
-        overview: `Informe pedagógico para ${targetGroup}: Promedio general de ${avgScore}%. El curso demuestra buen dominio en secuencias lógicas, con oportunidad de refuerzo en bucles repetitivos y bifurcaciones condicionales.`,
+        overview: `Informe pedagógico para ${targetGroup}: Promedio general de ${avgScore}% con ${roster.length} estudiante(s) activo(s). El curso está listo para combinar lógica de bloques con las nuevas misiones de Python, Ciudadela HTML y Neo-Tokio JavaScript.`,
         model: 'CodeKids Pedagogic AI Engine',
         focusSkills: [
           {
-            skill: 'Bucles',
-            evidence: 'Varios estudiantes repiten bloques de avance en lugar de agruparlos en un ciclo.',
-            activity: 'Resolver «El puente» identificando el patrón antes de arrastrar bloques.',
+            skill: 'Bucles y Python',
+            evidence: 'Oportunidad para transferir el bloque «repetir» hacia ciclos for e indentación real en Python.',
+            activity: 'Asignar «Protocolo Escudo Cuántico» o «Python Etapa 2: Bucle for» al curso.',
           },
           {
-            skill: 'Condicionales',
-            evidence: 'Oportunidad de mejora al anticipar obstáculos con el sensor de pared.',
-            activity: 'Practicar «El desvío» verificando hacia qué lado está libre la ruta.',
+            skill: 'Desarrollo Web (HTML5 / JS)',
+            evidence: 'Los estudiantes con buen dominio condicional pueden avanzar a estructurar DOM y lógica reactiva.',
+            activity: 'Asignar «El Faro Holográfico (HTML5)» y «Neones de Shibuya (JavaScript)».',
           },
         ],
         nextSteps: [
-          'Sesión guiada de 20 minutos enfocada en el bloque «repetir».',
-          'Dinámicas de programación en parejas para depurar códigos antes de la meta.',
-          'Asignar los retos sugeridos a continuación para consolidar las destrezas del grupo.',
+          'Inscribir a los estudiantes de la base de datos en su respectivo curso desde el panel de gestión.',
+          'Asignar una misión de transición en Python o Ciudadela HTML para evaluar sintaxis escrita.',
+          'Revisar el código enviado por cada estudiante en la columna de respuestas del grupo.',
         ],
         proposedExercises: [
           {
-            missionId: 'loop-bridge',
-            templateId: 'loop-count',
-            skill: 'Bucles',
-            targetSkill: 'Bucles',
+            missionId: 'py-protocolo-escudo-cuantico',
+            templateId: 'python-code',
+            skill: 'Python',
+            targetSkill: 'Python Avanzado',
             level: 'Inicio',
-            title: 'Refuerzo de Bucles: El puente iterativo',
-            instructions: 'Usa el bloque «repetir» para cruzar el puente ahorrando energía.',
-            reason: 'Identificado como la falencia más común en el diagnóstico de los estudiantes.',
+            title: 'Laboratorio Python: Protocolo Escudo Cuántico',
+            instructions:
+              'Completa la función calcular_energia_escudo(baterias, factor) retornando el producto solo si supera o iguala 100.',
+            reason: 'Nueva actividad de expansión para introducir funciones y condicionales en Python.',
           },
           {
-            missionId: 'condition-detour',
-            templateId: 'if-choice',
-            skill: 'Condicionales',
-            targetSkill: 'Condicionales',
+            missionId: 'html-faro-holografico',
+            templateId: 'html-markup',
+            skill: 'HTML5',
+            targetSkill: 'Estructura Web HTML5',
             level: 'Inicio',
-            title: 'Lógica condicional: Desvío inteligente',
-            instructions: 'Si el sensor detecta una pared, hazlo girar para buscar un camino alterno.',
-            reason: 'Fortalece el pensamiento computacional aplicado a toma de decisiones.',
+            title: 'Ciudadela HTML: El Faro Holográfico',
+            instructions:
+              'Construye dentro de <header> un encabezado <h1>Ciudadela HTML</h1> y el párrafo de estado Activo.',
+            reason: 'Permite que el curso practique etiquetas semánticas HTML5 con vista previa holográfica en vivo.',
+          },
+          {
+            missionId: 'js-neones-shibuya',
+            templateId: 'javascript-script',
+            skill: 'JavaScript',
+            targetSkill: 'Variables y Eventos JS',
+            level: 'Inicio',
+            title: 'Neo-Tokio JS: Neones de Shibuya',
+            instructions:
+              'Calcula energiaTotal multiplicando bateriasActivas * 25 y devuelve el mensaje con template literals.',
+            reason: 'Refuerza variables constantes, operadores aritméticos y plantillas de texto en JavaScript.',
           },
         ],
       });
@@ -2769,7 +3142,7 @@ function TeacherDashboard({ state, onCreate }) {
 
   useEffect(() => {
     loadInsights(group, visibleStudents, groupSubmissions, groupAssignments);
-  }, [group, groupSubmissions.length]);
+  }, [group, groupSubmissions.length, enrolledIdsInCurrentGroup.length]);
 
   const handleAssignProposal = (proposal) => {
     onCreate({
@@ -2794,6 +3167,8 @@ function TeacherDashboard({ state, onCreate }) {
     document.getElementById('create-exercise')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const currentCourseMeta = courseList.find((c) => c.codigoGrupo === group);
+
   return (
     <main id="top" className="apple-page">
       {/* Tile 1: Teacher Hero */}
@@ -2801,32 +3176,47 @@ function TeacherDashboard({ state, onCreate }) {
         <div className="tile-container split-hero-grid">
           <div className="split-hero-copy">
             <span className="hero-eyebrow">PANEL DOCENTE | {state.user.name.toUpperCase()}</span>
-            <h1 className="hero-display">¡Tu grupo está creciendo!</h1>
+            <h1 className="hero-display">Gestiona tus cursos y actividades.</h1>
             <p className="hero-lead">
-              Publica ejercicios de programación por bloques y acompaña los avances de cada estudiante.
+              Crea cursos, inscribe a los estudiantes registrados en la base de datos de Supabase y asígnales retos de Blockly, Python, HTML5 y JavaScript.
             </p>
             <div className="teacher-course-bar">
               <div className="course-selector-group" role="group" aria-label="Seleccionar curso">
-                {['5° A', '6° B'].map((courseName) => (
-                  <button
-                    type="button"
-                    key={courseName}
-                    className={group === courseName ? 'configurator-option-chip selected' : 'configurator-option-chip'}
-                    onClick={() => {
-                      setGroup(courseName);
-                    }}
-                  >
-                    <span>Curso {courseName}</span>
-                  </button>
-                ))}
+                {courseList.map((courseItem) => {
+                  const cCode = courseItem.codigoGrupo;
+                  const count = (enrollmentsByGroup[cCode] || []).length;
+                  return (
+                    <button
+                      type="button"
+                      key={cCode}
+                      className={group === cCode ? 'configurator-option-chip selected' : 'configurator-option-chip'}
+                      onClick={() => setGroup(cCode)}
+                    >
+                      <span>
+                        Curso {cCode} ({count})
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              <button
-                type="button"
-                className="button-primary"
-                onClick={() => document.getElementById('create-exercise')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                <span>Publicar ejercicio</span>
-              </button>
+              <div className="teacher-hero-actions">
+                <button
+                  type="button"
+                  className="button-secondary-pill"
+                  onClick={() => document.getElementById('courses-manager')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <Plus size={15} weight="bold" />
+                  <span>Crear curso / Inscribir</span>
+                </button>
+                <button
+                  type="button"
+                  className="button-primary"
+                  onClick={() => document.getElementById('create-exercise')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <NotePencil size={15} weight="bold" />
+                  <span>Asignar actividad</span>
+                </button>
+              </div>
             </div>
           </div>
           <div className="split-hero-visual">
@@ -2841,35 +3231,285 @@ function TeacherDashboard({ state, onCreate }) {
         </div>
       </section>
 
-      {/* Tile 2: Parchment Authoring & Submissions */}
-      <section className="product-tile-parchment">
+      {/* Tile 2: Gestión de Cursos e Inscripción de Estudiantes de la Base de Datos */}
+      <section id="courses-manager" className="product-tile-parchment teacher-courses-section">
         <div className="tile-container">
           <div className="metrics-bento-grid">
             <StatCard
+              icon={<GraduationCap size={22} weight="regular" />}
+              label="Cursos activos"
+              value={courseList.length}
+              note={currentCourseMeta?.nombre || `Curso ${group}`}
+              tone="lav"
+            />
+            <StatCard
               icon={<UsersThree size={22} weight="regular" />}
-              label="Estudiantes"
-              value={visibleStudents.length}
-              note="En este grupo"
+              label={`Inscritos en ${group}`}
+              value={enrolledDbStudents.length}
+              note={`De ${allStudents.length} estudiantes en BD`}
               tone="blue"
             />
             <StatCard
               icon={<NotePencil size={22} weight="regular" />}
-              label="Ejercicios"
+              label="Actividades"
               value={groupAssignments.length}
-              note="Publicados al curso"
+              note={`Asignadas a ${group}`}
               tone="mint"
-            />
-            <StatCard
-              icon={<ClipboardText size={22} weight="regular" />}
-              label="Respuestas"
-              value={groupSubmissions.length}
-              note="Evaluadas"
-              tone="yellow"
             />
           </div>
 
+          <div className="teacher-courses-management-grid">
+            {/* Tarjeta 1: Crear nuevo curso e inscribir estudiantes inicialmente */}
+            <form
+              className="store-utility-card create-course-card"
+              onSubmit={handleCreateCourseSubmit}
+            >
+              <div className="card-header-row">
+                <div>
+                  <h3>Crear nuevo curso</h3>
+                  <p>
+                    Crea un aula en la base de datos y selecciona qué estudiantes deseas inscribir de inmediato.
+                  </p>
+                </div>
+                <GraduationCap size={24} weight="duotone" />
+              </div>
+
+              <div className="course-form-row">
+                <div className="form-field-block">
+                  <label className="field-label" htmlFor="new-course-code">
+                    Código del curso (ej. 7° A, 8° B, Robótica)
+                  </label>
+                  <input
+                    id="new-course-code"
+                    className="search-input"
+                    placeholder="Ej. 7° A"
+                    value={newCourseCode}
+                    onChange={(e) => setNewCourseCode(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-field-block">
+                  <label className="field-label" htmlFor="new-course-name">
+                    Nombre descriptivo del curso
+                  </label>
+                  <input
+                    id="new-course-name"
+                    className="search-input"
+                    placeholder="Ej. Grado 7° A - Código Python, HTML y JS"
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-field-block">
+                <div className="field-label-row">
+                  <label className="field-label">
+                    Inscribir estudiantes de la base de datos ({selectedStudentIdsForNewCourse.length} seleccionados)
+                  </label>
+                  <div className="inline-mini-actions">
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={() => setSelectedStudentIdsForNewCourse(allStudents.map((s) => s.id))}
+                    >
+                      Seleccionar todos
+                    </button>
+                    {selectedStudentIdsForNewCourse.length > 0 && (
+                      <button
+                        type="button"
+                        className="text-link"
+                        onClick={() => setSelectedStudentIdsForNewCourse([])}
+                      >
+                        Limpiar
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="student-preselect-chips" role="group" aria-label="Estudiantes disponibles en base de datos">
+                  {allStudents.map((student) => {
+                    const isChecked = selectedStudentIdsForNewCourse.includes(student.id);
+                    return (
+                      <button
+                        type="button"
+                        key={student.id}
+                        aria-pressed={isChecked}
+                        className={isChecked ? 'student-select-pill selected' : 'student-select-pill'}
+                        onClick={() => togglePreselectStudent(student.id)}
+                      >
+                        <AvatarGlyph avatar={student.avatar} size={15} />
+                        <span>{student.name}</span>
+                        <small>{isChecked ? '✓ Incluir' : '+'}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button type="submit" className="button-primary full-width-btn" disabled={creatingCourse}>
+                <Plus size={16} weight="bold" />
+                <span>
+                  {creatingCourse
+                    ? 'Guardando curso en Supabase...'
+                    : 'Crear curso e inscribir seleccionados'}
+                </span>
+              </button>
+
+              {courseFeedback && (
+                <p className="publish-success" role="status">
+                  <CheckCircle size={16} weight="fill" />
+                  <span>{courseFeedback}</span>
+                </p>
+              )}
+            </form>
+
+            {/* Tarjeta 2: Directorio de estudiantes de la Base de Datos e inscripción en el curso activo */}
+            <section className="store-utility-card db-students-enrollment-card">
+              <div className="card-header-row">
+                <div>
+                  <h3>Estudiantes en Base de Datos → Curso {group}</h3>
+                  <p>
+                    Inscribe o retira estudiantes registrados en Supabase dentro del curso <b>{group}</b> y asígnales actividades.
+                  </p>
+                </div>
+                <UsersThree size={24} weight="duotone" />
+              </div>
+
+              <div className="db-students-toolbar">
+                <input
+                  type="search"
+                  className="search-input"
+                  placeholder="Buscar estudiante por nombre o correo..."
+                  aria-label="Buscar estudiante por nombre o correo"
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                />
+                <div className="db-students-filter-row">
+                  <div className="filter-pill-group" role="group" aria-label="Filtrar por estado de inscripción">
+                    {[
+                      { id: 'all', label: `Todos (${allStudents.length})` },
+                      { id: 'enrolled', label: `Inscritos en ${group} (${enrolledDbStudents.length})` },
+                      {
+                        id: 'unenrolled',
+                        label: `Sin inscribir (${Math.max(0, allStudents.length - enrolledDbStudents.length)})`,
+                      },
+                    ].map((tab) => (
+                      <button
+                        type="button"
+                        key={tab.id}
+                        className={
+                          enrollmentFilter === tab.id
+                            ? 'configurator-option-chip selected'
+                            : 'configurator-option-chip'
+                        }
+                        onClick={() => setEnrollmentFilter(tab.id)}
+                      >
+                        <span>{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {enrolledDbStudents.length < allStudents.length && (
+                    <button
+                      type="button"
+                      className="button-secondary-pill"
+                      onClick={() => onBulkEnrollAll(group, allStudents.map((s) => s.id))}
+                    >
+                      <Plus size={14} weight="bold" />
+                      <span>Inscribir a todos en {group}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="db-student-list" role="list">
+                {filteredDirectoryStudents.map((student) => {
+                  const isEnrolled = enrolledIdsInCurrentGroup.some(
+                    (id) => String(id) === String(student.id),
+                  );
+                  const studentCourses = Object.entries(enrollmentsByGroup)
+                    .filter(([, ids]) =>
+                      Array.isArray(ids) && ids.some((id) => String(id) === String(student.id)),
+                    )
+                    .map(([cCode]) => cCode);
+
+                  return (
+                    <article className="db-student-row" key={student.id} role="listitem">
+                      <div className="db-student-identity">
+                        <span className="db-student-avatar">
+                          <AvatarGlyph avatar={student.avatar} size={22} />
+                        </span>
+                        <div className="db-student-copy">
+                          <div className="db-student-name-line">
+                            <strong>{student.name}</strong>
+                            <span className="db-student-xp-badge">
+                              Nv. {student.level || 1} · {student.points || 0} XP
+                            </span>
+                          </div>
+                          <small className="db-student-email">
+                            {student.email || 'Estudiante registrado'} · {student.completedCount || 0} misiones superadas
+                          </small>
+                          <div className="db-student-course-tags">
+                            {studentCourses.length > 0 ? (
+                              studentCourses.map((cCode) => (
+                                <span
+                                  key={cCode}
+                                  className={
+                                    cCode === group ? 'student-course-tag active' : 'student-course-tag'
+                                  }
+                                >
+                                  Curso {cCode}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="student-course-tag empty">Sin curso asignado</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="db-student-actions">
+                        <button
+                          type="button"
+                          className={isEnrolled ? 'button-secondary-pill enrolled-pill' : 'button-primary'}
+                          onClick={() =>
+                            onToggleEnrollment({
+                              codigoGrupo: group,
+                              studentId: student.id,
+                              enroll: !isEnrolled,
+                            })
+                          }
+                        >
+                          {isEnrolled ? (
+                            <>
+                              <Check size={14} weight="bold" />
+                              <span>Inscrito en {group} (Retirar)</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={14} weight="bold" />
+                              <span>Inscribir en {group}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+
           <div className="teacher-workflow-grid" id="create-exercise">
-            <CreateAssignmentPanel group={group} onCreate={onCreate} draftExercise={draftExercise} />
+            <CreateAssignmentPanel
+              group={group}
+              courses={courseList}
+              onCreate={onCreate}
+              draftExercise={draftExercise}
+              remoteExpansion={remoteExpansion}
+            />
             <AssignmentResults submissions={groupSubmissions} />
           </div>
         </div>
@@ -2882,7 +3522,7 @@ function TeacherDashboard({ state, onCreate }) {
             <div>
               <h2 className="display-lg">Avance del grupo {group}.</h2>
               <p className="lead-subcopy">
-                Seguimiento por estudiante, informe pedagógico y propuestas de ejercicios con Ollama.
+                Seguimiento de los estudiantes inscritos en {group}, informe pedagógico y propuestas de nuevas actividades.
               </p>
             </div>
             <button
@@ -2899,18 +3539,21 @@ function TeacherDashboard({ state, onCreate }) {
           {visibleStudents.length ? (
             <div className="student-roster-cards">
               {visibleStudents.map((student) => (
-                <article className="roster-student-card" key={student.name}>
+                <article className="roster-student-card" key={student.id || student.name}>
                   <div className="roster-student-head">
                     <span className="student-initial-badge">{student.name.charAt(0)}</span>
                     <div>
                       <h3>{student.name}</h3>
-                      <small>Curso {student.group}</small>
+                      <small>
+                        Curso {group}
+                        {student.email ? ` · ${student.email}` : ''}
+                      </small>
                     </div>
-                    <strong className="roster-score-number">{student.score}%</strong>
+                    <strong className="roster-score-number">{student.score || 78}%</strong>
                   </div>
                   <div className="roster-student-meta">
-                    <span>Falencia a reforzar: {student.weak}</span>
-                    <span>{student.score > 80 ? 'En camino' : 'Requiere refuerzo'}</span>
+                    <span>Falencia a reforzar: {student.weak || 'Bucles'}</span>
+                    <span>{(student.score || 78) > 80 ? 'En camino' : 'Requiere refuerzo'}</span>
                   </div>
                 </article>
               ))}
@@ -2918,7 +3561,9 @@ function TeacherDashboard({ state, onCreate }) {
           ) : (
             <div className="dark-empty-card">
               <UsersThree size={28} weight="regular" />
-              <p>Aún no hay entregas en {group}. Publica un reto y resuélvelo como estudiante para ver el avance.</p>
+              <p>
+                Aún no hay estudiantes inscritos en {group}. Usa el panel superior «Estudiantes en Base de Datos» para inscribirlos con un clic.
+              </p>
             </div>
           )}
 
@@ -2950,7 +3595,7 @@ function TeacherDashboard({ state, onCreate }) {
                 <div className="insights-focus-grid">
                   {aiInsights.focusSkills.map((item) => (
                     <article className="insights-focus-card" key={item.skill}>
-                      <b>Falencia: {item.skill}</b>
+                      <b>Enfoque: {item.skill}</b>
                       <p>{item.evidence}</p>
                       <small>Cómo proceder: {item.activity}</small>
                     </article>
@@ -2974,10 +3619,10 @@ function TeacherDashboard({ state, onCreate }) {
                   <div className="proposed-exercises-header">
                     <div>
                       <b className="insights-section-subtitle">
-                        Propuestas de ejercicios según falencias del grupo ({group})
+                        Nuevas actividades recomendadas para el grupo ({group})
                       </b>
                       <p className="proposed-exercises-lead">
-                        Ollama diseñó estos ejercicios interactivos de Blockly para reforzar las habilidades más débiles del curso. Puedes asignarlos con un clic o ajustarlos en el diseñador.
+                        Asigna estas nuevas misiones de Python, Ciudadela HTML, Neo-Tokio JS o Blockly con un solo clic para los estudiantes inscritos en {group}.
                       </p>
                     </div>
                   </div>
@@ -2995,7 +3640,7 @@ function TeacherDashboard({ state, onCreate }) {
                           <div className="proposed-exercise-tags">
                             <span className="proposed-skill-badge">
                               <SkillGlyph skill={proposal.skill} size={14} />
-                              <span>Refuerzo: {proposal.targetSkill}</span>
+                              <span>{proposal.targetSkill || proposal.skill}</span>
                             </span>
                             <span className="proposed-level-badge">{proposal.level}</span>
                           </div>
@@ -3096,6 +3741,14 @@ export default function App() {
   const [activePythonMissionId, setActivePythonMissionId] = useState('');
   const [activeCodeWorld, setActiveCodeWorld] = useState(null);
   const [remoteExpansion, setRemoteExpansion] = useState(null);
+  const [classroomData, setClassroomData] = useState({
+    courses: [
+      { id: 1, codigoGrupo: '5° A', nombre: 'Grado 5° A - Pensamiento Computacional' },
+      { id: 2, codigoGrupo: '6° B', nombre: 'Grado 6° B - Lógica e Algoritmia' },
+    ],
+    students: SAMPLE_STUDENTS,
+    enrollmentsByGroup: { '5° A': [1, 2, 3], '6° B': [] },
+  });
   const [avatarShop, setAvatarShop] = useState(false);
   const [publicView, setPublicView] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -3107,7 +3760,39 @@ export default function App() {
     return 'landing';
   });
 
+  const refreshClassroomData = async () => {
+    try {
+      const data = await loadTeacherClassroomData();
+      if (!data) return null;
+      setClassroomData({
+        courses: data.courses || [],
+        students: data.students || [],
+        enrollmentsByGroup: data.enrollmentsByGroup || {},
+      });
+      setState((current) => {
+        const mergedAssignmentsMap = new Map();
+        [...(data.assignments || []), ...(current.assignments || [])].forEach((a) => {
+          const key = `${a.group}::${a.missionId}::${a.title}`;
+          if (!mergedAssignmentsMap.has(key)) mergedAssignmentsMap.set(key, a);
+        });
+        const mergedSubmissionsMap = new Map();
+        [...(data.submissions || []), ...(current.submissions || [])].forEach((s) => {
+          if (!mergedSubmissionsMap.has(s.id)) mergedSubmissionsMap.set(s.id, s);
+        });
+        return {
+          ...current,
+          assignments: Array.from(mergedAssignmentsMap.values()),
+          submissions: Array.from(mergedSubmissionsMap.values()),
+        };
+      });
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
+    refreshClassroomData();
     if (!isSupabaseConfigured) return;
     loadExpansionFromSupabase()
       .then((data) => {
@@ -3133,12 +3818,41 @@ export default function App() {
       ...current,
       avatar: user.avatar || current.avatar || 'dragon',
       ownedAvatars: Array.from(new Set([...(current.ownedAvatars || ['astronaut']), user.avatar || 'dragon'])),
-      user: { ...user, group: user.role === 'student' ? '5° A' : undefined },
+      user: {
+        ...user,
+        group: user.role === 'student' ? user.group || '5° A' : undefined,
+        enrolledGroups: user.role === 'student' ? ['5° A'] : undefined,
+      },
     }));
     setView('home');
     setPublicView('landing');
 
-    if (isSupabaseConfigured) {
+    const latestClassroom = await refreshClassroomData();
+
+    if (user.role === 'student' && latestClassroom) {
+      const matchedStudent = (latestClassroom.students || []).find(
+        (s) =>
+          (user.id && String(s.id) === String(user.id)) ||
+          (user.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) ||
+          String(s.name).toLowerCase() === String(user.name || '').toLowerCase(),
+      );
+      if (matchedStudent?.enrolledCourses?.length > 0) {
+        setState((current) =>
+          current.user
+            ? {
+                ...current,
+                user: {
+                  ...current.user,
+                  group: matchedStudent.enrolledCourses[0],
+                  enrolledGroups: matchedStudent.enrolledCourses,
+                },
+              }
+            : current,
+        );
+      }
+    }
+
+    if (isSupabaseConfigured && user.role === 'student') {
       try {
         const studentData = await loadStudentFromSupabase(user.id || user.name?.toLowerCase());
         if (studentData) {
@@ -3155,6 +3869,19 @@ export default function App() {
             completedMissions: Array.from(new Set([...(current.completedMissions || []), ...studentData.completedMissions])),
             pythonProgress: Array.from(new Set([...(current.pythonProgress || []), ...remotePythonIds])),
             scores: studentData.scores || current.scores,
+            user: current.user
+              ? {
+                  ...current.user,
+                  group:
+                    studentData.enrolledGroups?.[0] ||
+                    current.user.group ||
+                    '5° A',
+                  enrolledGroups:
+                    studentData.enrolledGroups?.length > 0
+                      ? studentData.enrolledGroups
+                      : current.user.enrolledGroups || ['5° A'],
+                }
+              : current.user,
           }));
         }
       } catch (err) {
@@ -3174,11 +3901,71 @@ export default function App() {
     setPublicView('landing');
   };
 
-  const createAssignment = (assignment) =>
+  const handleCreateCourse = async ({ codigoGrupo, nombre, studentIds = [] }) => {
+    const updated = await createCourseInSupabase({
+      codigoGrupo,
+      nombre,
+      docenteId: typeof state.user?.id === 'number' ? state.user.id : 4,
+      studentIds,
+    });
+    if (updated) {
+      setClassroomData({
+        courses: updated.courses || [],
+        students: updated.students || [],
+        enrollmentsByGroup: updated.enrollmentsByGroup || {},
+      });
+    }
+  };
+
+  const handleToggleEnrollment = async ({ codigoGrupo, studentId, enroll }) => {
+    const updated = await setStudentCourseEnrollment({
+      codigoGrupo,
+      studentId,
+      enroll,
+      docenteId: typeof state.user?.id === 'number' ? state.user.id : 4,
+    });
+    if (updated) {
+      setClassroomData({
+        courses: updated.courses || [],
+        students: updated.students || [],
+        enrollmentsByGroup: updated.enrollmentsByGroup || {},
+      });
+    }
+  };
+
+  const handleBulkEnrollAll = async (codigoGrupo, allStudentIds = []) => {
+    const updated = await createCourseInSupabase({
+      codigoGrupo,
+      nombre:
+        classroomData.courses.find((c) => c.codigoGrupo === codigoGrupo)?.nombre ||
+        `Curso ${codigoGrupo}`,
+      docenteId: typeof state.user?.id === 'number' ? state.user.id : 4,
+      studentIds: allStudentIds,
+    });
+    if (updated) {
+      setClassroomData({
+        courses: updated.courses || [],
+        students: updated.students || [],
+        enrollmentsByGroup: updated.enrollmentsByGroup || {},
+      });
+    }
+  };
+
+  const createAssignment = async (assignment) => {
+    const saved = await createClassroomAssignmentInSupabase({
+      ...assignment,
+      docenteId: typeof state.user?.id === 'number' ? state.user.id : 4,
+    });
     setState((current) => ({
       ...current,
-      assignments: [{ ...assignment, id: `${Date.now()}`, createdAt: Date.now() }, ...(current.assignments || [])],
+      assignments: [
+        saved,
+        ...(current.assignments || []).filter(
+          (a) => !(a.group === saved.group && a.title === saved.title && a.missionId === saved.missionId),
+        ),
+      ],
     }));
+  };
 
   const changeStudentGroup = (group) =>
     setState((current) => ({ ...current, user: { ...current.user, group } }));
@@ -3317,6 +4104,7 @@ export default function App() {
       ...evaluation,
       id: `${assignment.id}-${state.user.name}`,
       assignmentId: assignment.id,
+      dbId: assignment.dbId,
       assignmentTitle: assignment.title,
       skill: assignment.skill,
       group: assignment.group,
@@ -3338,6 +4126,7 @@ export default function App() {
       ...(gameOutcome.success ? progressStreak(current) : {}),
       submissions: [...(current.submissions || []).filter((item) => item.id !== submission.id), submission],
     }));
+    syncAssignmentSubmissionInSupabase(submission, state.user).catch(() => {});
     return submission;
   };
 
@@ -3470,7 +4259,18 @@ export default function App() {
           />
         )
       ) : state.user.role === 'teacher' ? (
-        <TeacherDashboard state={state} onAnalyze={setFeedbackPrompt} onCreate={createAssignment} />
+        <TeacherDashboard
+          state={state}
+          courses={classroomData.courses}
+          dbStudents={classroomData.students}
+          enrollmentsByGroup={classroomData.enrollmentsByGroup}
+          onCreateCourse={handleCreateCourse}
+          onToggleEnrollment={handleToggleEnrollment}
+          onBulkEnrollAll={handleBulkEnrollAll}
+          onAnalyze={setFeedbackPrompt}
+          onCreate={createAssignment}
+          remoteExpansion={remoteExpansion}
+        />
       ) : activePython ? (
         <PythonMission
           completed={Array.from(
@@ -3508,6 +4308,7 @@ export default function App() {
           onSubmit={submitAssignment}
           onClose={() => setActiveAssignment(null)}
           soundEnabled={state.soundEnabled}
+          remoteExpansion={remoteExpansion}
         />
       ) : view === 'assessment' ? (
         <Assessment onSubmit={completeAssessment} onCancel={() => setView('home')} />
@@ -3523,6 +4324,8 @@ export default function App() {
           expansionData={remoteExpansion}
           pythonProgress={state.pythonProgress || []}
           group={state.user.group || '5° A'}
+          availableCourses={classroomData.courses}
+          enrolledGroups={state.user.enrolledGroups || []}
           onGroupChange={changeStudentGroup}
           onOpenAssignment={(assignment, previousSubmission) =>
             setActiveAssignment({ assignment, previousSubmission })

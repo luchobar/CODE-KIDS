@@ -871,29 +871,49 @@ ON CONFLICT (slug) DO UPDATE SET
     recompensa_monedas = EXCLUDED.recompensa_monedas;
 
 -- =============================================================================
--- 6. Permisos de lectura pública para el cliente Frontend (@supabase/supabase-js)
+-- 6. Permisos de lectura y escritura para el cliente Frontend (@supabase/supabase-js)
 -- =============================================================================
-GRANT SELECT ON TABLE mundos, misiones TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
+    mundos,
+    misiones,
+    usuarios,
+    perfiles_gamificacion,
+    inventario_avatares_usuario,
+    progreso_misiones_usuario,
+    aulas,
+    matriculas_aula,
+    retos_aula,
+    entregas_retos
+TO anon, authenticated;
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 
 DO $$
+DECLARE
+    tbl TEXT;
 BEGIN
-    IF EXISTS (
-        SELECT 1 FROM pg_class c
-        JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public' AND c.relname = 'mundos' AND c.relrowsecurity = TRUE
-    ) THEN
-        DROP POLICY IF EXISTS "Lectura publica de mundos" ON mundos;
-        CREATE POLICY "Lectura publica de mundos" ON mundos FOR SELECT USING (true);
-    END IF;
-
-    IF EXISTS (
-        SELECT 1 FROM pg_class c
-        JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public' AND c.relname = 'misiones' AND c.relrowsecurity = TRUE
-    ) THEN
-        DROP POLICY IF EXISTS "Lectura publica de misiones" ON misiones;
-        CREATE POLICY "Lectura publica de misiones" ON misiones FOR SELECT USING (true);
-    END IF;
+    FOREACH tbl IN ARRAY ARRAY[
+        'mundos',
+        'misiones',
+        'usuarios',
+        'perfiles_gamificacion',
+        'inventario_avatares_usuario',
+        'progreso_misiones_usuario',
+        'aulas',
+        'matriculas_aula',
+        'retos_aula',
+        'entregas_retos'
+    ]
+    LOOP
+        IF EXISTS (
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = tbl AND c.relrowsecurity = TRUE
+        ) THEN
+            EXECUTE format('DROP POLICY IF EXISTS "Acceso publico %I" ON %I', tbl, tbl);
+            EXECUTE format('CREATE POLICY "Acceso publico %I" ON %I FOR ALL USING (true) WITH CHECK (true)', tbl, tbl);
+        END IF;
+    END LOOP;
 END $$;
 
 COMMIT;

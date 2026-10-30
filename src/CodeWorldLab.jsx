@@ -289,7 +289,7 @@ export default function CodeWorldLab({
 
     setEvaluation(outcome);
     if (outcome.passed && onComplete) {
-      onComplete(mission.slug, mission.xp_recompensa, mission.monedas_recompensa);
+      onComplete(mission.slug, mission.xp_recompensa, mission.monedas_recompensa, code, attempts + 1);
     }
   };
 

@@ -265,7 +265,7 @@ export default function PythonMission({
       setResult(outcome.message);
       setTestResults(outcome.testResults || []);
       if (outcome.passed && onComplete) {
-        onComplete(mission.id, mission.xpReward, mission.coinReward);
+        onComplete(mission.id, mission.xpReward, mission.coinReward, code, attempts + 1);
       }
       return;
     }
@@ -329,7 +329,7 @@ export default function PythonMission({
               : 'El robot se detuvo antes de la meta. Ajusta las instrucciones y vuelve a ejecutar.',
       );
       if (passed && onComplete) {
-        onComplete(mission.id, mission.xpReward, mission.coinReward);
+        onComplete(mission.id, mission.xpReward, mission.coinReward, code, attempts + 1);
       }
     } catch (error) {
       setResult(error.message);

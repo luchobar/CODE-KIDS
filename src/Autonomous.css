@@ -4107,3 +4107,334 @@ textarea {
     font-size: 0.72rem;
   }
 }
+
+/* ==========================================================================
+   PANEL DOCENTE: CREACIÓN DE CURSOS, INSCRIPCIÓN DE ESTUDIANTES (BD) Y
+   ASIGNACIÓN DE NUEVAS ACTIVIDADES MULTILENGUAJE
+   ========================================================================== */
+
+.teacher-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teacher-courses-management-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(360px, 1.08fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  align-items: start;
+}
+
+.create-course-card,
+.db-students-enrollment-card {
+  display: grid;
+  gap: 16px;
+}
+
+.course-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 12px;
+}
+
+.inline-mini-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-preselect-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.student-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-hairline);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.student-select-pill:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.student-select-pill.selected {
+  border-color: #84cc16;
+  background: rgba(132, 204, 22, 0.16);
+  color: #a3e635;
+}
+
+[data-theme="light"] .student-select-pill.selected {
+  background: #ecfccb;
+  color: #365314;
+}
+
+.student-select-pill small {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.db-students-toolbar {
+  display: grid;
+  gap: 10px;
+}
+
+.db-students-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.db-student-list {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.db-student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  transition: border-color 0.2s ease;
+}
+
+.db-student-row:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.db-student-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.db-student-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+  flex-shrink: 0;
+}
+
+.db-student-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.db-student-name-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.db-student-name-line strong {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-ink);
+}
+
+.db-student-xp-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+[data-theme="light"] .db-student-xp-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.db-student-email {
+  font-size: 0.76rem;
+  color: var(--color-ink-muted-80);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-student-course-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.student-course-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--color-ink-muted-80);
+}
+
+.student-course-tag.active {
+  background: rgba(132, 204, 22, 0.2);
+  color: #a3e635;
+  border: 1px solid rgba(132, 204, 22, 0.45);
+}
+
+[data-theme="light"] .student-course-tag.active {
+  background: #ecfccb;
+  color: #365314;
+}
+
+.student-course-tag.empty {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.db-student-actions {
+  flex-shrink: 0;
+}
+
+.enrolled-pill {
+  border-color: rgba(132, 204, 22, 0.5) !important;
+  color: #a3e635 !important;
+}
+
+[data-theme="light"] .enrolled-pill {
+  color: #365314 !important;
+}
+
+.new-tech-dot {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(184, 236, 99, 0.2);
+  color: #b8ec63;
+  letter-spacing: 0.04em;
+}
+
+[data-theme="light"] .new-tech-dot {
+  background: #ecfccb;
+  color: #365314;
+}
+
+.expansion-pill-inline {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  vertical-align: middle;
+}
+
+[data-theme="light"] .expansion-pill-inline {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.target-scope-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Banner superior cuando un estudiante resuelve un reto de código asignado por el docente */
+.code-assignment-wrapper {
+  display: grid;
+}
+
+.code-assignment-banner {
+  position: sticky;
+  top: 48px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1.5px solid rgba(56, 189, 248, 0.35);
+}
+
+[data-theme="light"] .code-assignment-banner {
+  background: rgba(240, 249, 255, 0.95);
+}
+
+.code-assignment-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.code-assignment-banner-info strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+
+.code-assignment-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.code-assignment-pending-hint {
+  font-size: 0.8rem;
+  color: var(--color-ink-muted-80);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+@media (max-width: 960px) {
+  .teacher-courses-management-grid,
+  .course-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .db-student-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .db-student-actions,
+  .db-student-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
