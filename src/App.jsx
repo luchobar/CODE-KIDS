@@ -515,66 +515,59 @@ function Header({
         </div>
       </header>
 
-      <div className="sub-nav-frosted">
-        <div className="sub-nav-inner">
-          <div className="sub-nav-title">
-            <span className="hud-mode-pill">
-              <Sparkle size={14} weight="fill" />
-              <span>{!user ? 'Portal de Acceso' : user.role === 'teacher' ? 'Consola Docente' : `Explorador · ${user.name}`}</span>
-            </span>
-            {isSupabaseConfigured && (
-              <span className="hud-badge-cloud" title="Conectado a la base de datos de Supabase en tiempo real">
-                ⚡ Supabase Online
+      {user && (
+        <div className="sub-nav-frosted">
+          <div className="sub-nav-inner">
+            <div className="sub-nav-title">
+              <span className="hud-mode-pill">
+                <Sparkle size={14} weight="fill" />
+                <span>{user.role === 'teacher' ? 'Consola Docente' : `Explorador · ${user.name}`}</span>
               </span>
-            )}
-          </div>
-          <div className="sub-nav-controls">
-            {!user ? (
-              <span className="sub-nav-caption">
-                {a11y.theme === 'light' ? '☀️ Tema Claro' : '🌌 Tema Neón Oscuro'}
-              </span>
-            ) : user.role === 'student' ? (
-              <>
-                <div className="hud-xp-pill" title={`${points} XP totales (${100 - xpInLevel} XP para subir a Nivel ${level + 1})`}>
-                  <span className="hud-level-badge">
-                    <AvatarGlyph avatar={state.avatar} size={15} />
-                    <b>Nvl. {level}</b>
-                  </span>
-                  <div className="hud-xp-track" aria-label={`Experiencia: ${xpInLevel} de 100 XP`}>
-                    <div className="hud-xp-fill" style={{ width: `${Math.max(12, xpInLevel)}%` }} />
+            </div>
+            <div className="sub-nav-controls">
+              {user.role === 'student' ? (
+                <>
+                  <div className="hud-xp-pill" title={`${points} XP totales (${100 - xpInLevel} XP para subir a Nivel ${level + 1})`}>
+                    <span className="hud-level-badge">
+                      <AvatarGlyph avatar={state.avatar} size={15} />
+                      <b>Nvl. {level}</b>
+                    </span>
+                    <div className="hud-xp-track" aria-label={`Experiencia: ${xpInLevel} de 100 XP`}>
+                      <div className="hud-xp-fill" style={{ width: `${Math.max(12, xpInLevel)}%` }} />
+                    </div>
+                    <small className="hud-xp-text">{xpInLevel}/100 XP</small>
                   </div>
-                  <small className="hud-xp-text">{xpInLevel}/100 XP</small>
-                </div>
 
-                <span className="sub-nav-metric streak-metric" title="Racha de días activos">
-                  <Flame size={16} weight="fill" />
-                  <span>{state.streak || 1} días</span>
+                  <span className="sub-nav-metric streak-metric" title="Racha de días activos">
+                    <Flame size={16} weight="fill" />
+                    <span>{state.streak || 1} días</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    className="button-pearl-capsule coin-hud-btn"
+                    onClick={onOpenShop}
+                    aria-label={`Abrir tienda de avatares, tienes ${state.coins || 0} monedas`}
+                  >
+                    <Coins size={15} weight="fill" />
+                    <span>{state.coins || 0}</span>
+                  </button>
+
+                  <button type="button" className="button-primary sub-nav-cta" onClick={onPython}>
+                    <TerminalWindow size={15} weight="bold" />
+                    <span>Python</span>
+                  </button>
+                </>
+              ) : (
+                <span className="sub-nav-metric">
+                  <GraduationCap size={16} weight="duotone" />
+                  <span>{user.name}</span>
                 </span>
-
-                <button
-                  type="button"
-                  className="button-pearl-capsule coin-hud-btn"
-                  onClick={onOpenShop}
-                  aria-label={`Abrir tienda de avatares, tienes ${state.coins || 0} monedas`}
-                >
-                  <Coins size={15} weight="fill" />
-                  <span>{state.coins || 0}</span>
-                </button>
-
-                <button type="button" className="button-primary sub-nav-cta" onClick={onPython}>
-                  <TerminalWindow size={15} weight="bold" />
-                  <span>Python</span>
-                </button>
-              </>
-            ) : (
-              <span className="sub-nav-metric">
-                <GraduationCap size={16} weight="duotone" />
-                <span>{user.name}</span>
-              </span>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {user?.role === 'student' && (
         <nav className="mobile-quick-nav" aria-label="Accesos rápidos móviles">
@@ -822,18 +815,6 @@ function Login({ onEnter }) {
                   <span className="auth-brand-eyebrow">Aventura Oficial</span>
                   <span className="auth-brand-subtitle">¡Bienvenido a CodeKids!</span>
                 </div>
-              </div>
-
-              <div className="auth-connection-bar">
-                {isSupabaseConfigured ? (
-                  <span className="auth-status-chip online" title="Base de datos Supabase conectada en vivo">
-                    🟢 Supabase Conectado
-                  </span>
-                ) : (
-                  <span className="auth-status-chip offline" title="Faltan las variables de entorno en Vercel">
-                    🔴 Sin conexión a Supabase (Falta Redeploy en Vercel)
-                  </span>
-                )}
               </div>
 
               <div className="configurator-group">
