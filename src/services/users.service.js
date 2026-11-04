@@ -13,9 +13,11 @@ import {
   saveRelationalStore,
   supabaseClient,
 } from './db.client.js';
+import { hashUserPassword, verifyUserPassword } from './password.util.js';
 
 /**
- * CREATE (INSERT): Registra un nuevo usuario en 'usuarios' e inicializa su perfil gamificado.
+ * CREATE (INSERT): Registra un nuevo usuario en 'usuarios' con resumen criptográfico PBKDF2-SHA256
+ * en 'contrasena_hash' e inicializa su perfil gamificado.
  */
 export async function registerUserAccount({
   nombre = 'Explorador',
@@ -38,13 +40,16 @@ export async function registerUserAccount({
     throw new Error('El correo electrónico es obligatorio.');
   }
 
+  // Derivación criptográfica real (PBKDF2-HMAC-SHA256) antes de persistir en base de datos
+  const passwordHash = await hashUserPassword(contrasena || 'CodeKids2026*');
+
   // 1. PostgreSQL directo (pg.Pool)
   const pgInserted = await executePostgresQuery(
     `INSERT INTO usuarios (correo, nombre, rol, rol_id, contrasena_hash, activo)
      VALUES ($1, $2, $3, $4, $5, TRUE)
      ON CONFLICT (correo) DO NOTHING
      RETURNING id, correo, nombre, rol, activo, creado_en;`,
-    [cleanEmail, cleanName, normalizedRole, rolId, String(contrasena || 'CodeKids2026*')],
+    [cleanEmail, cleanName, normalizedRole, rolId, passwordHash],
   );
 
   if (pgInserted && pgInserted[0]) {
@@ -76,7 +81,7 @@ export async function registerUserAccount({
             correo: cleanEmail,
             nombre: cleanName,
             rol: normalizedRole,
-            contrasena_hash: String(contrasena || 'CodeKids2026*'),
+            contrasena_hash: passwordHash,
             correo_verificado_en: new Date().toISOString(),
             activo: true,
           },
@@ -116,18 +121,18 @@ export async function registerUserAccount({
 
   const nextId =
     store.usuarios.reduce((max, u) => Math.max(max, Number(u.id) || 0), 0) + 1;
-  const newUser = {
+  const newUserRecord = {
     id: nextId,
     correo: cleanEmail,
     nombre: cleanName,
     rol: normalizedRole,
     rol_id: rolId,
-    contrasena_hash: String(contrasena || 'CodeKids2026*'),
+    contrasena_hash: passwordHash,
     activo: true,
     creado_en: new Date().toISOString(),
   };
 
-  store.usuarios.push(newUser);
+  store.usuarios.push(newUserRecord);
   if (normalizedRole === 'estudiante') {
     store.perfiles_gamificacion.push({
       usuario_id: nextId,
@@ -145,7 +150,191 @@ export async function registerUserAccount({
   }
   saveRelationalStore(store);
 
-  return { ok: true, operation: 'INSERT', source: 'relational-3fn', user: newUser };
+  const { contrasena_hash: _omitHash, ...publicUser } = newUserRecord;
+  return { ok: true, operation: 'INSERT', source: 'relational-3fn', user: publicUser };
+}
+
+/**
+ * READ + VERIFY: Autentica a un usuario validando el resumen criptográfico de 'contrasena_hash'
+ * en la Capa de Negocio sin exponer hashes al cliente.
+ */
+export async function authenticateUserAccount({ correo, contrasena, demoFallbacks = [] }) {
+  const cleanEmail = String(correo || '').trim().toLowerCase();
+  const rawPassword = String(contrasena || '');
+  if (!cleanEmail || !rawPassword) {
+    return { ok: false, error: 'Debes ingresar correo y contraseña.' };
+  }
+
+  // 1. PostgreSQL directo
+  const pgRows = await executePostgresQuery(
+    `SELECT u.id, u.correo, u.nombre, u.rol, u.activo, u.contrasena_hash,
+            COALESCE(pg.avatar_activo_id, 'dragon') AS avatar_activo_id
+     FROM usuarios u
+     LEFT JOIN perfiles_gamificacion pg ON pg.usuario_id = u.id
+     WHERE LOWER(u.correo) = $1
+     LIMIT 1;`,
+    [cleanEmail],
+  );
+  if (pgRows && pgRows[0]) {
+    const row = pgRows[0];
+    if (row.activo === false) {
+      return { ok: false, error: 'Esta cuenta se encuentra desactivada.' };
+    }
+    const valid = await verifyUserPassword(rawPassword, row.contrasena_hash, demoFallbacks);
+    if (!valid) {
+      return { ok: false, error: 'Correo o contraseña incorrectos.' };
+    }
+    return {
+      ok: true,
+      operation: 'SELECT',
+      source: 'postgresql',
+      user: {
+        id: row.id,
+        correo: row.correo,
+        nombre: row.nombre,
+        rol: row.rol,
+        avatar: row.avatar_activo_id || 'dragon',
+      },
+    };
+  }
+
+  // 2. Supabase Client
+  if (supabaseClient) {
+    try {
+      const { data: row, error } = await supabaseClient
+        .from('usuarios')
+        .select('id, correo, nombre, rol, activo, contrasena_hash')
+        .eq('correo', cleanEmail)
+        .maybeSingle();
+
+      if (!error && row) {
+        if (row.activo === false) {
+          return { ok: false, error: 'Esta cuenta se encuentra desactivada.' };
+        }
+        const valid = await verifyUserPassword(rawPassword, row.contrasena_hash, demoFallbacks);
+        if (!valid) {
+          return { ok: false, error: 'Correo o contraseña incorrectos.' };
+        }
+        const { data: pg } = await supabaseClient
+          .from('perfiles_gamificacion')
+          .select('avatar_activo_id')
+          .eq('usuario_id', row.id)
+          .maybeSingle();
+
+        return {
+          ok: true,
+          operation: 'SELECT',
+          source: 'supabase',
+          user: {
+            id: row.id,
+            correo: row.correo,
+            nombre: row.nombre,
+            rol: row.rol,
+            avatar: pg?.avatar_activo_id || 'dragon',
+          },
+        };
+      }
+    } catch {
+      /* continúa al almacén relacional */
+    }
+  }
+
+  // 3. Almacén relacional 3FN
+  const store = getRelationalStore();
+  const localUser = store.usuarios.find(
+    (u) => String(u.correo || '').toLowerCase() === cleanEmail,
+  );
+  if (localUser) {
+    if (localUser.activo === false) {
+      return { ok: false, error: 'Esta cuenta se encuentra desactivada.' };
+    }
+    const valid = await verifyUserPassword(
+      rawPassword,
+      localUser.contrasena_hash,
+      demoFallbacks,
+    );
+    if (!valid) {
+      return { ok: false, error: 'Correo o contraseña incorrectos.' };
+    }
+    const pg = store.perfiles_gamificacion.find(
+      (p) => Number(p.usuario_id) === Number(localUser.id),
+    );
+    return {
+      ok: true,
+      operation: 'SELECT',
+      source: 'relational-3fn',
+      user: {
+        id: localUser.id,
+        correo: localUser.correo,
+        nombre: localUser.nombre,
+        rol: localUser.rol,
+        avatar: pg?.avatar_activo_id || 'dragon',
+      },
+    };
+  }
+
+  return { ok: false, error: 'Correo o contraseña incorrectos.' };
+}
+
+/**
+ * UPDATE: Actualiza la contraseña de un usuario aplicando hash criptográfico PBKDF2-SHA256.
+ */
+export async function updateUserAccountPassword({ correo, nuevaContrasena }) {
+  const cleanEmail = String(correo || '').trim().toLowerCase();
+  const rawPassword = String(nuevaContrasena || '');
+  if (!cleanEmail || rawPassword.length < 4) {
+    return { ok: false, error: 'Correo y nueva contraseña válida son requeridos.' };
+  }
+
+  const passwordHash = await hashUserPassword(rawPassword);
+
+  const pgUpd = await executePostgresQuery(
+    `UPDATE usuarios
+     SET contrasena_hash = $1, actualizado_en = NOW()
+     WHERE LOWER(correo) = $2
+     RETURNING id, correo, nombre, rol;`,
+    [passwordHash, cleanEmail],
+  );
+  if (pgUpd && pgUpd[0]) {
+    return { ok: true, operation: 'UPDATE', source: 'postgresql', user: pgUpd[0] };
+  }
+
+  if (supabaseClient) {
+    try {
+      const { data: updated, error } = await supabaseClient
+        .from('usuarios')
+        .update({
+          contrasena_hash: passwordHash,
+          actualizado_en: new Date().toISOString(),
+        })
+        .eq('correo', cleanEmail)
+        .select('id, correo, nombre, rol')
+        .maybeSingle();
+
+      if (!error && updated) {
+        return { ok: true, operation: 'UPDATE', source: 'supabase', user: updated };
+      }
+    } catch {
+      /* continúa al almacén relacional */
+    }
+  }
+
+  const store = getRelationalStore();
+  let found = false;
+  store.usuarios = store.usuarios.map((u) => {
+    if (String(u.correo || '').toLowerCase() !== cleanEmail) return u;
+    found = true;
+    return { ...u, contrasena_hash: passwordHash };
+  });
+  saveRelationalStore(store);
+
+  return {
+    ok: found,
+    operation: 'UPDATE',
+    source: 'relational-3fn',
+    correo: cleanEmail,
+    ...(found ? {} : { error: 'No se encontró una cuenta asociada a ese correo.' }),
+  };
 }
 
 /**

@@ -135,7 +135,7 @@ async function loadRelationalDatasetForReports() {
       { data: retos },
       { data: entregas },
     ] = await Promise.all([
-      supabaseClient.from('usuarios').select('*'),
+      supabaseClient.from('usuarios').select('id, nombre, correo, rol, rol_id, activo, creado_en'),
       supabaseClient.from('perfiles_gamificacion').select('*'),
       supabaseClient.from('catalogo_avatares').select('*'),
       supabaseClient.from('inventario_avatares_usuario').select('*'),

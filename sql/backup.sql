@@ -1,4 +1,4 @@
-﻿-- =============================================================================
+-- =============================================================================
 -- PostgreSQL database dump (pg_dump 16.4 compatible)
 -- Proyecto: CODEKIDS — Segundo Parcial Cliente/Servidor
 -- Comando: pg_dump -h db.supabase.co -p 5432 -U postgres -d postgres --schema=public --clean --if-exists --no-owner --inserts -f backup.sql
@@ -899,18 +899,19 @@ SET codigo_insignia = EXCLUDED.codigo_insignia,
 INSERT INTO usuarios
     (id, correo, nombre, rol, rol_id, contrasena_hash, correo_verificado_en, es_perfil_rapido, etiqueta_rapida, activo)
 VALUES
-    (1, 'sofi@codekids.edu.co',       'Sofi',        'estudiante', 1, 'CodeKids2026*', NOW(), TRUE,  'Nvl. 3 Â· Secuencias', TRUE),
-    (2, 'mateo@codekids.edu.co',      'Mateo',       'estudiante', 1, 'CodeKids2026*', NOW(), TRUE,  'Nvl. 2 Â· Bucles',     TRUE),
-    (3, 'valeria@codekids.edu.co',    'Valeria',     'estudiante', 1, 'CodeKids2026*', NOW(), TRUE,  'Nvl. 4 Â· Python',     TRUE),
-    (4, 'alex.profe@codekids.edu.co', 'Profe Alex',  'docente',    2, 'CodeKids2026*', NOW(), TRUE,  'Docente Â· 5Â° A',      TRUE),
-    (5, 'samuel@codekids.edu.co',     'Samuel',      'estudiante', 1, 'CodeKids2026*', NOW(), FALSE, 'Nvl. 1 Â· Inicio',     TRUE),
-    (6, 'mariana@codekids.edu.co',    'Mariana',     'estudiante', 1, 'CodeKids2026*', NOW(), FALSE, 'Nvl. 2 Â· Secuencias', TRUE),
-    (7, 'admin@codekids.edu.co',      'Admin Laura', 'admin',      3, 'CodeKids2026*', NOW(), FALSE, 'AdministraciÃ³n',      TRUE)
+    (1, 'sofi@codekids.edu.co',       'Sofi',        'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Nvl. 3 · Secuencias', TRUE),
+    (2, 'mateo@codekids.edu.co',      'Mateo',       'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Nvl. 2 · Bucles',     TRUE),
+    (3, 'valeria@codekids.edu.co',    'Valeria',     'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Nvl. 4 · Python',     TRUE),
+    (4, 'alex.profe@codekids.edu.co', 'Profe Alex',  'docente',    2, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Docente · 5° A',      TRUE),
+    (5, 'samuel@codekids.edu.co',     'Samuel',      'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), FALSE, 'Nvl. 1 · Inicio',     TRUE),
+    (6, 'mariana@codekids.edu.co',    'Mariana',     'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), FALSE, 'Nvl. 2 · Secuencias', TRUE),
+    (7, 'admin@codekids.edu.co',      'Admin Laura', 'admin',      3, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), FALSE, 'Administración',      TRUE)
 ON CONFLICT (id) DO UPDATE
 SET correo = EXCLUDED.correo,
     nombre = EXCLUDED.nombre,
     rol = EXCLUDED.rol,
     rol_id = EXCLUDED.rol_id,
+    contrasena_hash = EXCLUDED.contrasena_hash,
     activo = EXCLUDED.activo;
 
 ALTER TABLE usuarios ALTER COLUMN id RESTART WITH 8;

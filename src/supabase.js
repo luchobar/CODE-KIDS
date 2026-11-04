@@ -1,4 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
+import {
+  SEED_DEMO_PASSWORD_HASH,
+  hashUserPassword,
+  verifyUserPassword,
+} from './services/password.util.js';
+
+/**
+ * Cliente HTTP hacia la Capa de Lógica de Negocio (Tier 2 — Express REST API `/api/v1/*`).
+ * Garantiza coherencia en la Arquitectura Cliente/Servidor en 3 Capas:
+ *   Capa 1 (Presentación React) -> Capa 2 (API REST Express `/api/v1/*`) -> Capa 3 (PostgreSQL / Supabase / 3FN).
+ * Si el backend Express no está accesible (modo estático u offline), retorna `null`
+ * para activar automáticamente el mecanismo de resiliencia local/nube.
+ */
+export async function callTier2Api(endpointPath, { method = 'GET', body } = {}) {
+  if (typeof fetch !== 'function') return null;
+  try {
+    const response = await fetch(`/api/v1${endpointPath}`, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const contentType = response.headers?.get?.('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
+    const data = await response.json();
+    return { status: response.status, httpOk: response.ok, data };
+  } catch {
+    return null;
+  }
+}
 
 function cleanSupabaseUrl(rawUrl) {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
@@ -47,7 +76,12 @@ export const QUICK_PROFILE_IDS = {
 
 const LOCAL_ACCOUNTS_KEY = 'codekids-registered-accounts';
 
-// Cuentas oficiales para sustentación y presentación universitaria
+// Cuentas oficiales para sustentación y presentación universitaria.
+// NOTA TÉCNICA DE SEGURIDAD CRIPTOGRÁFICA (Sustentación):
+//   El campo `passwordHash` almacena el resumen criptográfico PBKDF2-HMAC-SHA256
+//   (`SEED_DEMO_PASSWORD_HASH`) que coincide con la columna `contrasena_hash` de `usuarios`.
+//   La lista `demoFallbacks` se conserva exclusivamente para un entorno pedagógico controlado
+//   de sustentación académica cuando el evaluador utiliza los accesos rápidos de demostración.
 export const UNIVERSITY_ACCOUNTS = {
   'sofi@codekids.edu.co': {
     id: 1,
@@ -56,7 +90,8 @@ export const UNIVERSITY_ACCOUNTS = {
     role: 'student',
     avatar: 'dragon',
     badge: 'Nvl. 3 · Secuencias',
-    passwords: ['CodeKids2026*', 'Sofi12345*', '12345678'],
+    passwordHash: SEED_DEMO_PASSWORD_HASH,
+    demoFallbacks: ['CodeKids2026*', 'Sofi12345*', '12345678'],
   },
   'mateo@codekids.edu.co': {
     id: 2,
@@ -65,7 +100,8 @@ export const UNIVERSITY_ACCOUNTS = {
     role: 'student',
     avatar: 'robot',
     badge: 'Nvl. 2 · Bucles',
-    passwords: ['CodeKids2026*', 'Mateo12345*', '12345678'],
+    passwordHash: SEED_DEMO_PASSWORD_HASH,
+    demoFallbacks: ['CodeKids2026*', 'Mateo12345*', '12345678'],
   },
   'valeria@codekids.edu.co': {
     id: 3,
@@ -74,7 +110,8 @@ export const UNIVERSITY_ACCOUNTS = {
     role: 'student',
     avatar: 'fox',
     badge: 'Nvl. 4 · Python',
-    passwords: ['CodeKids2026*', 'Valeria12345*', '12345678'],
+    passwordHash: SEED_DEMO_PASSWORD_HASH,
+    demoFallbacks: ['CodeKids2026*', 'Valeria12345*', '12345678'],
   },
   'alex.profe@codekids.edu.co': {
     id: 4,
@@ -83,7 +120,8 @@ export const UNIVERSITY_ACCOUNTS = {
     role: 'teacher',
     avatar: 'unicorn',
     badge: 'Docente · 5° A',
-    passwords: ['CodeKids2026*', 'Profe2026*', '12345678'],
+    passwordHash: SEED_DEMO_PASSWORD_HASH,
+    demoFallbacks: ['CodeKids2026*', 'Profe2026*', '12345678'],
   },
 };
 
@@ -98,7 +136,8 @@ function getLocalRegisteredAccounts() {
 function saveLocalRegisteredAccount(email, accountData) {
   try {
     const current = getLocalRegisteredAccounts();
-    current[email] = accountData;
+    const { password: _omitPlainPassword, ...safeAccountData } = accountData || {};
+    current[email] = safeAccountData;
     localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(current));
   } catch {
     /* localStorage opcional */
@@ -106,8 +145,8 @@ function saveLocalRegisteredAccount(email, accountData) {
 }
 
 /**
- * Autentica al usuario por correo y contraseña verificando que realmente exista en la base de datos
- * y que la contraseña coincida exactamente con la que fue creada para ese correo.
+ * Autentica al usuario por correo y contraseña consumiendo primero la Capa de Negocio
+ * (`POST /api/v1/users/login`) y verificando criptográficamente `contrasena_hash` (PBKDF2-SHA256 / Argon2id).
  */
 export async function authenticateUser(email, password) {
   const normalizedEmail = (email || '').trim().toLowerCase();
@@ -120,7 +159,34 @@ export async function authenticateUser(email, password) {
     return { ok: false, error: 'Por favor ingresa tu contraseña.' };
   }
 
-  // 1. Si Supabase está conectado, buscar en la tabla 'usuarios' y validar su contraseña real
+  const known = UNIVERSITY_ACCOUNTS[normalizedEmail];
+
+  // 1. Capa de Negocio Express (Tier 2: POST /api/v1/users/login)
+  const apiRes = await callTier2Api('/users/login', {
+    method: 'POST',
+    body: {
+      correo: normalizedEmail,
+      contrasena: trimmedPassword,
+      demoFallbacks: known?.demoFallbacks || [],
+    },
+  });
+
+  if (apiRes?.data?.ok && apiRes.data.user) {
+    const u = apiRes.data.user;
+    return {
+      ok: true,
+      source: apiRes.data.source || 'api-v1',
+      user: {
+        id: u.id,
+        name: u.nombre || u.name,
+        email: u.correo || u.email,
+        role: u.rol === 'docente' || u.role === 'teacher' ? 'teacher' : 'student',
+        avatar: u.avatar || known?.avatar || 'dragon',
+      },
+    };
+  }
+
+  // 2. Respaldo Supabase con verificación criptográfica PBKDF2-SHA256
   if (supabase) {
     try {
       const { data: dbUser, error } = await supabase
@@ -138,17 +204,15 @@ export async function authenticateUser(email, password) {
           return { ok: false, error: 'Esta cuenta se encuentra desactivada.' };
         }
 
-        const storedHash = dbUser.contrasena_hash ? String(dbUser.contrasena_hash).trim() : '';
-        const known = UNIVERSITY_ACCOUNTS[normalizedEmail];
+        const storedHash = dbUser.contrasena_hash
+          ? String(dbUser.contrasena_hash).trim()
+          : known?.passwordHash || '';
 
-        let passwordMatches = false;
-        if (storedHash) {
-          // Si el usuario tiene contraseña guardada en la BD, DEBE coincidir exactamente con ella
-          passwordMatches = storedHash === trimmedPassword;
-        } else if (known) {
-          // Cuentas semilla de demostración creadas sin contrasena_hash en el SQL inicial
-          passwordMatches = known.passwords.includes(trimmedPassword);
-        }
+        const passwordMatches = await verifyUserPassword(
+          trimmedPassword,
+          storedHash,
+          known?.demoFallbacks || [],
+        );
 
         if (!passwordMatches) {
           return {
@@ -157,7 +221,6 @@ export async function authenticateUser(email, password) {
           };
         }
 
-        // Actualizar fecha de último acceso en segundo plano
         supabase
           .from('usuarios')
           .update({ ultimo_acceso_en: new Date().toISOString() })
@@ -183,7 +246,6 @@ export async function authenticateUser(email, password) {
         };
       }
 
-      // Si está conectado a Supabase y NO existe en la tabla 'usuarios', rechazar el acceso
       return {
         ok: false,
         error: 'No existe ninguna cuenta registrada con este correo en la base de datos. Ve a la pestaña «Crear cuenta» para registrarte.',
@@ -193,12 +255,15 @@ export async function authenticateUser(email, password) {
     }
   }
 
-  // 2. Respaldo local (solo cuando Supabase no está configurado en el entorno):
-  // Verificar cuentas registradas localmente o las 4 cuentas semilla
+  // 3. Respaldo local con verificación criptográfica PBKDF2-SHA256
   const localAccounts = getLocalRegisteredAccounts();
   const localUser = localAccounts[normalizedEmail];
   if (localUser) {
-    if (localUser.password !== trimmedPassword) {
+    const validLocal = await verifyUserPassword(
+      trimmedPassword,
+      localUser.passwordHash || localUser.password || '',
+    );
+    if (!validLocal) {
       return {
         ok: false,
         error: 'Contraseña incorrecta para este correo electrónico. Verifica e intenta de nuevo.',
@@ -216,21 +281,29 @@ export async function authenticateUser(email, password) {
     };
   }
 
-  const academic = UNIVERSITY_ACCOUNTS[normalizedEmail];
-  if (academic) {
-    if (academic.passwords.includes(trimmedPassword)) {
+  if (known) {
+    const validAcademic = await verifyUserPassword(
+      trimmedPassword,
+      known.passwordHash,
+      known.demoFallbacks,
+    );
+    if (validAcademic) {
       return {
         ok: true,
         user: {
-          id: academic.id,
-          name: academic.name,
-          email: academic.email,
-          role: academic.role,
-          avatar: academic.avatar,
+          id: known.id,
+          name: known.name,
+          email: known.email,
+          role: known.role,
+          avatar: known.avatar,
         },
       };
     }
     return { ok: false, error: 'Contraseña incorrecta para esta cuenta institucional.' };
+  }
+
+  if (apiRes?.data?.error) {
+    return { ok: false, error: apiRes.data.error };
   }
 
   return {
@@ -240,7 +313,8 @@ export async function authenticateUser(email, password) {
 }
 
 /**
- * Registra un nuevo usuario en la base de datos de Supabase enlazando su correo y contraseña.
+ * Registra un nuevo usuario consumiendo primero `POST /api/v1/users` (Capa 2 Express)
+ * y almacenando su contraseña exclusivamente como hash criptográfico PBKDF2-SHA256.
  */
 export async function registerUser({ name, email, password, role = 'student', avatar = 'dragon' }) {
   const normalizedEmail = (email || '').trim().toLowerCase();
@@ -255,7 +329,49 @@ export async function registerUser({ name, email, password, role = 'student', av
     return { ok: false, error: 'La contraseña debe tener mínimo 8 caracteres.' };
   }
 
-  // 1. Si Supabase no está configurado, guardar en el registro local verificable
+  // Derivar hash criptográfico PBKDF2-HMAC-SHA256 antes de transmitir o almacenar
+  const passwordHash = await hashUserPassword(trimmedPassword);
+
+  // 1. Capa de Negocio Express (Tier 2: POST /api/v1/users)
+  const apiRes = await callTier2Api('/users', {
+    method: 'POST',
+    body: {
+      nombre: userName,
+      correo: normalizedEmail,
+      contrasena: passwordHash,
+      rol: userRole,
+      avatar,
+    },
+  });
+
+  if (apiRes?.data) {
+    if (!apiRes.data.ok) {
+      return { ok: false, error: apiRes.data.error || 'No fue posible registrar el usuario.' };
+    }
+    const created = apiRes.data.user || {};
+    const newUserId = created.id || Date.now();
+    saveLocalRegisteredAccount(normalizedEmail, {
+      id: newUserId,
+      name: userName,
+      email: normalizedEmail,
+      passwordHash,
+      role,
+      avatar,
+    });
+    return {
+      ok: true,
+      source: apiRes.data.source || 'api-v1',
+      user: {
+        id: newUserId,
+        name: created.nombre || userName,
+        email: created.correo || normalizedEmail,
+        role,
+        avatar,
+      },
+    };
+  }
+
+  // 2. Si el backend no está disponible y Supabase no está configurado, guardar en registro local con hash
   if (!supabase) {
     const localAccounts = getLocalRegisteredAccounts();
     if (localAccounts[normalizedEmail] || UNIVERSITY_ACCOUNTS[normalizedEmail]) {
@@ -265,7 +381,7 @@ export async function registerUser({ name, email, password, role = 'student', av
       id: Date.now(),
       name: userName,
       email: normalizedEmail,
-      password: trimmedPassword,
+      passwordHash,
       role,
       avatar,
     };
@@ -283,7 +399,6 @@ export async function registerUser({ name, email, password, role = 'student', av
   }
 
   try {
-    // Comprobar si ya existe en Supabase
     const { data: existente } = await supabase
       .from('usuarios')
       .select('id')
@@ -294,7 +409,6 @@ export async function registerUser({ name, email, password, role = 'student', av
       return { ok: false, error: 'Este correo ya está registrado en la base de datos. Por favor inicia sesión.' };
     }
 
-    // Insertar en tabla usuarios con su contraseña enlazada
     const { data: nuevo, error: errInsert } = await supabase
       .from('usuarios')
       .insert([
@@ -302,7 +416,7 @@ export async function registerUser({ name, email, password, role = 'student', av
           correo: normalizedEmail,
           nombre: userName,
           rol: userRole,
-          contrasena_hash: trimmedPassword,
+          contrasena_hash: passwordHash,
           correo_verificado_en: new Date().toISOString(),
           es_perfil_rapido: false,
           activo: true,
@@ -330,17 +444,15 @@ export async function registerUser({ name, email, password, role = 'student', av
       newUserId = buscado?.id;
     }
 
-    // Guardar también en caché local de respaldo
     saveLocalRegisteredAccount(normalizedEmail, {
       id: newUserId || Date.now(),
       name: userName,
       email: normalizedEmail,
-      password: trimmedPassword,
+      passwordHash,
       role,
       avatar,
     });
 
-    // Si es estudiante, crear su perfil gamificado inicial
     if (userRole === 'estudiante' && newUserId) {
       await supabase.from('perfiles_gamificacion').upsert({
         usuario_id: newUserId,
@@ -351,7 +463,6 @@ export async function registerUser({ name, email, password, role = 'student', av
         sonido_habilitado: true,
       });
 
-      // Asignar avatar al inventario
       await supabase.from('inventario_avatares_usuario').upsert({
         usuario_id: newUserId,
         avatar_id: 'astronaut',
@@ -379,7 +490,8 @@ export async function registerUser({ name, email, password, role = 'student', av
 }
 
 /**
- * Actualiza la contraseña de un correo registrado en Supabase (y en el respaldo local).
+ * Actualiza la contraseña de un correo aplicando hash criptográfico PBKDF2-SHA256
+ * a través de `PATCH /api/v1/users/password` con respaldo en Supabase y local.
  */
 export async function updatePasswordForEmail(email, newPassword) {
   const normalizedEmail = (email || '').trim().toLowerCase();
@@ -390,6 +502,26 @@ export async function updatePasswordForEmail(email, newPassword) {
   }
   if (!trimmedPassword || trimmedPassword.length < 8) {
     return { ok: false, error: 'La nueva contraseña debe tener mínimo 8 caracteres.' };
+  }
+
+  const passwordHash = await hashUserPassword(trimmedPassword);
+
+  // 1. Capa de Negocio Express (Tier 2: PATCH /api/v1/users/password)
+  const apiRes = await callTier2Api('/users/password', {
+    method: 'PATCH',
+    body: {
+      correo: normalizedEmail,
+      nuevaContrasena: passwordHash,
+    },
+  });
+
+  if (apiRes?.data?.ok) {
+    const localAccounts = getLocalRegisteredAccounts();
+    if (localAccounts[normalizedEmail]) {
+      localAccounts[normalizedEmail].passwordHash = passwordHash;
+      saveLocalRegisteredAccount(normalizedEmail, localAccounts[normalizedEmail]);
+    }
+    return { ok: true, message: '¡Contraseña actualizada criptográficamente! Ya puedes iniciar sesión.' };
   }
 
   if (supabase) {
@@ -410,7 +542,7 @@ export async function updatePasswordForEmail(email, newPassword) {
       const { error: updateErr } = await supabase
         .from('usuarios')
         .update({
-          contrasena_hash: trimmedPassword,
+          contrasena_hash: passwordHash,
           actualizado_en: new Date().toISOString(),
         })
         .eq('id', existing.id);
@@ -421,7 +553,7 @@ export async function updatePasswordForEmail(email, newPassword) {
 
       const localAccounts = getLocalRegisteredAccounts();
       if (localAccounts[normalizedEmail]) {
-        localAccounts[normalizedEmail].password = trimmedPassword;
+        localAccounts[normalizedEmail].passwordHash = passwordHash;
         saveLocalRegisteredAccount(normalizedEmail, localAccounts[normalizedEmail]);
       }
 
@@ -433,7 +565,7 @@ export async function updatePasswordForEmail(email, newPassword) {
 
   const localAccounts = getLocalRegisteredAccounts();
   if (localAccounts[normalizedEmail]) {
-    localAccounts[normalizedEmail].password = trimmedPassword;
+    localAccounts[normalizedEmail].passwordHash = passwordHash;
     saveLocalRegisteredAccount(normalizedEmail, localAccounts[normalizedEmail]);
     return { ok: true, message: 'Contraseña actualizada correctamente. Ya puedes iniciar sesión.' };
   }
@@ -442,14 +574,52 @@ export async function updatePasswordForEmail(email, newPassword) {
 }
 
 /**
- * Carga el perfil completo de un estudiante desde Supabase (HUD, XP, Avatares, Progreso).
+ * Carga el perfil completo de un estudiante (HUD, XP, Avatares, Progreso)
+ * consultando primero la API REST Express (`GET /api/v1/students/:id/hud` y `GET /api/v1/missions/map`)
+ * y manteniendo el respaldo de Supabase / local.
  */
 export async function loadStudentFromSupabase(userId) {
+  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: GET /api/v1/students/:id/hud + GET /api/v1/missions/map)
+  const [hudRes, mapRes] = await Promise.all([
+    callTier2Api(`/students/${numericId}/hud`),
+    callTier2Api(`/missions/map?usuarioId=${numericId}`),
+  ]);
+
+  if (!supabase && hudRes?.data?.ok && hudRes.data.hud) {
+    const hud = hudRes.data.hud;
+    const completedFromMap = (mapRes?.data?.missions || [])
+      .filter((m) => m.estado_usuario === 'completada')
+      .map((m) => m.mision_id);
+    const cache = readClassroomCache();
+    const enrolledGroups = Object.entries(cache.enrollmentsByGroup || {})
+      .filter(([, ids]) => Array.isArray(ids) && ids.some((id) => Number(id) === Number(numericId)))
+      .map(([groupCode]) => groupCode);
+
+    return {
+      userId: numericId,
+      name: hud.nombre || 'Explorador',
+      role: hud.rol === 'docente' ? 'teacher' : 'student',
+      points: hud.puntos_xp ?? 0,
+      coins: hud.saldo_monedas ?? 0,
+      streak: hud.dias_racha ?? 1,
+      avatar: hud.avatar_activo_id || 'dragon',
+      ownedAvatars: hud.avatares_desbloqueados?.length ? hud.avatares_desbloqueados : ['astronaut', hud.avatar_activo_id || 'dragon'],
+      scores: hud.puntajes_diagnostico || {
+        Secuencias: 75,
+        Bucles: 45,
+        Condicionales: 80,
+        Descomposición: 55,
+      },
+      completedMissions: completedFromMap,
+      enrolledGroups: enrolledGroups.length ? enrolledGroups : ['5° A'],
+    };
+  }
+
   if (!supabase) return null;
 
   try {
-    const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
-
     // 1. Datos de usuario
     const { data: user, error: userError } = await supabase
       .from('usuarios')
@@ -542,15 +712,30 @@ export async function loadStudentFromSupabase(userId) {
 }
 
 /**
- * Guarda en Supabase cuando un estudiante supera una misión (compatible con IDs clásicos y slugs UUID).
+ * Guarda cuando un estudiante supera una misión invocando primero
+ * `PATCH /api/v1/students/:id/rewards` (Capa 2 Express) con respaldo en Supabase.
  */
 export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp = 10, coins = 10) {
-  if (!supabase) return false;
+  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: PATCH /api/v1/students/:id/rewards)
+  const apiRes = await callTier2Api(`/students/${numericId}/rewards`, {
+    method: 'PATCH',
+    body: {
+      misionId: missionIdOrSlug,
+      estrellas: stars,
+      xpGanado: xp,
+      monedasGanadas: coins,
+    },
+  });
+
+  if (apiRes?.data?.ok && !supabase) {
+    return true;
+  }
+
+  if (!supabase) return Boolean(apiRes?.data?.ok);
 
   try {
-    const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
-
-    // 1. Resolver el ID primario real en 'misiones' buscando por slug o por id
     let resolvedMissionId = missionIdOrSlug;
     const { data: bySlug } = await supabase
       .from('misiones')
@@ -562,7 +747,6 @@ export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp 
       resolvedMissionId = bySlug.id;
     }
 
-    // 2. Guardar progreso en la tabla de misiones
     await supabase.from('progreso_misiones_usuario').upsert({
       usuario_id: numericId,
       mision_id: resolvedMissionId,
@@ -572,7 +756,6 @@ export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp 
       actualizado_en: new Date().toISOString(),
     });
 
-    // 3. Incrementar puntos de experiencia y monedas en el perfil
     const { data: perfil } = await supabase
       .from('perfiles_gamificacion')
       .select('puntos_xp, saldo_monedas')
@@ -598,52 +781,90 @@ export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp 
 }
 
 /**
- * Registra la compra o equipamiento de un avatar en Supabase.
+ * Registra la compra de un avatar invocando primero `POST /api/v1/store/purchase` (Capa 2 Express)
+ * con validación estricta de `saldo_monedas >= costo`.
  */
 export async function syncAvatarPurchase(userId, avatarId, cost = 0) {
-  if (!supabase) return false;
+  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+  const numericCost = Math.max(0, Number(cost) || 0);
+
+  // 1. Capa de Negocio Express (Tier 2: POST /api/v1/store/purchase)
+  const apiRes = await callTier2Api('/store/purchase', {
+    method: 'POST',
+    body: {
+      usuarioId: numericId,
+      avatarId,
+      costo: numericCost,
+    },
+  });
+
+  if (apiRes?.data) {
+    if (!apiRes.data.ok) {
+      return {
+        ok: false,
+        error: apiRes.data.error || 'Saldo de monedas insuficiente para desbloquear este avatar.',
+      };
+    }
+    return { ok: true, ...apiRes.data };
+  }
+
+  if (!supabase) return { ok: false, error: 'Servicio de tienda no disponible.' };
 
   try {
-    const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
-
-    // 1. Insertar en inventario si no lo tiene
-    await supabase.from('inventario_avatares_usuario').upsert({
-      usuario_id: numericId,
-      avatar_id: avatarId,
-    });
-
-    // 2. Descontar monedas y equipar
     const { data: perfil } = await supabase
       .from('perfiles_gamificacion')
       .select('saldo_monedas')
       .eq('usuario_id', numericId)
       .single();
 
-    if (perfil) {
-      await supabase
-        .from('perfiles_gamificacion')
-        .update({
-          saldo_monedas: Math.max(0, (perfil.saldo_monedas || 0) - cost),
-          avatar_activo_id: avatarId,
-          actualizado_en: new Date().toISOString(),
-        })
-        .eq('usuario_id', numericId);
+    const saldoActual = Number(perfil?.saldo_monedas ?? 0);
+    if (!perfil || saldoActual < numericCost) {
+      return {
+        ok: false,
+        error: 'Saldo de monedas insuficiente para desbloquear este avatar.',
+      };
     }
 
-    return true;
+    const nuevoSaldo = saldoActual - numericCost;
+    await supabase
+      .from('perfiles_gamificacion')
+      .update({
+        saldo_monedas: nuevoSaldo,
+        avatar_activo_id: avatarId,
+        actualizado_en: new Date().toISOString(),
+      })
+      .eq('usuario_id', numericId);
+
+    await supabase.from('inventario_avatares_usuario').upsert({
+      usuario_id: numericId,
+      avatar_id: avatarId,
+    });
+
+    return { ok: true, saldo_monedas: nuevoSaldo };
   } catch (err) {
     console.error('[Supabase] Error guardando avatar:', err);
-    return false;
+    return { ok: false, error: err?.message || 'Error al procesar compra de avatar.' };
   }
 }
 
 /**
- * Sincroniza únicamente el cambio de avatar activo en Supabase.
+ * Sincroniza el cambio de avatar activo invocando primero `PATCH /api/v1/students/:id/avatar` (Capa 2 Express).
  */
 export async function syncAvatarSelection(userId, avatarId) {
-  if (!supabase) return false;
+  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: PATCH /api/v1/students/:id/avatar)
+  const apiRes = await callTier2Api(`/students/${numericId}/avatar`, {
+    method: 'PATCH',
+    body: { avatarId },
+  });
+
+  if (apiRes?.data?.ok && !supabase) {
+    return true;
+  }
+
+  if (!supabase) return Boolean(apiRes?.data?.ok);
   try {
-    const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
     await supabase
       .from('perfiles_gamificacion')
       .update({
@@ -929,8 +1150,12 @@ async function ensureAulaIdForGroup(codigoGrupo, nombreCurso = '', preferredDoce
  */
 export async function loadTeacherClassroomData() {
   const cache = readClassroomCache();
-  const localRegistered = getLocalRegisteredAccounts()
-    .filter((acc) => acc.role === 'student')
+  const rawAccounts = getLocalRegisteredAccounts();
+  const localAccountList = Array.isArray(rawAccounts)
+    ? rawAccounts
+    : Object.values(rawAccounts || {});
+  const localRegistered = localAccountList
+    .filter((acc) => acc && acc.role === 'student')
     .map((acc, idx) => ({
       id: typeof acc.id === 'number' ? acc.id : 1000 + idx,
       name: acc.name,
@@ -1249,7 +1474,8 @@ export async function createCourseInSupabase({ codigoGrupo, nombre, docenteId, s
 }
 
 /**
- * Inscribe o retira a un estudiante de un curso en 'matriculas_aula'.
+ * Inscribe o retira a un estudiante de un curso en 'matriculas_aula'
+ * consumiendo primero la API REST Express (`POST` / `DELETE /api/v1/classrooms/:aulaId/enrollments`).
  */
 export async function setStudentCourseEnrollment({ codigoGrupo, studentId, enroll = true, docenteId }) {
   const cleanCode = String(codigoGrupo || '').trim();
@@ -1269,6 +1495,23 @@ export async function setStudentCourseEnrollment({ codigoGrupo, studentId, enrol
       [cleanCode]: nextList,
     },
   });
+
+  // 1. Capa de Negocio Express (Tier 2: POST / DELETE /api/v1/classrooms/:aulaId/enrollments)
+  const resolvedAulaId = cleanCode === '6° B' ? 2 : 1;
+  if (enroll) {
+    await callTier2Api(`/classrooms/${resolvedAulaId}/enrollments`, {
+      method: 'POST',
+      body: {
+        codigoGrupo: cleanCode,
+        estudianteId: Number(studentId) || 1,
+      },
+    });
+  } else {
+    await callTier2Api(
+      `/classrooms/${resolvedAulaId}/enrollments/${Number(studentId) || 1}?group=${encodeURIComponent(cleanCode)}`,
+      { method: 'DELETE' },
+    );
+  }
 
   if (supabase && Number.isFinite(Number(studentId)) && Number(studentId) < 1000) {
     try {
@@ -1298,7 +1541,8 @@ export async function setStudentCourseEnrollment({ codigoGrupo, studentId, enrol
 }
 
 /**
- * Publica una actividad (Blockly, Python, HTML5 o JavaScript) para un curso en 'retos_aula'.
+ * Publica una actividad (Blockly, Python, HTML5 o JavaScript) para un curso en 'retos_aula'
+ * invocando primero `POST /api/v1/challenges` (Capa 2 Express).
  */
 export async function createClassroomAssignmentInSupabase({
   group,
@@ -1322,11 +1566,28 @@ export async function createClassroomAssignmentInSupabase({
     createdAt: Date.now(),
   };
 
+  // 1. Capa de Negocio Express (Tier 2: POST /api/v1/challenges)
+  const apiRes = await callTier2Api('/challenges', {
+    method: 'POST',
+    body: {
+      aulaId: cleanGroup === '6° B' ? 2 : 1,
+      codigoGrupo: cleanGroup,
+      misionId: newAssignment.missionId,
+      titulo: newAssignment.title,
+      instrucciones: newAssignment.instructions,
+      tematicaHabilidad: newAssignment.skill,
+    },
+  });
+
+  if (apiRes?.data?.ok && apiRes.data.challenge?.id) {
+    newAssignment.id = `db-${apiRes.data.challenge.id}`;
+    newAssignment.dbId = Number(apiRes.data.challenge.id);
+  }
+
   if (supabase) {
     try {
       const aulaId = await ensureAulaIdForGroup(cleanGroup, `Curso ${cleanGroup}`, docenteId);
       if (aulaId) {
-        // Resolver misiones.id real por slug o por id (respetando la FK de retos_aula.mision_id)
         let dbMissionId = missionId;
         const { data: bySlug } = await supabase
           .from('misiones')
@@ -1346,7 +1607,6 @@ export async function createClassroomAssignmentInSupabase({
           if (byId?.id) {
             dbMissionId = byId.id;
           } else {
-            // Fallback seguro a una misión semilla existente si aún no se ha corrido el SQL de expansión
             dbMissionId = 'sequence-forest';
           }
         }
@@ -1386,7 +1646,8 @@ export async function createClassroomAssignmentInSupabase({
 }
 
 /**
- * Registra la entrega de un reto de curso por parte de un estudiante en 'entregas_retos'.
+ * Registra la entrega de un reto de curso por parte de un estudiante en 'entregas_retos'
+ * consumiendo primero `POST /api/v1/submissions` (Capa 2 Express).
  */
 export async function syncAssignmentSubmissionInSupabase(submission, user) {
   const cache = readClassroomCache();
@@ -1396,19 +1657,34 @@ export async function syncAssignmentSubmissionInSupabase(submission, user) {
   ];
   writeClassroomCache({ submissions: nextSubmissions });
 
+  const rawStudentId =
+    typeof user?.id === 'number'
+      ? user.id
+      : QUICK_PROFILE_IDS[String(user?.id || user?.name || '').toLowerCase()] || 1;
+
+  let retoDbId = submission.dbId || null;
+  if (!retoDbId && String(submission.assignmentId || '').startsWith('db-')) {
+    retoDbId = Number(String(submission.assignmentId).replace('db-', ''));
+  }
+
+  // 1. Capa de Negocio Express (Tier 2: POST /api/v1/submissions)
+  await callTier2Api('/submissions', {
+    method: 'POST',
+    body: {
+      retoId: retoDbId && Number.isFinite(retoDbId) ? retoDbId : 1,
+      estudianteId: rawStudentId,
+      puntaje: Math.round(Number(submission.score || 85)),
+      cantidadIntentos: Number(submission.gameOutcome?.attempts || 1),
+      logrado: Boolean(submission.gameOutcome?.success),
+      textoEvidencia: String(submission.response || 'Reto superado'),
+      retroalimentacionIa: String(submission.feedback || ''),
+      recomendacionDocente: String(submission.recommendation || ''),
+    },
+  });
+
   if (!supabase) return submission;
 
   try {
-    const rawStudentId =
-      typeof user?.id === 'number'
-        ? user.id
-        : QUICK_PROFILE_IDS[String(user?.id || user?.name || '').toLowerCase()] || 1;
-
-    let retoDbId = submission.dbId || null;
-    if (!retoDbId && String(submission.assignmentId || '').startsWith('db-')) {
-      retoDbId = Number(String(submission.assignmentId).replace('db-', ''));
-    }
-
     if (retoDbId && Number.isFinite(retoDbId)) {
       await supabase.from('entregas_retos').upsert(
         {
@@ -1434,7 +1710,7 @@ export async function syncAssignmentSubmissionInSupabase(submission, user) {
 }
 
 /**
- * UPDATE (TAREA 3): Edita un reto escolar en 'retos_aula' y sincroniza la caché local.
+ * UPDATE (TAREA 3): Edita un reto escolar en 'retos_aula' vía `PUT /api/v1/challenges/:id` y sincroniza caché.
  */
 export async function updateClassroomAssignmentInSupabase(assignmentId, updates = {}) {
   const cache = readClassroomCache();
@@ -1453,7 +1729,18 @@ export async function updateClassroomAssignmentInSupabase(assignmentId, updates 
   );
   writeClassroomCache({ assignments: nextAssignments });
 
-  const numericId = Number(String(assignmentId).replace(/^db-/, ''));
+  const numericId = Number(String(assignmentId).replace(/^db-/, '')) || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: PUT /api/v1/challenges/:id)
+  await callTier2Api(`/challenges/${numericId}`, {
+    method: 'PUT',
+    body: {
+      titulo: updates.title,
+      instrucciones: updates.instructions,
+      tematicaHabilidad: updates.skill,
+    },
+  });
+
   if (supabase && Number.isFinite(numericId)) {
     try {
       const patch = {};
@@ -1470,7 +1757,7 @@ export async function updateClassroomAssignmentInSupabase(assignmentId, updates 
 }
 
 /**
- * DELETE (TAREA 3): Elimina un reto asignado en 'retos_aula' y sincroniza la caché local.
+ * DELETE (TAREA 3): Elimina un reto asignado en 'retos_aula' vía `DELETE /api/v1/challenges/:id` y sincroniza caché.
  */
 export async function deleteClassroomAssignmentInSupabase(assignmentId) {
   const cache = readClassroomCache();
@@ -1482,7 +1769,13 @@ export async function deleteClassroomAssignmentInSupabase(assignmentId) {
   );
   writeClassroomCache({ assignments: nextAssignments, submissions: nextSubmissions });
 
-  const numericId = Number(String(assignmentId).replace(/^db-/, ''));
+  const numericId = Number(String(assignmentId).replace(/^db-/, '')) || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: DELETE /api/v1/challenges/:id)
+  await callTier2Api(`/challenges/${numericId}`, {
+    method: 'DELETE',
+  });
+
   if (supabase && Number.isFinite(numericId)) {
     try {
       await supabase.from('retos_aula').delete().eq('id', numericId);
@@ -1495,7 +1788,8 @@ export async function deleteClassroomAssignmentInSupabase(assignmentId) {
 }
 
 /**
- * UPDATE (TAREA 3): Califica o actualiza la nota/retroalimentación de una entrega en 'entregas_retos'.
+ * UPDATE (TAREA 3): Califica o actualiza la nota/retroalimentación de una entrega en 'entregas_retos'
+ * vía `PATCH /api/v1/submissions/:id/grade`.
  */
 export async function gradeSubmissionInSupabase(
   submissionId,
@@ -1518,6 +1812,19 @@ export async function gradeSubmissionInSupabase(
       : s,
   );
   writeClassroomCache({ submissions: nextSubmissions });
+
+  const numericSubId = Number(String(submissionId).replace(/\D+/g, '')) || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: PATCH /api/v1/submissions/:id/grade)
+  await callTier2Api(`/submissions/${numericSubId}/grade`, {
+    method: 'PATCH',
+    body: {
+      puntaje: resolvedScore,
+      puntuacion: Number((resolvedScore / 20).toFixed(2)),
+      retroalimentacionIa: feedback,
+      recomendacionDocente: recommendation,
+    },
+  });
 
   if (supabase) {
     try {
@@ -1542,10 +1849,16 @@ export async function gradeSubmissionInSupabase(
 }
 
 /**
- * DELETE (TAREA 3): Desactiva una cuenta de usuario en 'usuarios' (activo = FALSE).
+ * DELETE (TAREA 3): Desactiva una cuenta de usuario en 'usuarios' vía `DELETE /api/v1/users/:id`.
  */
 export async function deactivateUserAccountInSupabase(userId) {
-  const numericId = Number(userId);
+  const numericId = Number(userId) || 1;
+
+  // 1. Capa de Negocio Express (Tier 2: DELETE /api/v1/users/:id)
+  await callTier2Api(`/users/${numericId}`, {
+    method: 'DELETE',
+  });
+
   if (supabase && Number.isFinite(numericId)) {
     try {
       await supabase

@@ -3108,10 +3108,24 @@ function SqlAnalyticalReportsPanel({ group }) {
 
   const refreshReports = async () => {
     try {
-      const [repData, rankData] = await Promise.all([
-        getAllAnalyticalReports({ aulaCodigo: null, threshold: 3.0 }),
-        getClassroomRanking({ codigoGrupo: group }),
+      const encodedGroup = encodeURIComponent(group || '5° A');
+      const [apiRepRes, apiRankRes] = await Promise.all([
+        fetch('/api/v1/reports?threshold=3.0').catch(() => null),
+        fetch(`/api/v1/classrooms/1/ranking?group=${encodedGroup}`).catch(() => null),
       ]);
+
+      const apiRepJson = apiRepRes && apiRepRes.ok ? await apiRepRes.json().catch(() => null) : null;
+      const apiRankJson = apiRankRes && apiRankRes.ok ? await apiRankRes.json().catch(() => null) : null;
+
+      const repData =
+        apiRepJson && apiRepJson.ok
+          ? apiRepJson
+          : await getAllAnalyticalReports({ aulaCodigo: null, threshold: 3.0 });
+      const rankData =
+        apiRankJson && apiRankJson.ok
+          ? apiRankJson
+          : await getClassroomRanking({ codigoGrupo: group });
+
       setReports(repData);
       setRanking(rankData?.ranking || []);
     } catch {
@@ -3142,7 +3156,7 @@ function SqlAnalyticalReportsPanel({ group }) {
           <span className="hero-eyebrow">MÓDULO DE INFORMES ANALÍTICOS SQL (TAREA 4 · 3FN)</span>
           <h3>Consultas Complejas con JOIN, GROUP BY, HAVING y Agregación</h3>
           <p>
-            Informes ejecutados en tiempo real desde <code>reports.service.js</code> sobre el modelo relacional de 14 tablas.
+            Informes consumidos vía API REST (<code>/api/v1/reports</code>) y ejecutados por <code>reports.service.js</code> sobre el modelo relacional de 14 tablas.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -4267,7 +4281,7 @@ export default function App() {
       }
     }
 
-    if (isSupabaseConfigured && user.role === 'student') {
+    if (user.role === 'student') {
       try {
         const studentData = await loadStudentFromSupabase(user.id || user.name?.toLowerCase());
         if (studentData) {
@@ -4300,7 +4314,7 @@ export default function App() {
           }));
         }
       } catch (err) {
-        console.warn('[Supabase Sync] No se pudo cargar perfil:', err);
+        console.warn('[API / Supabase Sync] No se pudo cargar perfil:', err);
       }
     }
   };
@@ -4432,7 +4446,7 @@ export default function App() {
 
     if (state.soundEnabled) playSfx('win');
 
-    if (!alreadyDone && isSupabaseConfigured && state.user) {
+    if (!alreadyDone && state.user) {
       syncMissionSuccess(
         state.user.id || state.user.name?.toLowerCase(),
         missionId,
@@ -4461,7 +4475,7 @@ export default function App() {
 
     if (state.soundEnabled) playSfx('win');
 
-    if (!alreadyDone && isSupabaseConfigured && state.user) {
+    if (!alreadyDone && state.user) {
       syncMissionSuccess(
         state.user.id || state.user.name?.toLowerCase(),
         missionSlug,
@@ -4487,7 +4501,7 @@ export default function App() {
     });
     if (state.soundEnabled) playSfx('win');
 
-    if (isSupabaseConfigured && state.user) {
+    if (state.user) {
       syncMissionSuccess(state.user.id || state.user.name?.toLowerCase(), missionId, 3, 10, 10).catch(() => {});
     }
 
@@ -4495,6 +4509,10 @@ export default function App() {
   };
 
   const buyAvatar = (item) => {
+    if ((state.ownedAvatars || ['astronaut']).includes(item.avatar) || (state.coins || 0) < item.cost) {
+      return;
+    }
+
     setState((current) => {
       if ((current.ownedAvatars || ['astronaut']).includes(item.avatar) || (current.coins || 0) < item.cost) {
         return current;
@@ -4507,14 +4525,14 @@ export default function App() {
       };
     });
 
-    if (isSupabaseConfigured && state.user) {
+    if (state.user) {
       syncAvatarPurchase(state.user.id || state.user.name?.toLowerCase(), item.avatar, item.cost).catch(() => {});
     }
   };
 
   const selectAvatar = (avatar) => {
     setState((current) => ((current.ownedAvatars || ['astronaut']).includes(avatar) ? { ...current, avatar } : current));
-    if (isSupabaseConfigured && state.user) {
+    if (state.user) {
       syncAvatarSelection(state.user.id || state.user.name?.toLowerCase(), avatar).catch(() => {});
     }
   };

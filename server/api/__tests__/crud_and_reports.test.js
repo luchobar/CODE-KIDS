@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   registerUserAccount,
+  authenticateUserAccount,
+  getRelationalStore,
   getStudentHudProfile,
   deactivateUserAccount,
   listMapMissionsWithProgress,
@@ -103,7 +105,7 @@ test('TAREA 3 — CRUD Completo (CREATE, READ, UPDATE, DELETE) en Capa de Servic
   assert.equal(reward.ok, true);
   assert.equal(reward.operation, 'UPDATE');
 
-  // 6. CREATE (INSERT) + UPDATE: Comprar avatar y cambiar avatar activo
+  // 6. CREATE (INSERT) + UPDATE: Comprar avatar validando saldo suficiente y rechazo por saldo insuficiente
   const buy = await purchaseStoreAvatar({
     usuarioId: newUserId,
     avatarId: 'robot',
@@ -111,6 +113,42 @@ test('TAREA 3 — CRUD Completo (CREATE, READ, UPDATE, DELETE) en Capa de Servic
   });
   assert.equal(buy.ok, true);
   assert.equal(buy.operation, 'INSERT');
+  assert.equal(buy.saldo_monedas, 20);
+
+  // Intentar comprar un avatar que cuesta 60 cuando el saldo restante es 20 -> debe abortar
+  const failedBuy = await purchaseStoreAvatar({
+    usuarioId: newUserId,
+    avatarId: 'unicorn',
+    costo: 60,
+  });
+  assert.equal(failedBuy.ok, false);
+  assert.equal(
+    failedBuy.error,
+    'Saldo de monedas insuficiente para desbloquear este avatar.',
+  );
+
+  // Verificar que todas las contraseñas en la tabla relacional `usuarios` están hasheadas criptográficamente
+  const store = getRelationalStore();
+  for (const u of store.usuarios) {
+    assert.ok(
+      String(u.contrasena_hash).startsWith('pbkdf2_sha256$') ||
+        String(u.contrasena_hash).startsWith('$argon2'),
+      `El usuario ${u.correo} debe almacenar un hash criptográfico real en contrasena_hash`,
+    );
+  }
+
+  // Verificar autenticación criptográfica en la Capa de Negocio
+  const authOk = await authenticateUserAccount({
+    correo: reg.user.correo,
+    contrasena: 'PasswordSegura2026*',
+  });
+  assert.equal(authOk.ok, true);
+
+  const authFail = await authenticateUserAccount({
+    correo: reg.user.correo,
+    contrasena: 'PasswordIncorrecta123',
+  });
+  assert.equal(authFail.ok, false);
 
   const avatar = await changeActiveAvatar({
     usuarioId: newUserId,

@@ -168,70 +168,125 @@ export async function getAvatarStoreCatalog(usuarioId = 1) {
 
 /**
  * CREATE (INSERT) + UPDATE: Compra un avatar en la tienda ('inventario_avatares_usuario')
- * y descuenta las monedas equipándolo en 'perfiles_gamificacion'.
+ * previa validación estricta de saldo en 'perfiles_gamificacion', debitando el costo exacto.
  */
 export async function purchaseStoreAvatar({ usuarioId, avatarId, costo = 30 }) {
   const uid = Number(usuarioId) || 1;
   const cleanAvatarId = String(avatarId || 'dragon').trim();
-  const numericCost = Math.max(0, Number(costo) || 0);
+  const numericCost = Math.max(0, Number(costo) ?? 30);
+  const INSUFFICIENT_FUNDS_ERROR =
+    'Saldo de monedas insuficiente para desbloquear este avatar.';
 
   // 1. PostgreSQL directo
-  const pgInv = await executePostgresQuery(
-    `INSERT INTO inventario_avatares_usuario (usuario_id, avatar_id, desbloqueado_en)
-     VALUES ($1, $2, NOW())
-     ON CONFLICT (usuario_id, avatar_id) DO NOTHING
-     RETURNING usuario_id, avatar_id, desbloqueado_en;`,
-    [uid, cleanAvatarId],
+  const pgPerfil = await executePostgresQuery(
+    `SELECT saldo_monedas
+     FROM perfiles_gamificacion
+     WHERE usuario_id = $1;`,
+    [uid],
   );
-  if (pgInv) {
+  if (pgPerfil) {
+    const saldoActual = Number(pgPerfil[0]?.saldo_monedas ?? 0);
+    if (!pgPerfil[0] || saldoActual < numericCost) {
+      return { ok: false, error: INSUFFICIENT_FUNDS_ERROR };
+    }
+
+    const nuevoSaldo = saldoActual - numericCost;
     await executePostgresQuery(
       `UPDATE perfiles_gamificacion
-       SET saldo_monedas = GREATEST(0, saldo_monedas - $1),
+       SET saldo_monedas = saldo_monedas - $1,
            avatar_activo_id = $2,
            actualizado_en = NOW()
-       WHERE usuario_id = $3;`,
+       WHERE usuario_id = $3 AND saldo_monedas >= $1;`,
       [numericCost, cleanAvatarId, uid],
     );
+
+    await executePostgresQuery(
+      `INSERT INTO inventario_avatares_usuario (usuario_id, avatar_id, desbloqueado_en)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (usuario_id, avatar_id) DO NOTHING
+       RETURNING usuario_id, avatar_id, desbloqueado_en;`,
+      [uid, cleanAvatarId],
+    );
+
     return {
       ok: true,
       operation: 'INSERT',
       source: 'postgresql',
       usuario_id: uid,
       avatar_id: cleanAvatarId,
+      saldo_monedas: nuevoSaldo,
     };
   }
 
   // 2. Supabase Client
   if (supabaseClient) {
     try {
-      await supabaseClient.from('inventario_avatares_usuario').upsert({
-        usuario_id: uid,
-        avatar_id: cleanAvatarId,
-      });
-
-      const { data: perfil } = await supabaseClient
+      const { data: perfil, error: perfilError } = await supabaseClient
         .from('perfiles_gamificacion')
         .select('saldo_monedas')
         .eq('usuario_id', uid)
         .maybeSingle();
 
-      if (perfil) {
-        await supabaseClient
+      if (!perfilError && perfil) {
+        const saldoActual = Number(perfil.saldo_monedas ?? 0);
+        if (saldoActual < numericCost) {
+          return { ok: false, error: INSUFFICIENT_FUNDS_ERROR };
+        }
+
+        const nuevoSaldo = saldoActual - numericCost;
+        const { error: updateError } = await supabaseClient
           .from('perfiles_gamificacion')
           .update({
-            saldo_monedas: Math.max(0, Number(perfil.saldo_monedas || 0) - numericCost),
+            saldo_monedas: nuevoSaldo,
             avatar_activo_id: cleanAvatarId,
             actualizado_en: new Date().toISOString(),
           })
           .eq('usuario_id', uid);
+
+        if (!updateError) {
+          await supabaseClient.from('inventario_avatares_usuario').upsert({
+            usuario_id: uid,
+            avatar_id: cleanAvatarId,
+            desbloqueado_en: new Date().toISOString(),
+          });
+
+          return {
+            ok: true,
+            operation: 'INSERT',
+            source: 'supabase',
+            usuario_id: uid,
+            avatar_id: cleanAvatarId,
+            saldo_monedas: nuevoSaldo,
+          };
+        }
       }
     } catch {
-      /* continúa al almacén relacional */
+      /* continúa al almacén relacional local si Supabase no está disponible */
     }
   }
 
-  // 3. Almacén relacional 3FN
+  // 3. Almacén relacional 3FN (Fallback local)
   const store = getRelationalStore();
+  const perfilLocal = store.perfiles_gamificacion.find(
+    (p) => Number(p.usuario_id) === uid,
+  );
+  const saldoActual = Number(perfilLocal?.saldo_monedas ?? 0);
+
+  if (!perfilLocal || saldoActual < numericCost) {
+    return { ok: false, error: INSUFFICIENT_FUNDS_ERROR };
+  }
+
+  const nuevoSaldo = saldoActual - numericCost;
+  store.perfiles_gamificacion = store.perfiles_gamificacion.map((p) =>
+    Number(p.usuario_id) === uid
+      ? {
+          ...p,
+          saldo_monedas: nuevoSaldo,
+          avatar_activo_id: cleanAvatarId,
+        }
+      : p,
+  );
+
   const alreadyOwned = store.inventario_avatares_usuario.some(
     (i) => Number(i.usuario_id) === uid && String(i.avatar_id) === cleanAvatarId,
   );
@@ -242,23 +297,15 @@ export async function purchaseStoreAvatar({ usuarioId, avatarId, costo = 30 }) {
       desbloqueado_en: new Date().toISOString(),
     });
   }
-  store.perfiles_gamificacion = store.perfiles_gamificacion.map((p) =>
-    Number(p.usuario_id) === uid
-      ? {
-          ...p,
-          saldo_monedas: Math.max(0, Number(p.saldo_monedas || 0) - numericCost),
-          avatar_activo_id: cleanAvatarId,
-        }
-      : p,
-  );
   saveRelationalStore(store);
 
   return {
     ok: true,
     operation: 'INSERT',
-    source: supabaseClient ? 'supabase' : 'relational-3fn',
+    source: 'relational-3fn',
     usuario_id: uid,
     avatar_id: cleanAvatarId,
+    saldo_monedas: nuevoSaldo,
   };
 }
 
@@ -311,7 +358,7 @@ export async function updateRewardsAfterMission({
   // 2. Supabase Client
   if (supabaseClient) {
     try {
-      await supabaseClient.from('progreso_misiones_usuario').upsert({
+      const { error: progError } = await supabaseClient.from('progreso_misiones_usuario').upsert({
         usuario_id: uid,
         mision_id: cleanMissionId,
         estado: 'completada',
@@ -324,19 +371,36 @@ export async function updateRewardsAfterMission({
 
       const { data: current } = await supabaseClient
         .from('perfiles_gamificacion')
-        .select('puntos_xp, saldo_monedas')
+        .select('puntos_xp, saldo_monedas, dias_racha')
         .eq('usuario_id', uid)
         .maybeSingle();
 
-      if (current) {
-        await supabaseClient
+      if (!progError && current) {
+        const nextXp = Number(current.puntos_xp || 0) + addXp;
+        const nextCoins = Number(current.saldo_monedas || 0) + addCoins;
+        const { error: updErr } = await supabaseClient
           .from('perfiles_gamificacion')
           .update({
-            puntos_xp: Number(current.puntos_xp || 0) + addXp,
-            saldo_monedas: Number(current.saldo_monedas || 0) + addCoins,
+            puntos_xp: nextXp,
+            saldo_monedas: nextCoins,
             actualizado_en: new Date().toISOString(),
           })
           .eq('usuario_id', uid);
+
+        if (!updErr) {
+          return {
+            ok: true,
+            operation: 'UPDATE',
+            source: 'supabase',
+            profile: {
+              usuario_id: uid,
+              puntos_xp: nextXp,
+              nivel_actual: Math.floor(nextXp / 100) + 1,
+              saldo_monedas: nextCoins,
+              dias_racha: current.dias_racha ?? 1,
+            },
+          };
+        }
       }
     } catch {
       /* continúa al almacén relacional */
@@ -410,10 +474,19 @@ export async function changeActiveAvatar({ usuarioId, avatarId }) {
 
   if (supabaseClient) {
     try {
-      await supabaseClient
+      const { error } = await supabaseClient
         .from('perfiles_gamificacion')
         .update({ avatar_activo_id: cleanAvatarId, actualizado_en: new Date().toISOString() })
         .eq('usuario_id', uid);
+      if (!error) {
+        return {
+          ok: true,
+          operation: 'UPDATE',
+          source: 'supabase',
+          usuario_id: uid,
+          avatar_activo_id: cleanAvatarId,
+        };
+      }
     } catch {
       /* continúa al almacén relacional */
     }

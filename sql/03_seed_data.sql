@@ -61,22 +61,29 @@ SET codigo_insignia = EXCLUDED.codigo_insignia,
 -- -----------------------------------------------------------------------------
 -- 4. USUARIOS (Tabla 2: usuarios)
 -- 1: Sofi | 2: Mateo | 3: Valeria | 4: Profe Alex | 5: Samuel | 6: Mariana | 7: Admin
+-- NOTA DE SEGURIDAD CRIPTOGRÁFICA (Sustentación):
+--   La columna `contrasena_hash` almacena resúmenes criptográficos derivados con
+--   PBKDF2-HMAC-SHA256 (100,000 iteraciones, salt 'codekids2026salt') compatibles
+--   con Web Crypto API (NIST SP 800-132) y verificados en la Capa de Negocio.
+--   Para efectos de demostración académica controlada, el hash semilla corresponde
+--   a la credencial institucional: CodeKids2026*
 -- -----------------------------------------------------------------------------
 INSERT INTO usuarios
     (id, correo, nombre, rol, rol_id, contrasena_hash, correo_verificado_en, es_perfil_rapido, etiqueta_rapida, activo)
 VALUES
-    (1, 'sofi@codekids.edu.co',       'Sofi',        'estudiante', 1, 'CodeKids2026*', NOW(), TRUE,  'Nvl. 3 · Secuencias', TRUE),
-    (2, 'mateo@codekids.edu.co',      'Mateo',       'estudiante', 1, 'CodeKids2026*', NOW(), TRUE,  'Nvl. 2 · Bucles',     TRUE),
-    (3, 'valeria@codekids.edu.co',    'Valeria',     'estudiante', 1, 'CodeKids2026*', NOW(), TRUE,  'Nvl. 4 · Python',     TRUE),
-    (4, 'alex.profe@codekids.edu.co', 'Profe Alex',  'docente',    2, 'CodeKids2026*', NOW(), TRUE,  'Docente · 5° A',      TRUE),
-    (5, 'samuel@codekids.edu.co',     'Samuel',      'estudiante', 1, 'CodeKids2026*', NOW(), FALSE, 'Nvl. 1 · Inicio',     TRUE),
-    (6, 'mariana@codekids.edu.co',    'Mariana',     'estudiante', 1, 'CodeKids2026*', NOW(), FALSE, 'Nvl. 2 · Secuencias', TRUE),
-    (7, 'admin@codekids.edu.co',      'Admin Laura', 'admin',      3, 'CodeKids2026*', NOW(), FALSE, 'Administración',      TRUE)
+    (1, 'sofi@codekids.edu.co',       'Sofi',        'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Nvl. 3 · Secuencias', TRUE),
+    (2, 'mateo@codekids.edu.co',      'Mateo',       'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Nvl. 2 · Bucles',     TRUE),
+    (3, 'valeria@codekids.edu.co',    'Valeria',     'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Nvl. 4 · Python',     TRUE),
+    (4, 'alex.profe@codekids.edu.co', 'Profe Alex',  'docente',    2, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), TRUE,  'Docente · 5° A',      TRUE),
+    (5, 'samuel@codekids.edu.co',     'Samuel',      'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), FALSE, 'Nvl. 1 · Inicio',     TRUE),
+    (6, 'mariana@codekids.edu.co',    'Mariana',     'estudiante', 1, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), FALSE, 'Nvl. 2 · Secuencias', TRUE),
+    (7, 'admin@codekids.edu.co',      'Admin Laura', 'admin',      3, 'pbkdf2_sha256$100000$codekids2026salt$252309551a9c4e3736fb7c933c31c8f62163b8c72119eb6d012b2cc84d5d7411', NOW(), FALSE, 'Administración',      TRUE)
 ON CONFLICT (id) DO UPDATE
 SET correo = EXCLUDED.correo,
     nombre = EXCLUDED.nombre,
     rol = EXCLUDED.rol,
     rol_id = EXCLUDED.rol_id,
+    contrasena_hash = EXCLUDED.contrasena_hash,
     activo = EXCLUDED.activo;
 
 ALTER TABLE usuarios ALTER COLUMN id RESTART WITH 8;

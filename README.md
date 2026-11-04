@@ -162,42 +162,51 @@ CREATE ROLE rol_admin NOLOGIN;
 - **`rol_docente`:** `SELECT`, `INSERT`, `UPDATE` y `DELETE` en sus aulas, retos asignados y calificación de entregas escolares de sus estudiantes.
 - **`rol_admin`:** `ALL PRIVILEGES` para auditoría y gestión integral del sistema.
 
-### 3.2 Políticas de Row Level Security (RLS) en Supabase
-Todas las tablas cuentan con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`:
+### 3.2 Políticas de Row Level Security (RLS), Seguridad por Columnas y Tratamiento Criptográfico
+Todas las tablas cuentan con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y protección a nivel de columna sobre datos sensibles:
+- **Protección de Columnas Sensibles (`REVOKE SELECT`):** Los roles `anon`, `authenticated`, `rol_estudiante` y `rol_docente` tienen revocado explícitamente el permiso de lectura sobre `contrasena_hash`, `intentos_fallidos` y `bloqueado_hasta` en la tabla `usuarios`, y disponen de la vista segura `public.vista_usuarios_publica`.
+- **Hashing Criptográfico Real (`password.util.js` y `server/auth/crypto.js`):** La columna `contrasena_hash` almacena resúmenes criptográficos derivados mediante **PBKDF2-HMAC-SHA256** (`100,000` iteraciones, estándar Web Crypto API NIST SP 800-132) y **Argon2id** en el backend de seguridad, nunca texto plano.
+- **Calibración RLS Dual (Nube Estricta vs. Sustentación Académica):** Las políticas RLS validan `auth.uid()` y `public.current_usuario_id()`, permitiendo conmutar entre modo estricto en nube (`ALTER DATABASE postgres SET app.allow_anon_demo = 'false'`) y modo de laboratorio controlado (`public.is_pedagogical_demo_context()`) sin exponer jamás `contrasena_hash`.
+
 ```sql
--- Estudiantes solo ven y modifican su propio progreso
-CREATE POLICY p_estudiante_progreso ON progreso_misiones_usuario
-  FOR ALL TO rol_estudiante
-  USING (usuario_id = auth.uid())
-  WITH CHECK (usuario_id = auth.uid());
+-- Estudiantes solo modifican su propio perfil de gamificación
+CREATE POLICY rls_perfiles_update_own ON perfiles_gamificacion
+  FOR UPDATE USING (
+    usuario_id = public.current_usuario_id()
+    OR public.current_usuario_rol() = 'admin'
+    OR public.is_pedagogical_demo_context()
+  );
 
 -- Docentes gestionan exclusivamente las aulas que ellos crearon
-CREATE POLICY p_docente_aulas ON aulas
-  FOR ALL TO rol_docente
-  USING (docente_id = auth.uid())
-  WITH CHECK (docente_id = auth.uid());
+CREATE POLICY rls_aulas_docente_write ON aulas
+  FOR ALL USING (
+    docente_id = public.current_usuario_id()
+    OR public.current_usuario_rol() = 'admin'
+    OR public.is_pedagogical_demo_context()
+  );
 ```
 
 ---
 
 ## ⚡ 4. Capa de Negocio y CRUD Completo
 
-La capa de servicios (`src/services/`) y los endpoints RESTful (`server/api/routes.js`) implementan explícitamente las operaciones requeridas por la rúbrica:
+La capa de servicios (`src/services/`) y los endpoints RESTful (`server/api/routes.js`) implementan explícitamente las operaciones requeridas por la rúbrica, siendo consumidos desde el frontend mediante `fetch('/api/v1/*')` con resiliencia offline/fallback:
 
 ```mermaid
 flowchart LR
     subgraph CRUD ["Operaciones CRUD en Entidades Principales"]
-        C["INSERT (Create)<br>• Registrar usuario<br>• Matricular alumno<br>• Publicar reto escolar<br>• Comprar avatar<br>• Entregar solución"]
-        R["SELECT (Read)<br>• Consultar HUD de alumno<br>• Listar mapa de misiones<br>• Ver ranking del curso<br>• Catálogo de tienda"]
-        U["UPDATE (Update)<br>• Sumar XP y saldo de monedas<br>• Cambiar avatar activo<br>• Calificar entrega (0.0-5.0)<br>• Editar reto del aula"]
-        D["DELETE (Delete)<br>• Desmatricular estudiante<br>• Eliminar reto publicado<br>• Desactivar cuenta"]
+        C["INSERT (Create)<br>• POST /api/v1/users<br>• POST /api/v1/classrooms/:aulaId/enrollments<br>• POST /api/v1/challenges<br>• POST /api/v1/store/purchase<br>• POST /api/v1/submissions"]
+        R["SELECT (Read)<br>• GET /api/v1/students/:id/hud<br>• GET /api/v1/missions/map<br>• GET /api/v1/classrooms/:aulaId/ranking<br>• GET /api/v1/store/catalog"]
+        U["UPDATE (Update)<br>• PATCH /api/v1/students/:id/rewards<br>• PATCH /api/v1/students/:id/avatar<br>• PATCH /api/v1/submissions/:id/grade<br>• PUT /api/v1/challenges/:id"]
+        D["DELETE (Delete)<br>• DELETE /api/v1/classrooms/:aulaId/enrollments/:estudianteId<br>• DELETE /api/v1/challenges/:id<br>• DELETE /api/v1/users/:id"]
     end
 ```
 
-### Métodos del Servicio (`src/services/`):
-- **`users.service.js`:** `createUser`, `getUserProfileById`, `updateGamificationProfile`, `deactivateUserAccount` (DELETE lógico).
-- **`classroom.service.js`:** `createClassroom`, `enrollStudentInClassroom`, `removeStudentEnrollment` (DELETE físico), `createAssignment`, `updateAssignment`, `deleteAssignment`, `gradeSubmission`.
-- **`gamification.service.js`:** `purchaseAvatar`, `setActiveAvatar`, `recordMissionProgress`.
+### Métodos Reales de la Capa de Servicios (`src/services/`):
+- **[`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js):** `registerUserAccount`, `authenticateUserAccount`, `updateUserAccountPassword`, `getStudentHudProfile`, `deactivateUserAccount`.
+- **[`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js):** `listMapMissionsWithProgress`, `getAvatarStoreCatalog`, `purchaseStoreAvatar` (con validación estricta `saldo_monedas >= costo`), `updateRewardsAfterMission`, `changeActiveAvatar`.
+- **[`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js):** `enrollStudentInAula`, `unenrollStudentFromAula`, `getClassroomRanking`, `publishAulaChallenge`, `updateAulaChallenge`, `deleteAulaChallenge`, `submitChallengeDelivery`, `gradeStudentSubmission`.
+- **[`reports.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/reports.service.js):** `getAtRiskStudentsReport`, `getHighRetryMissionsReport`, `getGamifiedEconomyReport`, `getAllAnalyticalReports`.
 
 ---
 
@@ -384,23 +393,32 @@ API_PORT=3001
 
 ## 🔌 10. Referencia de Endpoints RESTful (API v1)
 
-| Método | Endpoint | Descripción | Operación CRUD |
-| :---: | :--- | :--- | :---: |
-| `GET` | `/api/v1/health` | Estado del backend y de la conexión de datos | Read |
-| `POST` | `/api/v1/users` | Registrar nuevo usuario con perfil de gamificación | **Create** |
-| `GET` | `/api/v1/users/:id/hud` | Obtener métricas HUD del estudiante (XP, monedas, racha) | **Read** |
-| `DELETE` | `/api/v1/users/:id` | Desactivar cuenta de usuario | **Delete** |
-| `GET` | `/api/v1/gamification/missions` | Listar catálogo de mundos y misiones | **Read** |
-| `POST` | `/api/v1/gamification/purchase-avatar` | Comprar avatar debitando monedas en BD | **Create / Update** |
-| `POST` | `/api/v1/classrooms/:id/assignments` | Publicar nuevo reto escolar en un aula | **Create** |
-| `PUT` | `/api/v1/classrooms/:aulaId/assignments/:id` | Modificar título o instrucciones de un reto | **Update** |
-| `DELETE` | `/api/v1/classrooms/:aulaId/assignments/:id` | Eliminar reto escolar asignado | **Delete** |
-| `POST` | `/api/v1/classrooms/enroll` | Inscribir estudiante en un aula por código | **Create** |
-| `DELETE` | `/api/v1/classrooms/:id/students/:estId` | Dar de baja matrícula de un estudiante | **Delete** |
-| `POST` | `/api/v1/classrooms/submissions/:id/grade` | Calificar entrega (`0.0` a `5.0`) con retroalimentación | **Update** |
-| `GET` | `/api/v1/reports/risk-students` | **Informe 1:** Estudiantes con `AVG(nota) < 3.0` (`HAVING`) | **Read (Analítico)** |
-| `GET` | `/api/v1/reports/retry-missions` | **Informe 2:** Desafíos con mayor tasa de reintentos | **Read (Analítico)** |
-| `GET` | `/api/v1/reports/gamification-economy` | **Informe 3:** Economía, saldo y uso de la tienda | **Read (Analítico)** |
+Todos los endpoints están definidos en [`server/api/routes.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/server/api/routes.js) bajo el prefijo `/api/v1`:
+
+| Método HTTP | Ruta Exacta (`server/api/routes.js`) | Parámetros (Path / Query / Body) | Códigos HTTP | Operación CRUD / Servicio |
+| :---: | :--- | :--- | :---: | :--- |
+| `POST` | `/api/v1/users` | Body: `{ nombre, correo, contrasena, rol, avatar }` | `201`, `400` | **Create** (`registerUserAccount`) |
+| `POST` | `/api/v1/users/login` | Body: `{ correo, contrasena, demoFallbacks }` | `200`, `400` | **Read / Auth** (`authenticateUserAccount`) |
+| `PATCH` | `/api/v1/users/password` | Body: `{ correo, nuevaContrasena }` | `200`, `400` | **Update** (`updateUserAccountPassword`) |
+| `POST` | `/api/v1/classrooms/:aulaId/enrollments` | Path: `:aulaId` · Body: `{ codigoGrupo, estudianteId }` | `201`, `400` | **Create** (`enrollStudentInAula`) |
+| `POST` | `/api/v1/challenges` | Body: `{ aulaId, codigoGrupo, misionId, titulo, instrucciones, tematicaHabilidad }` | `201`, `400` | **Create** (`publishAulaChallenge`) |
+| `POST` | `/api/v1/store/purchase` | Body: `{ usuarioId, avatarId, costo }` | `201`, `400` | **Create / Update** (`purchaseStoreAvatar`) |
+| `POST` | `/api/v1/submissions` | Body: `{ retoId, estudianteId, puntuacion, puntaje, cantidadIntentos, logrado, textoEvidencia }` | `201`, `400` | **Create** (`submitChallengeDelivery`) |
+| `GET` | `/api/v1/students/:id/hud` | Path: `:id` | `200`, `400` | **Read** (`getStudentHudProfile`) |
+| `GET` | `/api/v1/missions/map` | Query: `?usuarioId` | `200`, `400` | **Read** (`listMapMissionsWithProgress`) |
+| `GET` | `/api/v1/classrooms/:aulaId/ranking` | Path: `:aulaId` · Query: `?group` | `200`, `400` | **Read** (`getClassroomRanking`) |
+| `GET` | `/api/v1/store/catalog` | Query: `?usuarioId` | `200`, `400` | **Read** (`getAvatarStoreCatalog`) |
+| `PATCH` | `/api/v1/students/:id/rewards` | Path: `:id` · Body: `{ misionId, xpGanado, monedasGanadas, estrellas, intentos, evidencia }` | `200`, `400` | **Update** (`updateRewardsAfterMission`) |
+| `PATCH` | `/api/v1/students/:id/avatar` | Path: `:id` · Body: `{ avatarId }` | `200`, `400` | **Update** (`changeActiveAvatar`) |
+| `PATCH` | `/api/v1/submissions/:id/grade` | Path: `:id` · Body: `{ puntuacion, puntaje, retroalimentacionIa, recomendacionDocente }` | `200`, `400` | **Update** (`gradeStudentSubmission`) |
+| `PUT` | `/api/v1/challenges/:id` | Path: `:id` · Body: `{ titulo, instrucciones, tematicaHabilidad, activo }` | `200`, `400` | **Update** (`updateAulaChallenge`) |
+| `DELETE` | `/api/v1/classrooms/:aulaId/enrollments/:estudianteId` | Path: `:aulaId`, `:estudianteId` · Query: `?group` | `200`, `400` | **Delete** (`unenrollStudentFromAula`) |
+| `DELETE` | `/api/v1/challenges/:id` | Path: `:id` | `200`, `400` | **Delete** (`deleteAulaChallenge`) |
+| `DELETE` | `/api/v1/users/:id` | Path: `:id` · Query: `?hard=1` / Body: `{ hardDelete }` | `200`, `400` | **Delete** (`deactivateUserAccount`) |
+| `GET` | `/api/v1/reports` | Query: `?group`, `?threshold` | `200`, `500` | **Read (Analítico)** (`getAllAnalyticalReports`) |
+| `GET` | `/api/v1/reports/at-risk-students` | Query: `?group`, `?threshold` | `200`, `500` | **Informe 1:** `HAVING AVG(puntuacion) < 3.0` (`getAtRiskStudentsReport`) |
+| `GET` | `/api/v1/reports/high-retry-missions` | Sin parámetros requeridos | `200`, `500` | **Informe 2:** Mayor tasa de reintentos (`getHighRetryMissionsReport`) |
+| `GET` | `/api/v1/reports/gamified-economy` | Sin parámetros requeridos | `200`, `500` | **Informe 3:** Economía gamificada y tienda (`getGamifiedEconomyReport`) |
 
 ---
 

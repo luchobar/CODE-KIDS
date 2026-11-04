@@ -8,6 +8,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { SEED_DEMO_PASSWORD_HASH } from './password.util.js';
 
 function resolveEnv(key) {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
@@ -93,13 +94,13 @@ export function createInitialRelationalSeed() {
       { id: 3, nombre_rol: 'admin', descripcion: 'Administrador general' },
     ],
     usuarios: [
-      { id: 1, correo: 'sofi@codekids.edu.co', nombre: 'Sofi', rol: 'estudiante', rol_id: 1, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-01T10:00:00Z' },
-      { id: 2, correo: 'mateo@codekids.edu.co', nombre: 'Mateo', rol: 'estudiante', rol_id: 1, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-01T10:05:00Z' },
-      { id: 3, correo: 'valeria@codekids.edu.co', nombre: 'Valeria', rol: 'estudiante', rol_id: 1, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-01T10:10:00Z' },
-      { id: 4, correo: 'alex.profe@codekids.edu.co', nombre: 'Profe Alex', rol: 'docente', rol_id: 2, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-01T09:00:00Z' },
-      { id: 5, correo: 'samuel@codekids.edu.co', nombre: 'Samuel', rol: 'estudiante', rol_id: 1, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-02T11:00:00Z' },
-      { id: 6, correo: 'mariana@codekids.edu.co', nombre: 'Mariana', rol: 'estudiante', rol_id: 1, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-02T11:30:00Z' },
-      { id: 7, correo: 'admin@codekids.edu.co', nombre: 'Admin Laura', rol: 'admin', rol_id: 3, contrasena_hash: 'CodeKids2026*', activo: true, creado_en: '2026-10-01T08:00:00Z' },
+      { id: 1, correo: 'sofi@codekids.edu.co', nombre: 'Sofi', rol: 'estudiante', rol_id: 1, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-01T10:00:00Z' },
+      { id: 2, correo: 'mateo@codekids.edu.co', nombre: 'Mateo', rol: 'estudiante', rol_id: 1, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-01T10:05:00Z' },
+      { id: 3, correo: 'valeria@codekids.edu.co', nombre: 'Valeria', rol: 'estudiante', rol_id: 1, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-01T10:10:00Z' },
+      { id: 4, correo: 'alex.profe@codekids.edu.co', nombre: 'Profe Alex', rol: 'docente', rol_id: 2, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-01T09:00:00Z' },
+      { id: 5, correo: 'samuel@codekids.edu.co', nombre: 'Samuel', rol: 'estudiante', rol_id: 1, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-02T11:00:00Z' },
+      { id: 6, correo: 'mariana@codekids.edu.co', nombre: 'Mariana', rol: 'estudiante', rol_id: 1, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-02T11:30:00Z' },
+      { id: 7, correo: 'admin@codekids.edu.co', nombre: 'Admin Laura', rol: 'admin', rol_id: 3, contrasena_hash: SEED_DEMO_PASSWORD_HASH, activo: true, creado_en: '2026-10-01T08:00:00Z' },
     ],
     perfiles_gamificacion: [
       { usuario_id: 1, puntos_xp: 240, nivel_actual: 3, saldo_monedas: 65, dias_racha: 5, avatar_activo_id: 'dragon', puntajes_diagnostico: { Secuencias: 92, Bucles: 68, Condicionales: 75, Descomposición: 70 } },

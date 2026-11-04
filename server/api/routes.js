@@ -10,6 +10,8 @@
 import express from 'express';
 import {
   registerUserAccount,
+  authenticateUserAccount,
+  updateUserAccountPassword,
   getStudentHudProfile,
   deactivateUserAccount,
   listMapMissionsWithProgress,
@@ -99,6 +101,26 @@ export function createApiRouter() {
     }
   });
 
+  // 1.b Autenticar usuario (Validación criptográfica PBKDF2-SHA256 / Argon2id en Capa 2)
+  router.post('/users/login', async (req, res) => {
+    try {
+      const result = await authenticateUserAccount(req.body || {});
+      return res.status(result.ok ? 200 : 400).json(result);
+    } catch (err) {
+      return res.status(400).json({ ok: false, error: err.message });
+    }
+  });
+
+  // 1.c Actualizar contraseña de usuario con hash criptográfico
+  router.patch('/users/password', async (req, res) => {
+    try {
+      const result = await updateUserAccountPassword(req.body || {});
+      return res.status(result.ok ? 200 : 400).json(result);
+    } catch (err) {
+      return res.status(400).json({ ok: false, error: err.message });
+    }
+  });
+
   // 2. Matricular estudiante en aula
   router.post('/classrooms/:aulaId/enrollments', async (req, res) => {
     try {
@@ -123,11 +145,11 @@ export function createApiRouter() {
     }
   });
 
-  // 4. Comprar avatar
+  // 4. Comprar avatar (valida saldo_monedas >= costo; retorna 201 si procede o 400 si saldo insuficiente)
   router.post('/store/purchase', async (req, res) => {
     try {
       const result = await purchaseStoreAvatar(req.body || {});
-      return res.status(201).json(result);
+      return res.status(result.ok ? 201 : 400).json(result);
     } catch (err) {
       return res.status(400).json({ ok: false, error: err.message });
     }

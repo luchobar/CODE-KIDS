@@ -39,11 +39,45 @@ GRANT USAGE ON SCHEMA public TO rol_estudiante, rol_docente, rol_admin;
 
 -- 2.1 rol_estudiante:
 --   * Lectura (SELECT) de mundos, misiones, catálogos, aulas y retos.
+--   * Lectura de `usuarios` restringida a columnas NO sensibles (excluye contrasena_hash, intentos_fallidos, bloqueado_hasta).
 --   * UPDATE solo en su propio perfiles_gamificacion y progreso_misiones_usuario.
 --   * INSERT en entregas_retos (y desbloqueo de inventario/insignias propios).
+REVOKE SELECT ON TABLE usuarios FROM PUBLIC, rol_estudiante, rol_docente;
+
+GRANT SELECT (
+    id,
+    auth_uid,
+    correo,
+    nombre,
+    rol,
+    rol_id,
+    correo_verificado_en,
+    es_perfil_rapido,
+    etiqueta_rapida,
+    activo,
+    ultimo_acceso_en,
+    creado_en,
+    actualizado_en
+) ON TABLE usuarios TO rol_estudiante, rol_docente;
+
+-- Si el script se ejecuta en Supabase Cloud (donde existen los roles `anon` y `authenticated`),
+-- revocamos explícitamente la lectura de columnas sensibles para impedir que `ANON_KEY`
+-- pueda proyectar `contrasena_hash`, `intentos_fallidos` o `bloqueado_hasta`.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        EXECUTE 'REVOKE SELECT ON TABLE public.usuarios FROM anon';
+        EXECUTE 'GRANT SELECT (id, auth_uid, correo, nombre, rol, rol_id, correo_verificado_en, es_perfil_rapido, etiqueta_rapida, activo, ultimo_acceso_en, creado_en, actualizado_en) ON TABLE public.usuarios TO anon';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+        EXECUTE 'REVOKE SELECT ON TABLE public.usuarios FROM authenticated';
+        EXECUTE 'GRANT SELECT (id, auth_uid, correo, nombre, rol, rol_id, correo_verificado_en, es_perfil_rapido, etiqueta_rapida, activo, ultimo_acceso_en, creado_en, actualizado_en) ON TABLE public.usuarios TO authenticated';
+    END IF;
+END
+$$;
+
 GRANT SELECT ON TABLE
     roles,
-    usuarios,
     mundos,
     misiones,
     catalogo_avatares,
@@ -73,9 +107,9 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_estudiante;
 --   * Lectura y escritura completa (INSERT, SELECT, UPDATE, DELETE) en sus propias
 --     aulas, matriculas_aula y retos_aula.
 --   * Calificación (SELECT, UPDATE) de entregas_retos.
+--   * Lectura de `usuarios` acotada a columnas públicas (sin `contrasena_hash`).
 GRANT SELECT ON TABLE
     roles,
-    usuarios,
     perfiles_gamificacion,
     catalogo_avatares,
     inventario_avatares_usuario,
@@ -131,6 +165,42 @@ AS $$
         NULLIF(current_setting('request.jwt.claim.app_role', true), ''),
         'estudiante'
     );
+$$;
+
+-- Vista pública segura de usuarios que excluye por diseño campos sensibles
+-- (`contrasena_hash`, `intentos_fallidos`, `bloqueado_hasta`).
+CREATE OR REPLACE VIEW public.vista_usuarios_publica AS
+SELECT
+    id,
+    auth_uid,
+    correo,
+    nombre,
+    rol,
+    rol_id,
+    correo_verificado_en,
+    es_perfil_rapido,
+    etiqueta_rapida,
+    activo,
+    ultimo_acceso_en,
+    creado_en,
+    actualizado_en
+FROM public.usuarios;
+
+GRANT SELECT ON public.vista_usuarios_publica TO rol_estudiante, rol_docente, rol_admin;
+
+-- Función de control de contexto para RLS:
+-- En producción estricta en la nube (`ALTER DATABASE postgres SET app.allow_anon_demo = 'false'`),
+-- las políticas RLS exigen obligatoriamente `auth.uid() IS NOT NULL` (sesión JWT válida) o
+-- conexión desde la Capa de Negocio Express (Tier 2 con `service_role` / `rol_admin`).
+-- En laboratorio académico local (`app.allow_anon_demo = 'true'`), permite la ejecución de
+-- pruebas de sustentación manteniendo `contrasena_hash` revocado a nivel de columna para `anon`.
+CREATE OR REPLACE FUNCTION public.is_pedagogical_demo_context()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT auth.uid() IS NULL
+       AND COALESCE(current_setting('app.allow_anon_demo', true), 'true') = 'true';
 $$;
 
 -- =============================================================================
@@ -209,20 +279,25 @@ CREATE POLICY rls_avatares_select ON catalogo_avatares
 CREATE POLICY rls_insignias_select ON catalogo_insignias
     FOR SELECT USING (true);
 
--- 5.2 Tabla usuarios: cada usuario gestiona su perfil; docentes leen estudiantes; admin total
+-- 5.2 Tabla usuarios: cada usuario gestiona su perfil; docentes leen estudiantes; admin total.
+-- NOTA DE SEGURIDAD (RLS + Column-Level Security):
+--   Incluso si `is_pedagogical_demo_context()` está activo en laboratorio, los roles `anon`,
+--   `authenticated`, `rol_estudiante` y `rol_docente` tienen `REVOKE SELECT` sobre la columna
+--   `contrasena_hash`. Para activar RLS estricto en la nube y bloquear toda consulta sin JWT:
+--   `ALTER DATABASE postgres SET app.allow_anon_demo = 'false';`
 CREATE POLICY rls_usuarios_select ON usuarios
     FOR SELECT USING (
         auth_uid = auth.uid()
         OR id = public.current_usuario_id()
         OR public.current_usuario_rol() IN ('docente', 'admin')
-        OR auth.uid() IS NULL
+        OR public.is_pedagogical_demo_context()
     );
 
 CREATE POLICY rls_usuarios_insert ON usuarios
     FOR INSERT WITH CHECK (
         auth_uid = auth.uid()
         OR public.current_usuario_rol() = 'admin'
-        OR auth.uid() IS NULL
+        OR public.is_pedagogical_demo_context()
     );
 
 CREATE POLICY rls_usuarios_update_own ON usuarios
@@ -230,13 +305,13 @@ CREATE POLICY rls_usuarios_update_own ON usuarios
         auth_uid = auth.uid()
         OR id = public.current_usuario_id()
         OR public.current_usuario_rol() = 'admin'
-        OR auth.uid() IS NULL
+        OR public.is_pedagogical_demo_context()
     );
 
 CREATE POLICY rls_usuarios_admin_delete ON usuarios
     FOR DELETE USING (
         public.current_usuario_rol() = 'admin'
-        OR auth.uid() IS NULL
+        OR public.is_pedagogical_demo_context()
     );
 
 -- 5.3 Tabla perfiles_gamificacion: UPDATE solo en el perfil del propio estudiante (auth.uid())

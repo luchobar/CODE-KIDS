@@ -28,12 +28,14 @@
 
 ## 1. Credenciales Oficiales de Demostración
 
-| Rol | Correo Electrónico | Contraseña | Nombre | Propósito en la Demostración |
+| Rol | Correo Electrónico | Contraseña de Sustentación | Hash Criptográfico en `usuarios.contrasena_hash` | Propósito en la Demostración |
 | :--- | :--- | :--- | :--- | :--- |
-| **Docente** | `alex.profe@codekids.edu.co` | `CodeKids2026*` | Profe Alex | Gestión de cursos, asignación de retos, calificación y consulta de informes analíticos. |
-| **Estudiante 1** | `sofi@codekids.edu.co` | `CodeKids2026*` | Sofi | Estudiante sobresaliente (promedio alto, misiones superadas, XP acumulada). |
-| **Estudiante 2** | `mateo@codekids.edu.co` | `CodeKids2026*` | Mateo | Estudiante en riesgo pedagógico (promedio < 3.0, reintentos altos) para demostrar Tarea 4. |
-| **Estudiante 3** | `valeria@codekids.edu.co` | `CodeKids2026*` | Valeria | Estudiante avanzada en Python con compras en la tienda de avatares. |
+| **Docente** | `alex.profe@codekids.edu.co` | `CodeKids2026*` | `pbkdf2_sha256$100000$codekids2026salt$25230955...` | Gestión de cursos, asignación de retos, calificación y consulta de informes analíticos. |
+| **Estudiante 1** | `sofi@codekids.edu.co` | `CodeKids2026*` | `pbkdf2_sha256$100000$codekids2026salt$25230955...` | Estudiante sobresaliente (promedio alto, misiones superadas, XP acumulada). |
+| **Estudiante 2** | `mateo@codekids.edu.co` | `CodeKids2026*` | `pbkdf2_sha256$100000$codekids2026salt$25230955...` | Estudiante en riesgo pedagógico (promedio < 3.0, reintentos altos) para demostrar Tarea 4. |
+| **Estudiante 3** | `valeria@codekids.edu.co` | `CodeKids2026*` | `pbkdf2_sha256$100000$codekids2026salt$25230955...` | Estudiante avanzada en Python con compras en la tienda de avatares. |
+
+> **Nota Criptográfica (`password.util.js` y `sql/03_seed_data.sql`):** Las contraseñas jamás se almacenan ni comparan en texto claro en el modelo relacional. El sistema aplica derivación criptográfica **PBKDF2-HMAC-SHA256** (`100,000` iteraciones, estándar NIST SP 800-132 vía Web Crypto API) en [`src/services/password.util.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/password.util.js) y **Argon2id** en [`server/auth/crypto.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/server/auth/crypto.js).
 
 ---
 
@@ -104,49 +106,50 @@ Separación nítida entre la interfaz de usuario, las reglas de negocio y el acc
 
 ## PUNTO 4: Demostración del CRUD Completo en Vivo (20%)
 
-El docente exige ver **operaciones reales de INSERT, SELECT, UPDATE y DELETE** funcionando directamente desde la aplicación.
+El docente exige ver **operaciones reales de INSERT, SELECT, UPDATE y DELETE** funcionando directamente desde la aplicación y transitando por la Capa de Negocio RESTful ([`server/api/routes.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/server/api/routes.js)).
 
 ### 4.1 Operaciones CREATE (INSERT)
 
-| Entidad | Cómo hacerlo en la aplicación (Paso a Paso) | Código / SQL que se ejecuta |
-| :--- | :--- | :--- |
-| **Registrar Usuario** | En la pantalla de inicio, ve a la pestaña **"Crear cuenta"**, ingresa apodo `Carlos`, correo `carlos@codekids.edu.co`, contraseña `CodeKids2026*` y presiona **"Crear cuenta y comenzar"**. | [`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js#L19-L80)<br>`INSERT INTO usuarios ...`<br>`INSERT INTO perfiles_gamificacion ...` |
-| **Matricular Estudiante** | Inicia como docente (`alex.profe@codekids.edu.co`). En la sección **"Estudiantes en Base de Datos → Curso 5° A"**, busca a cualquier alumno y pulsa **"Inscribir en 5° A"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L28-L68)<br>`INSERT INTO matriculas_aula (aula_id, estudiante_id) VALUES ($1, $2);` |
-| **Publicar Reto** | En la Consola Docente, ve a **"Asignar actividad"**, selecciona una misión (ej. *La Isla de los Bucles*), escribe un título y presiona **"Publicar actividad en 5° A"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L175-L231)<br>`INSERT INTO retos_aula (aula_id, mision_id, titulo, ...) VALUES ...` |
-| **Comprar Avatar** | Entra como Sofi (`sofi@codekids.edu.co`), haz clic en el botón de monedas en el HUD para abrir la tienda, selecciona un avatar disponible (ej. *Unidad Rover*) y pulsa **"Desbloquear"**. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js#L170-L246)<br>`INSERT INTO inventario_avatares_usuario ...` |
-| **Enviar Entrega** | Como estudiante, abre un reto asignado, arma los bloques hasta la meta y pulsa **"Enviar al docente"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L341-L441)<br>`INSERT INTO entregas_retos ...` |
+| Entidad | Endpoint API REST (`server/api/routes.js`) | Parámetros y Códigos HTTP | Cómo hacerlo en la aplicación | Servicio y SQL que se ejecuta |
+| :--- | :--- | :--- | :--- | :--- |
+| **Registrar Usuario** | `POST /api/v1/users` | Body: `{ nombre, correo, contrasena, rol, avatar }`<br>Códigos: `201`, `400` | En la pantalla de inicio, ve a **"Crear cuenta"**, ingresa apodo `Carlos`, correo `carlos@codekids.edu.co`, contraseña `CodeKids2026*` y presiona **"Crear cuenta y comenzar"**. | [`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js) (`registerUserAccount`)<br>`INSERT INTO usuarios ...`<br>`INSERT INTO perfiles_gamificacion ...` |
+| **Matricular Estudiante** | `POST /api/v1/classrooms/:aulaId/enrollments` | Path: `:aulaId`<br>Body: `{ codigoGrupo, estudianteId }`<br>Códigos: `201`, `400` | Inicia como docente (`alex.profe@codekids.edu.co`). En **"Estudiantes en Base de Datos → Curso 5° A"**, pulsa **"Inscribir en 5° A"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`enrollStudentInAula`)<br>`INSERT INTO matriculas_aula (aula_id, estudiante_id) VALUES ($1, $2);` |
+| **Publicar Reto** | `POST /api/v1/challenges` | Body: `{ aulaId, codigoGrupo, misionId, titulo, instrucciones, tematicaHabilidad }`<br>Códigos: `201`, `400` | En la Consola Docente, ve a **"Asignar actividad"**, selecciona una misión, escribe un título y presiona **"Publicar actividad en 5° A"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`publishAulaChallenge`)<br>`INSERT INTO retos_aula (aula_id, mision_id, titulo, ...) VALUES ...` |
+| **Comprar Avatar** | `POST /api/v1/store/purchase` | Body: `{ usuarioId, avatarId, costo }`<br>Códigos: `201`, `400` (si `saldo_monedas < costo`) | Entra como Sofi (`sofi@codekids.edu.co`), abre la tienda en el HUD, selecciona un avatar (ej. *Unidad Rover*) y pulsa **"Desbloquear"**. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js) (`purchaseStoreAvatar`)<br>Valida `saldo_monedas >= costo`, debita costo exacto e `INSERT INTO inventario_avatares_usuario ...` |
+| **Enviar Entrega** | `POST /api/v1/submissions` | Body: `{ retoId, estudianteId, puntuacion, puntaje, cantidadIntentos, logrado, textoEvidencia }`<br>Códigos: `201`, `400` | Como estudiante, abre un reto asignado, arma los bloques hasta la meta y pulsa **"Enviar al docente"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`submitChallengeDelivery`)<br>`INSERT INTO entregas_retos ...` |
 
 ---
 
 ### 4.2 Operaciones READ (SELECT)
 
-| Entidad | Cómo demostrarlo en la aplicación | Código / SQL que se ejecuta |
-| :--- | :--- | :--- |
-| **HUD de Estudiante** | Al iniciar sesión con Sofi, muestra la barra superior donde se consultan los **puntos de XP**, el **nivel generado**, las **monedas disponibles** y la **racha de días**. | [`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js#L138-L234)<br>`SELECT u.id, pg.puntos_xp, pg.nivel_actual, pg.saldo_monedas FROM usuarios u ...` |
-| **Mapa de Misiones** | Navega por los mundos (*El Bosque de las Secuencias*, *La Isla de los Bucles*); cada etapa muestra si está disponible, bloqueada o completada con sus estrellas. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js#L19-L103)<br>`SELECT m.*, COALESCE(pmu.estado, 'disponible') FROM misiones m LEFT JOIN ...` |
-| **Catálogo de Tienda** | Abre la tienda de avatares. Muestra cómo el sistema lista los avatares e identifica cuáles ya fueron comprados (`desbloqueado = true`). | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js#L108-L164)<br>`SELECT ca.*, CASE WHEN iau.avatar_id IS NOT NULL THEN TRUE ...` |
-| **Ranking del Curso** | En la Consola Docente, en la pestaña **"Ranking del Curso 5° A"**, muestra la lista ordenada de mayor a menor puntaje de experiencia y misiones superadas. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L109-L170)<br>`SELECT ROW_NUMBER() OVER (...), u.nombre, pg.puntos_xp FROM ...` |
+| Entidad | Endpoint API REST (`server/api/routes.js`) | Parámetros y Códigos HTTP | Cómo demostrarlo en la aplicación | Servicio y SQL que se ejecuta |
+| :--- | :--- | :--- | :--- | :--- |
+| **HUD de Estudiante** | `GET /api/v1/students/:id/hud` | Path: `:id`<br>Códigos: `200`, `400` | Al iniciar sesión con Sofi, muestra la barra superior con **puntos de XP**, **nivel**, **monedas disponibles** y **racha de días**. | [`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js) (`getStudentHudProfile`)<br>`SELECT u.id, pg.puntos_xp, pg.nivel_actual, pg.saldo_monedas FROM usuarios u ...` |
+| **Mapa de Misiones** | `GET /api/v1/missions/map` | Query: `?usuarioId`<br>Códigos: `200`, `400` | Navega por los mundos; cada etapa muestra si está disponible o completada con sus estrellas. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js) (`listMapMissionsWithProgress`)<br>`SELECT m.*, COALESCE(pmu.estado, 'disponible') FROM misiones m LEFT JOIN ...` |
+| **Catálogo de Tienda** | `GET /api/v1/store/catalog` | Query: `?usuarioId`<br>Códigos: `200`, `400` | Abre la tienda de avatares. Muestra cómo el sistema lista los avatares e identifica cuáles ya fueron comprados (`desbloqueado = true`). | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js) (`getAvatarStoreCatalog`)<br>`SELECT ca.*, CASE WHEN iau.avatar_id IS NOT NULL THEN TRUE ...` |
+| **Ranking del Curso** | `GET /api/v1/classrooms/:aulaId/ranking` | Path: `:aulaId` · Query: `?group`<br>Códigos: `200`, `400` | En la Consola Docente, en la pestaña **"Ranking del Curso 5° A"**, muestra la lista ordenada por XP y misiones superadas. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`getClassroomRanking`)<br>`SELECT ROW_NUMBER() OVER (...), u.nombre, pg.puntos_xp FROM ...` |
+| **Informes Analíticos** | `GET /api/v1/reports`<br>`GET /api/v1/reports/at-risk-students`<br>`GET /api/v1/reports/high-retry-missions`<br>`GET /api/v1/reports/gamified-economy` | Query: `?group`, `?threshold`<br>Códigos: `200`, `500` | En la Consola Docente, abre el **"Módulo de Informes Analíticos SQL"** y cambia entre las pestañas. | [`reports.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/reports.service.js)<br>`getAllAnalyticalReports`, `getAtRiskStudentsReport`, `getHighRetryMissionsReport`, `getGamifiedEconomyReport` |
 
 ---
 
 ### 4.3 Operaciones UPDATE (UPDATE)
 
-| Entidad | Cómo demostrarlo en la aplicación | Código / SQL que se ejecuta |
-| :--- | :--- | :--- |
-| **Recompensas tras Ganar Misión** | Completa una misión en el mapa (ej. *El viaje del robot*). Al llegar a la estrella, muestra cómo el HUD sube inmediatamente **+10 XP** y **+10 monedas** en la BD. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js#L251-L366)<br>`UPDATE perfiles_gamificacion SET puntos_xp = puntos_xp + 10, saldo_monedas = saldo_monedas + 10 ...` |
-| **Cambiar Avatar Activo** | En la tienda, haz clic en **"Elegir"** sobre cualquier avatar ya comprado. El personaje del HUD cambia de inmediato. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js#L371-L408)<br>`UPDATE perfiles_gamificacion SET avatar_activo_id = $1 ...` |
-| **Editar Reto Escolar** | En la Consola Docente, en la lista de actividades del curso, pulsa el botón **"Editar"** en un reto, cambia el título o instrucciones y pulsa **"Guardar UPDATE"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L236-L299)<br>`UPDATE retos_aula SET titulo = $1, instrucciones = $2 WHERE id = $3;` |
-| **Calificar Entrega** | En la Consola Docente, en **"Respuestas del grupo"**, haz clic en **"Calificar / Editar nota"** sobre una entrega, ajusta la nota (ej. 95%), escribe una recomendación y pulsa **"Guardar Calificación (UPDATE)"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L446-L535)<br>`UPDATE entregas_retos SET puntuacion = $1, puntaje = $2, recomendacion_docente = $3 WHERE id = $4;` |
+| Entidad | Endpoint API REST (`server/api/routes.js`) | Parámetros y Códigos HTTP | Cómo demostrarlo en la aplicación | Servicio y SQL que se ejecuta |
+| :--- | :--- | :--- | :--- | :--- |
+| **Recompensas tras Ganar Misión** | `PATCH /api/v1/students/:id/rewards` | Path: `:id`<br>Body: `{ misionId, xpGanado, monedasGanadas, estrellas, intentos, evidencia }`<br>Códigos: `200`, `400` | Completa una misión en el mapa. Al llegar a la estrella, el HUD sube inmediatamente **+10 XP** y **+10 monedas** en la BD. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js) (`updateRewardsAfterMission`)<br>`UPDATE perfiles_gamificacion SET puntos_xp = puntos_xp + $1, saldo_monedas = saldo_monedas + $2 ...` |
+| **Cambiar Avatar Activo** | `PATCH /api/v1/students/:id/avatar` | Path: `:id`<br>Body: `{ avatarId }`<br>Códigos: `200`, `400` | En la tienda, haz clic en **"Elegir"** sobre cualquier avatar ya comprado. El personaje del HUD cambia de inmediato. | [`gamification.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/gamification.service.js) (`changeActiveAvatar`)<br>`UPDATE perfiles_gamificacion SET avatar_activo_id = $1 ...` |
+| **Editar Reto Escolar** | `PUT /api/v1/challenges/:id` | Path: `:id`<br>Body: `{ titulo, instrucciones, tematicaHabilidad, activo }`<br>Códigos: `200`, `400` | En la Consola Docente, pulsa **"Editar"** en un reto, cambia el título o instrucciones y pulsa **"Guardar UPDATE"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`updateAulaChallenge`)<br>`UPDATE retos_aula SET titulo = $1, instrucciones = $2 WHERE id = $3;` |
+| **Calificar Entrega** | `PATCH /api/v1/submissions/:id/grade` | Path: `:id`<br>Body: `{ puntuacion, puntaje, retroalimentacionIa, recomendacionDocente }`<br>Códigos: `200`, `400` | En **"Respuestas del grupo"**, haz clic en **"Calificar / Editar nota"**, ajusta la nota y pulsa **"Guardar Calificación (UPDATE)"**. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`gradeStudentSubmission`)<br>`UPDATE entregas_retos SET puntuacion = $1, puntaje = $2, recomendacion_docente = $3 WHERE id = $4;` |
 
 ---
 
 ### 4.4 Operaciones DELETE (DELETE)
 
-| Entidad | Cómo demostrarlo en la aplicación | Código / SQL que se ejecuta |
-| :--- | :--- | :--- |
-| **Dar de Baja Matrícula** | En la Consola Docente, en **"Estudiantes en Base de Datos"**, busca a un alumno que diga *"Inscrito en 5° A (Retirar)"* y pulsa el botón. El alumno se desvincula del aula sin borrar su cuenta. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L73-L104)<br>`DELETE FROM matriculas_aula WHERE aula_id = $1 AND estudiante_id = $2;` |
-| **Eliminar Reto Asignado** | En la lista de retos de la Consola Docente, pulsa el botón **"Eliminar"** (ícono de X) junto a un reto. El reto desaparece de la base de datos y de la vista del alumno. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js#L304-L336)<br>`DELETE FROM retos_aula WHERE id = $1;` |
-| **Desactivar Cuenta (Soft-Delete)** | Vía endpoint `DELETE /api/v1/users/:id`, se marca `activo = FALSE`, impidiendo el inicio de sesión del usuario respetando la integridad histórica. | [`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js#L239-L295)<br>`UPDATE usuarios SET activo = FALSE WHERE id = $1;` |
+| Entidad | Endpoint API REST (`server/api/routes.js`) | Parámetros y Códigos HTTP | Cómo demostrarlo en la aplicación | Servicio y SQL que se ejecuta |
+| :--- | :--- | :--- | :--- | :--- |
+| **Dar de Baja Matrícula** | `DELETE /api/v1/classrooms/:aulaId/enrollments/:estudianteId` | Path: `:aulaId`, `:estudianteId`<br>Query: `?group`<br>Códigos: `200`, `400` | En **"Estudiantes en Base de Datos"**, pulsa *"Inscrito en 5° A (Retirar)"*. El alumno se desvincula del aula sin borrar su cuenta. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`unenrollStudentFromAula`)<br>`DELETE FROM matriculas_aula WHERE aula_id = $1 AND estudiante_id = $2;` |
+| **Eliminar Reto Asignado** | `DELETE /api/v1/challenges/:id` | Path: `:id`<br>Códigos: `200`, `400` | En la lista de retos de la Consola Docente, pulsa el botón **"Eliminar"**. El reto desaparece de la base de datos. | [`classroom.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/classroom.service.js) (`deleteAulaChallenge`)<br>`DELETE FROM retos_aula WHERE id = $1;` |
+| **Desactivar / Eliminar Cuenta** | `DELETE /api/v1/users/:id` | Path: `:id`<br>Query: `?hard=1` / Body: `{ hardDelete }`<br>Códigos: `200`, `400` | Vía endpoint `DELETE /api/v1/users/:id`, se marca `activo = FALSE` (o borrado físico con `?hard=1`), respetando la integridad histórica. | [`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js) (`deactivateUserAccount`)<br>`UPDATE usuarios SET activo = FALSE WHERE id = $1;` |
 
 ---
 
@@ -286,25 +289,37 @@ Inicia sesión como docente (`alex.profe@codekids.edu.co`). Desplázate hacia ab
 ## PUNTO 7: Seguridad, Roles PostgreSQL y Políticas RLS
 
 ### ¿Qué evalúa el docente?
-Configuración formal de roles en el motor de base de datos (`rol_estudiante`, `rol_docente`, `rol_admin`), privilegios `GRANT` mínimos y políticas de **Row Level Security (RLS)** activadas para que ningún usuario acceda a datos que no le corresponden.
+Configuración formal de roles en el motor de base de datos (`rol_estudiante`, `rol_docente`, `rol_admin`), privilegios `GRANT` mínimos, protección de columnas sensibles frente a claves públicas (`SUPABASE_ANON_KEY`) y políticas de **Row Level Security (RLS)** activadas para que ningún usuario acceda a datos que no le corresponden.
 
 ### ¿Cómo demostrarlo en el proyecto?
 Abre [`sql/02_roles_and_rls.sql`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/sql/02_roles_and_rls.sql):
-1. **Roles y Privilegios (`GRANT`):**
+1. **Roles y Privilegios a Nivel de Tabla y Columna (`GRANT` / `REVOKE`):**
    - `rol_estudiante`: Permisos de `SELECT` en mundos y misiones; permiso de `UPDATE` **únicamente sobre sus propias columnas** de `perfiles_gamificacion` y `progreso_misiones_usuario`.
    - `rol_docente`: Permisos de escritura (`INSERT`, `SELECT`, `UPDATE`, `DELETE`) en sus aulas y retos, y permiso de calificación sobre entregas.
    - `rol_admin`: Permiso total (`ALL PRIVILEGES`).
-2. **Políticas RLS en Supabase:**
+2. **Protección de Columnas Sensibles frente a `SUPABASE_ANON_KEY` (Justificación Técnica):**
+   - En [`sql/02_roles_and_rls.sql`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/sql/02_roles_and_rls.sql) se ejecuta explícitamente:
+     ```sql
+     REVOKE SELECT ON TABLE usuarios FROM PUBLIC, rol_estudiante, rol_docente;
+     GRANT SELECT (id, auth_uid, correo, nombre, rol, rol_id, correo_verificado_en,
+                   es_perfil_rapido, etiqueta_rapida, activo, ultimo_acceso_en,
+                   creado_en, actualizado_en)
+     ON TABLE usuarios TO rol_estudiante, rol_docente;
+     ```
+   - Adicionalmente, cuando se ejecuta en Supabase Cloud, el bloque `DO $$` revoca la lectura de `contrasena_hash`, `intentos_fallidos` y `bloqueado_hasta` para los roles `anon` y `authenticated`, y expone la vista segura `public.vista_usuarios_publica`. Así, **ninguna consulta anónima desde el navegador puede leer `contrasena_hash`**.
+   - La verificación de credenciales se realiza en la **Capa de Negocio Express (Tier 2)** vía `POST /api/v1/users/login` ([`users.service.js`](file:///c:/Users/luisb/OneDrive/Escritorio/CODE%20KIDS/src/services/users.service.js)) comparando hashes criptográficos **PBKDF2-HMAC-SHA256** (`100,000` iteraciones) en tiempo constante.
+3. **Políticas RLS Calibradas en Supabase (Modo Estricto vs. Modo Sustentación):**
    - En Supabase se ejecutó `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` sobre las 14 tablas.
-   - Demuestra la política de `perfiles_gamificacion`:
+   - Las políticas combinan `auth.uid()`, `public.current_usuario_id()` y la función `public.is_pedagogical_demo_context()`:
      ```sql
      CREATE POLICY rls_perfiles_update_own ON perfiles_gamificacion
          FOR UPDATE USING (
              usuario_id = public.current_usuario_id()
              OR public.current_usuario_rol() = 'admin'
+             OR public.is_pedagogical_demo_context()
          );
      ```
-     *Garantía de seguridad:* Un estudiante nunca puede modificar los puntos o el saldo de otro alumno porque `auth.uid()` restringe la fila a nivel de motor PostgreSQL.
+   - *Conmutación a RLS Estricto en Producción:* Al ejecutar `ALTER DATABASE postgres SET app.allow_anon_demo = 'false';`, `is_pedagogical_demo_context()` retorna `FALSE` y el motor PostgreSQL exige sesión JWT autenticada (`auth.uid() IS NOT NULL`) o tránsito exclusivo desde el backend Express con credenciales de servicio.
 
 ---
 

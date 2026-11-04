@@ -4,6 +4,7 @@
  */
 
 export * from './db.client.js';
+export * from './password.util.js';
 export * from './users.service.js';
 export * from './gamification.service.js';
 export * from './classroom.service.js';
