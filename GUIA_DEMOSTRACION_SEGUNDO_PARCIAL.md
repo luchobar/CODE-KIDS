@@ -357,7 +357,7 @@ SEGUNDO_PARCIAL_GRUPO_X/
 │   ├── rls_policies.sql      (Copia de sql/02_roles_and_rls.sql con roles y RLS)
 │   ├── seed.sql              (Copia de sql/03_seed_data.sql con los datos iniciales)
 │   ├── consultas_informes.sql(Copia de sql/04_analytical_queries.sql con los informes)
-│   └── backup_base_datos.sql (Archivo backup.sql con el volcado completo)
+│   └── backup_base_datos.sql (Archivo sql/backup.sql con el volcado completo)
 │
 ├── modelos/
 │   └── modelo_relacional.pdf (Diagrama E-R generado)

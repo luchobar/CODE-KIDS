@@ -1,22 +1,23 @@
 # 🚀 CodeKids — Plataforma Interactiva de Pensamiento Computacional y Programación
 
 <p align="center">
-  <img src="logo_horizontal.jpg" alt="CodeKids - Logotipo Oficial Horizontal" width="680" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);" />
+  <img src="public/images/logo_horizontal.jpg" alt="CodeKids - Logotipo Oficial Horizontal" width="680" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);" />
 </p>
 
 <p align="center">
   <b>Aventura de Programación por Bloques y Python para Exploradores del Futuro</b><br>
-  <i>Identidad visual unificada · Interfaz inmersiva gamificada · Diseñado con precisión y calidez</i>
+  <i>Identidad visual unificada · Interfaz inmersiva gamificada · Arquitectura Cliente/Servidor en 3 Capas</i>
 </p>
 
 **CodeKids** es una plataforma educativa interactiva diseñada para que niñas y niños de básica primaria desarrollen **pensamiento computacional**, aprendan **programación visual por bloques (Blockly)** y den sus primeros pasos en **código escrito con Python**, acompañados por **Pipo** (su mascota robot tutora) y un motor de inteligencia artificial local (**Ollama**) que personaliza rutas de aprendizaje y asiste la labor docente.
 
-> **Estado del proyecto:** Prototipo funcional local. Toda la persistencia de progreso, perfiles de demostración, monedas, asignaciones y preferencias de accesibilidad se almacena en el navegador (`localStorage`), y el procesamiento de IA se ejecuta 100 % en local mediante Node.js + Ollama (`qwen2.5:3b`).
+> **Estado del proyecto (Segundo Parcial Cliente/Servidor):** Arquitectura por capas completa con persistencia relacional en **PostgreSQL 16+ (Supabase)** normalizada en **3FN** (14 tablas), seguridad mediante **Roles de Base de Datos y Políticas RLS**, endpoints RESTful con CRUD completo en **Node.js (Express)**, módulo de **Informes Analíticos Avanzados** (`GROUP BY`, `HAVING`, agregaciones) y SPA interactiva en **React + Vite**.
 
 ---
 
 ## 📑 Tabla de Contenidos
 
+0. [Entregables Técnicos del Segundo Parcial](#0-entregables-técnicos-del-segundo-parcial)
 1. [Visión General del Proyecto](#-1-visión-general-del-proyecto)
 2. [Identidad Corporativa y Sistema de Diseño](#-2-identidad-corporativa-y-sistema-de-diseño)
    - [Propósito, Personalidad y Tono de Marca](#21-propósito-personalidad-y-tono-de-marca)
