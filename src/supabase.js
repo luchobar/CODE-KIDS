@@ -1432,3 +1432,137 @@ export async function syncAssignmentSubmissionInSupabase(submission, user) {
 
   return submission;
 }
+
+/**
+ * UPDATE (TAREA 3): Edita un reto escolar en 'retos_aula' y sincroniza la caché local.
+ */
+export async function updateClassroomAssignmentInSupabase(assignmentId, updates = {}) {
+  const cache = readClassroomCache();
+  const nextAssignments = (cache.assignments || []).map((a) =>
+    String(a.id) === String(assignmentId)
+      ? {
+          ...a,
+          title: updates.title !== undefined ? String(updates.title).trim() : a.title,
+          instructions:
+            updates.instructions !== undefined
+              ? String(updates.instructions).trim()
+              : a.instructions,
+          skill: updates.skill || a.skill,
+        }
+      : a,
+  );
+  writeClassroomCache({ assignments: nextAssignments });
+
+  const numericId = Number(String(assignmentId).replace(/^db-/, ''));
+  if (supabase && Number.isFinite(numericId)) {
+    try {
+      const patch = {};
+      if (updates.title !== undefined) patch.titulo = String(updates.title).trim();
+      if (updates.instructions !== undefined) patch.instrucciones = String(updates.instructions).trim();
+      if (updates.skill !== undefined) patch.tematica_habilidad = updates.skill;
+      await supabase.from('retos_aula').update(patch).eq('id', numericId);
+    } catch (err) {
+      console.warn('[Supabase] Reto actualizado en caché local:', err);
+    }
+  }
+
+  return nextAssignments;
+}
+
+/**
+ * DELETE (TAREA 3): Elimina un reto asignado en 'retos_aula' y sincroniza la caché local.
+ */
+export async function deleteClassroomAssignmentInSupabase(assignmentId) {
+  const cache = readClassroomCache();
+  const nextAssignments = (cache.assignments || []).filter(
+    (a) => String(a.id) !== String(assignmentId),
+  );
+  const nextSubmissions = (cache.submissions || []).filter(
+    (s) => String(s.assignmentId) !== String(assignmentId),
+  );
+  writeClassroomCache({ assignments: nextAssignments, submissions: nextSubmissions });
+
+  const numericId = Number(String(assignmentId).replace(/^db-/, ''));
+  if (supabase && Number.isFinite(numericId)) {
+    try {
+      await supabase.from('retos_aula').delete().eq('id', numericId);
+    } catch (err) {
+      console.warn('[Supabase] Reto eliminado en caché local:', err);
+    }
+  }
+
+  return nextAssignments;
+}
+
+/**
+ * UPDATE (TAREA 3): Califica o actualiza la nota/retroalimentación de una entrega en 'entregas_retos'.
+ */
+export async function gradeSubmissionInSupabase(
+  submissionId,
+  { score, puntuacion, feedback, recommendation, assignmentId, studentId } = {},
+) {
+  const resolvedScore =
+    score !== undefined
+      ? Math.max(0, Math.min(100, Math.round(Number(score))))
+      : Math.max(0, Math.min(100, Math.round(Number(puntuacion || 4.0) * 20)));
+
+  const cache = readClassroomCache();
+  const nextSubmissions = (cache.submissions || []).map((s) =>
+    String(s.id) === String(submissionId)
+      ? {
+          ...s,
+          score: resolvedScore,
+          feedback: feedback !== undefined ? feedback : s.feedback,
+          recommendation: recommendation !== undefined ? recommendation : s.recommendation,
+        }
+      : s,
+  );
+  writeClassroomCache({ submissions: nextSubmissions });
+
+  if (supabase) {
+    try {
+      const numericRetoId = Number(String(assignmentId || '').replace(/^db-/, ''));
+      if (Number.isFinite(numericRetoId) && studentId) {
+        await supabase
+          .from('entregas_retos')
+          .update({
+            puntaje: resolvedScore,
+            ...(feedback !== undefined ? { retroalimentacion_ia: feedback } : {}),
+            ...(recommendation !== undefined ? { recomendacion_docente: recommendation } : {}),
+          })
+          .eq('reto_id', numericRetoId)
+          .eq('estudiante_id', Number(studentId));
+      }
+    } catch (err) {
+      console.warn('[Supabase] Calificación guardada en caché local:', err);
+    }
+  }
+
+  return nextSubmissions;
+}
+
+/**
+ * DELETE (TAREA 3): Desactiva una cuenta de usuario en 'usuarios' (activo = FALSE).
+ */
+export async function deactivateUserAccountInSupabase(userId) {
+  const numericId = Number(userId);
+  if (supabase && Number.isFinite(numericId)) {
+    try {
+      await supabase
+        .from('usuarios')
+        .update({ activo: false, actualizado_en: new Date().toISOString() })
+        .eq('id', numericId);
+    } catch (err) {
+      console.warn('[Supabase] Cuenta desactivada localmente:', err);
+    }
+  }
+  return loadTeacherClassroomData();
+}
+
+export {
+  getAllAnalyticalReports,
+  getAtRiskStudentsReport,
+  getHighRetryMissionsReport,
+  getGamifiedEconomyReport,
+  getClassroomRanking,
+} from './services/index.js';

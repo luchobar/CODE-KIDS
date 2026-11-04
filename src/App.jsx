@@ -61,7 +61,12 @@ import {
   createCourseInSupabase,
   setStudentCourseEnrollment,
   createClassroomAssignmentInSupabase,
+  updateClassroomAssignmentInSupabase,
+  deleteClassroomAssignmentInSupabase,
   syncAssignmentSubmissionInSupabase,
+  gradeSubmissionInSupabase,
+  getAllAnalyticalReports,
+  getClassroomRanking,
   syncMissionSuccess,
   syncAvatarPurchase,
   syncAvatarSelection,
@@ -2879,45 +2884,444 @@ function StudentAssignmentModal({
   );
 }
 
-function AssignmentResults({ submissions }) {
+function AssignmentResults({
+  submissions = [],
+  assignments = [],
+  onUpdateAssignment,
+  onDeleteAssignment,
+  onGradeSubmission,
+}) {
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editInstructions, setEditInstructions] = useState('');
+
+  const [gradingSubmissionId, setGradingSubmissionId] = useState(null);
+  const [gradeValue, setGradeValue] = useState(90);
+  const [gradeFeedback, setGradeFeedback] = useState('');
+
   return (
     <section className="store-utility-card assignment-results-card">
       <div className="card-header-row">
         <div>
-          <h3>Respuestas del grupo ({submissions.length})</h3>
-          <p>Evaluación asistida y sugerencias pedagógicas por entrega.</p>
+          <h3>Gestión de Retos ({assignments.length}) y Entregas ({submissions.length})</h3>
+          <p>CRUD completo: edita o elimina retos publicados y califica entregas del grupo.</p>
         </div>
         <ClipboardText size={22} weight="regular" />
       </div>
 
+      {assignments.length > 0 && (
+        <div className="result-list" style={{ marginBottom: '18px' }}>
+          {assignments.map((item) => {
+            const isEditing = editingAssignmentId === item.id;
+            return (
+              <article className="submission-item-card" key={item.id}>
+                {isEditing ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <input
+                      className="search-input"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Título del reto"
+                    />
+                    <textarea
+                      className="apple-textarea"
+                      value={editInstructions}
+                      onChange={(e) => setEditInstructions(e.target.value)}
+                      placeholder="Instrucciones del reto"
+                    />
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="button-primary"
+                        onClick={() => {
+                          if (onUpdateAssignment) {
+                            onUpdateAssignment(item.id, {
+                              title: editTitle,
+                              instructions: editInstructions,
+                            });
+                          }
+                          setEditingAssignmentId(null);
+                        }}
+                      >
+                        <Check size={14} weight="bold" />
+                        <span>Guardar UPDATE</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="button-secondary-pill"
+                        onClick={() => setEditingAssignmentId(null)}
+                      >
+                        <span>Cancelar</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="submission-item-top">
+                      <div className="submission-item-meta">
+                        <strong>{item.title}</strong>
+                        <small>
+                          Reto activo · {item.skill} · Curso {item.group}
+                        </small>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="button-secondary-pill"
+                          onClick={() => {
+                            setEditingAssignmentId(item.id);
+                            setEditTitle(item.title);
+                            setEditInstructions(item.instructions);
+                          }}
+                        >
+                          <NotePencil size={14} weight="bold" />
+                          <span>Editar</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="button-secondary-pill"
+                          onClick={() => onDeleteAssignment && onDeleteAssignment(item.id)}
+                        >
+                          <X size={14} weight="bold" />
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    </div>
+                    <p className="submission-evidence">{item.instructions}</p>
+                  </>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+
       {submissions.length ? (
         <div className="result-list">
-          {submissions.map((submission) => (
-            <article className="submission-item-card" key={submission.id}>
-              <div className="submission-item-top">
-                <span className="student-initial-badge">{submission.studentName.charAt(0)}</span>
-                <div className="submission-item-meta">
-                  <strong>{submission.studentName}</strong>
-                  <small>
-                    {submission.assignmentTitle} | {submission.skill}
-                  </small>
+          {submissions.map((submission) => {
+            const isGrading = gradingSubmissionId === submission.id;
+            const nota5 = ((Number(submission.score || 0) / 20)).toFixed(2);
+            return (
+              <article className="submission-item-card" key={submission.id}>
+                <div className="submission-item-top">
+                  <span className="student-initial-badge">{submission.studentName.charAt(0)}</span>
+                  <div className="submission-item-meta">
+                    <strong>{submission.studentName}</strong>
+                    <small>
+                      {submission.assignmentTitle} | {submission.skill}
+                    </small>
+                  </div>
+                  <b className={submission.score >= 80 ? 'score-pill high' : 'score-pill'}>
+                    {submission.score}% ({nota5}/5.0)
+                  </b>
                 </div>
-                <b className={submission.score >= 80 ? 'score-pill high' : 'score-pill'}>{submission.score}%</b>
-              </div>
-              <p className="submission-evidence">{submission.response}</p>
-              <p className="submission-feedback">{submission.feedback}</p>
-              <div className="teacher-recommendation-box">
-                <b>Sugerencia:</b>
-                <span>{submission.recommendation}</span>
-              </div>
-            </article>
-          ))}
+                <p className="submission-evidence">{submission.response}</p>
+                <p className="submission-feedback">{submission.feedback}</p>
+                <div className="teacher-recommendation-box">
+                  <b>Sugerencia:</b>
+                  <span>{submission.recommendation}</span>
+                </div>
+
+                {isGrading ? (
+                  <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label className="field-label">
+                      Calificación docente (0 a 100% — equivalente {(gradeValue / 20).toFixed(2)} / 5.0)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      className="search-input"
+                      value={gradeValue}
+                      onChange={(e) => setGradeValue(Number(e.target.value))}
+                    />
+                    <input
+                      className="search-input"
+                      value={gradeFeedback}
+                      onChange={(e) => setGradeFeedback(e.target.value)}
+                      placeholder="Retroalimentación del docente"
+                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="button-primary"
+                        onClick={() => {
+                          if (onGradeSubmission) {
+                            onGradeSubmission(submission.id, {
+                              score: gradeValue,
+                              feedback: gradeFeedback || submission.feedback,
+                              assignmentId: submission.assignmentId,
+                              studentId: submission.studentId,
+                            });
+                          }
+                          setGradingSubmissionId(null);
+                        }}
+                      >
+                        <Check size={14} weight="bold" />
+                        <span>Guardar Calificación (UPDATE)</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="button-secondary-pill"
+                        onClick={() => setGradingSubmissionId(null)}
+                      >
+                        <span>Cancelar</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      className="button-secondary-pill"
+                      onClick={() => {
+                        setGradingSubmissionId(submission.id);
+                        setGradeValue(submission.score || 85);
+                        setGradeFeedback(submission.feedback || '');
+                      }}
+                    >
+                      <NotePencil size={14} weight="regular" />
+                      <span>Calificar / Editar nota</span>
+                    </button>
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="empty-state-card">
           <BookOpen size={28} weight="regular" />
           <h3>Sin entregas todavía</h3>
           <p>Cuando respondan tus ejercicios, aquí verás su evaluación y sugerencias.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SqlAnalyticalReportsPanel({ group }) {
+  const [activeTab, setActiveTab] = useState('risk');
+  const [showSql, setShowSql] = useState(false);
+  const [reports, setReports] = useState(null);
+  const [ranking, setRanking] = useState([]);
+
+  const refreshReports = async () => {
+    try {
+      const [repData, rankData] = await Promise.all([
+        getAllAnalyticalReports({ aulaCodigo: null, threshold: 3.0 }),
+        getClassroomRanking({ codigoGrupo: group }),
+      ]);
+      setReports(repData);
+      setRanking(rankData?.ranking || []);
+    } catch {
+      /* mantiene estado previo */
+    }
+  };
+
+  useEffect(() => {
+    refreshReports();
+  }, [group]);
+
+  const riskRows = reports?.atRiskStudents?.rows || [];
+  const retryRows = reports?.highRetryMissions?.rows || [];
+  const econRows = reports?.gamifiedEconomy?.rows || [];
+  const econSummary = reports?.gamifiedEconomy?.summary || {};
+
+  const activeSql =
+    activeTab === 'risk'
+      ? reports?.atRiskStudents?.sql
+      : activeTab === 'retry'
+        ? reports?.highRetryMissions?.sql
+        : reports?.gamifiedEconomy?.sql;
+
+  return (
+    <section className="store-utility-card" style={{ marginTop: '24px' }}>
+      <div className="card-header-row" style={{ flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <span className="hero-eyebrow">MÓDULO DE INFORMES ANALÍTICOS SQL (TAREA 4 · 3FN)</span>
+          <h3>Consultas Complejas con JOIN, GROUP BY, HAVING y Agregación</h3>
+          <p>
+            Informes ejecutados en tiempo real desde <code>reports.service.js</code> sobre el modelo relacional de 14 tablas.
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="button-secondary-pill"
+            onClick={() => setShowSql((v) => !v)}
+          >
+            <Code size={15} weight="bold" />
+            <span>{showSql ? 'Ocultar sentencia SQL' : 'Ver sentencia SQL'}</span>
+          </button>
+          <button type="button" className="button-primary" onClick={refreshReports}>
+            <Sparkle size={15} weight="fill" />
+            <span>Actualizar consultas SQL</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="challenge-skill-tabs" role="tablist" style={{ margin: '14px 0' }}>
+        {[
+          { id: 'risk', label: `1. Riesgo Pedagógico HAVING AVG < 3.0 (${riskRows.length})` },
+          { id: 'retry', label: `2. Mayor Tasa de Reintentos (${retryRows.length})` },
+          { id: 'economy', label: `3. Economía Gamificada y Tienda (${econRows.length})` },
+          { id: 'ranking', label: `4. Ranking del Curso ${group} (${ranking.length})` },
+        ].map((tab) => (
+          <button
+            type="button"
+            key={tab.id}
+            className={activeTab === tab.id ? 'configurator-option-chip selected' : 'configurator-option-chip'}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {showSql && activeSql && (
+        <pre
+          style={{
+            background: '#0f172a',
+            color: '#e2e8f0',
+            padding: '14px',
+            borderRadius: '12px',
+            fontSize: '0.82rem',
+            overflowX: 'auto',
+            marginBottom: '16px',
+          }}
+        >
+          <code>{activeSql}</code>
+        </pre>
+      )}
+
+      {activeTab === 'risk' && (
+        <div className="result-list">
+          {riskRows.map((row) => (
+            <article className="submission-item-card" key={`${row.aula_id}-${row.estudiante_id}`}>
+              <div className="submission-item-top">
+                <span className="student-initial-badge">{String(row.estudiante_nombre || 'E').charAt(0)}</span>
+                <div className="submission-item-meta">
+                  <strong>
+                    {row.estudiante_nombre} ({row.estudiante_correo})
+                  </strong>
+                  <small>
+                    Aula {row.codigo_aula} · {row.nombre_aula} · Entregas evaluadas: {row.total_entregas_evaluadas}
+                  </small>
+                </div>
+                <b className="score-pill">
+                  Promedio: {row.promedio_puntuacion} / 5.0 ({row.promedio_porcentaje}%)
+                </b>
+              </div>
+              <div className="teacher-recommendation-box" style={{ marginTop: '8px' }}>
+                <b>{row.nivel_alerta_pedagogica}:</b>
+                <span>
+                  {' '}
+                  Intentos en retos: {row.intentos_en_retos} | Promedio de intentos en mapa: {row.promedio_intentos_mapa}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'retry' && (
+        <div className="result-list">
+          {retryRows.map((row) => (
+            <article className="submission-item-card" key={row.mision_id}>
+              <div className="submission-item-top">
+                <div className="submission-item-meta">
+                  <strong>
+                    {row.titulo_ejercicio} ({row.mision_id})
+                  </strong>
+                  <small>
+                    {row.mundo_titulo} · Habilidad: {row.habilidad} · Nivel: {row.nivel_dificultad}
+                  </small>
+                </div>
+                <b className="score-pill">
+                  Promedio: {row.promedio_intentos} intentos (Máx: {row.maximo_intentos_registrado})
+                </b>
+              </div>
+              <p className="submission-evidence">
+                Estudiantes que intentaron: <b>{row.estudiantes_que_intentaron}</b> · Intentos acumulados:{' '}
+                <b>{row.total_intentos_acumulados}</b> · Tasa de reintentos/alumno:{' '}
+                <b>{row.tasa_reintentos_por_estudiante}</b>
+              </p>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'economy' && (
+        <div>
+          <div className="metrics-bento-grid" style={{ marginBottom: '16px' }}>
+            <StatCard
+              icon={<Coins size={20} weight="duotone" />}
+              label="Monedas en circulación (SUM)"
+              value={econSummary.masa_monetaria_en_circulacion ?? 0}
+              note={`Promedio: ${econSummary.promedio_monedas_por_estudiante ?? 0} monedas/alumno`}
+              tone="yellow"
+            />
+            <StatCard
+              icon={<Trophy size={20} weight="duotone" />}
+              label="Avatares desbloqueados (COUNT)"
+              value={econSummary.total_desbloqueos_tienda ?? 0}
+              note={`Inversión en tienda: ${econSummary.monedas_gastadas_en_tienda ?? 0} monedas`}
+              tone="mint"
+            />
+            <StatCard
+              icon={<Lightning size={20} weight="duotone" />}
+              label="XP Total del Ecosistema"
+              value={econSummary.xp_total_ecosistema ?? 0}
+              note={`${econSummary.total_estudiantes_activos ?? 0} estudiantes analizados`}
+              tone="blue"
+            />
+          </div>
+          <div className="result-list">
+            {econRows.map((row) => (
+              <article className="submission-item-card" key={row.usuario_id}>
+                <div className="submission-item-top">
+                  <span className="student-initial-badge">{String(row.estudiante || 'E').charAt(0)}</span>
+                  <div className="submission-item-meta">
+                    <strong>
+                      {row.estudiante} (Nvl. {row.nivel_actual})
+                    </strong>
+                    <small>
+                      {row.correo} · {row.puntos_xp} XP · Racha: {row.dias_racha} días
+                    </small>
+                  </div>
+                  <b className="score-pill high">
+                    Saldo: {row.saldo_monedas_actual} 🪙 | Avatares: {row.total_avatares_desbloqueados}
+                  </b>
+                </div>
+                <p className="submission-evidence">
+                  Monedas invertidas en tienda: <b>{row.monedas_invertidas_en_tienda}</b> · Riqueza total generada:{' '}
+                  <b>{row.riqueza_total_generada}</b> · Insignias: <b>{row.total_insignias_ganadas}</b>
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'ranking' && (
+        <div className="result-list">
+          {ranking.map((row) => (
+            <article className="submission-item-card" key={row.estudiante_id}>
+              <div className="submission-item-top">
+                <span className="student-initial-badge">#{row.posicion}</span>
+                <div className="submission-item-meta">
+                  <strong>{row.nombre}</strong>
+                  <small>
+                    {row.correo} · Nivel {row.nivel_actual} · {row.misiones_completadas} misiones completadas
+                  </small>
+                </div>
+                <b className="score-pill high">
+                  {row.puntos_xp} XP · {row.saldo_monedas} 🪙
+                </b>
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </section>
@@ -2933,6 +3337,9 @@ function TeacherDashboard({
   onToggleEnrollment,
   onBulkEnrollAll,
   onCreate,
+  onUpdateAssignment,
+  onDeleteAssignment,
+  onGradeSubmission,
   remoteExpansion = null,
 }) {
   const courseList =
@@ -3510,8 +3917,16 @@ function TeacherDashboard({
               draftExercise={draftExercise}
               remoteExpansion={remoteExpansion}
             />
-            <AssignmentResults submissions={groupSubmissions} />
+            <AssignmentResults
+              submissions={groupSubmissions}
+              assignments={groupAssignments}
+              onUpdateAssignment={onUpdateAssignment}
+              onDeleteAssignment={onDeleteAssignment}
+              onGradeSubmission={onGradeSubmission}
+            />
           </div>
+
+          <SqlAnalyticalReportsPanel group={group} />
         </div>
       </section>
 
@@ -3967,6 +4382,31 @@ export default function App() {
     }));
   };
 
+  const handleUpdateAssignment = async (assignmentId, updates) => {
+    const nextAssignments = await updateClassroomAssignmentInSupabase(assignmentId, updates);
+    setState((current) => ({
+      ...current,
+      assignments: nextAssignments,
+    }));
+  };
+
+  const handleDeleteAssignment = async (assignmentId) => {
+    const nextAssignments = await deleteClassroomAssignmentInSupabase(assignmentId);
+    setState((current) => ({
+      ...current,
+      assignments: nextAssignments,
+      submissions: (current.submissions || []).filter((s) => String(s.assignmentId) !== String(assignmentId)),
+    }));
+  };
+
+  const handleGradeSubmission = async (submissionId, payload) => {
+    const nextSubmissions = await gradeSubmissionInSupabase(submissionId, payload);
+    setState((current) => ({
+      ...current,
+      submissions: nextSubmissions,
+    }));
+  };
+
   const changeStudentGroup = (group) =>
     setState((current) => ({ ...current, user: { ...current.user, group } }));
 
@@ -4269,6 +4709,9 @@ export default function App() {
           onBulkEnrollAll={handleBulkEnrollAll}
           onAnalyze={setFeedbackPrompt}
           onCreate={createAssignment}
+          onUpdateAssignment={handleUpdateAssignment}
+          onDeleteAssignment={handleDeleteAssignment}
+          onGradeSubmission={handleGradeSubmission}
           remoteExpansion={remoteExpansion}
         />
       ) : activePython ? (

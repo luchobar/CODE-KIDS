@@ -2,8 +2,10 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { createAuthApp } from './server/auth/routes.js';
+import { createApiApp } from './server/api/routes.js';
 
 const authApp = createAuthApp();
+const apiApp = createApiApp();
 const port = Number(process.env.API_PORT || 3001);
 const ollamaUrl = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
 const model = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
@@ -338,6 +340,10 @@ export async function handleApiRequest(request, response) {
 
   if (url.startsWith('/api/v1/auth')) {
     return authApp(request, response);
+  }
+
+  if (url.startsWith('/api/v1/')) {
+    return apiApp(request, response);
   }
 
   if (request.method === 'GET' && url === '/api/health') {
