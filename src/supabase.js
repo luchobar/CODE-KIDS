@@ -171,7 +171,11 @@ export async function authenticateUser(email, password) {
     },
   });
 
-  if (apiRes?.data?.ok && apiRes.data.user) {
+  if (
+    apiRes?.data?.ok &&
+    apiRes.data.user &&
+    (!supabase || apiRes.data.source === 'supabase' || apiRes.data.source === 'postgresql')
+  ) {
     const u = apiRes.data.user;
     return {
       ok: true,
@@ -246,6 +250,21 @@ export async function authenticateUser(email, password) {
         };
       }
 
+      if (apiRes?.data?.ok && apiRes.data.user) {
+        const u = apiRes.data.user;
+        return {
+          ok: true,
+          source: apiRes.data.source || 'api-v1',
+          user: {
+            id: u.id,
+            name: u.nombre || u.name,
+            email: u.correo || u.email,
+            role: u.rol === 'docente' || u.role === 'teacher' ? 'teacher' : 'student',
+            avatar: u.avatar || known?.avatar || 'dragon',
+          },
+        };
+      }
+
       return {
         ok: false,
         error: 'No existe ninguna cuenta registrada con este correo en la base de datos. Ve a la pestaña «Crear cuenta» para registrarte.',
@@ -253,6 +272,21 @@ export async function authenticateUser(email, password) {
     } catch (err) {
       console.warn('[Supabase Auth Exception]', err);
     }
+  }
+
+  if (apiRes?.data?.ok && apiRes.data.user) {
+    const u = apiRes.data.user;
+    return {
+      ok: true,
+      source: apiRes.data.source || 'api-v1',
+      user: {
+        id: u.id,
+        name: u.nombre || u.name,
+        email: u.correo || u.email,
+        role: u.rol === 'docente' || u.role === 'teacher' ? 'teacher' : 'student',
+        avatar: u.avatar || known?.avatar || 'dragon',
+      },
+    };
   }
 
   // 3. Respaldo local con verificación criptográfica PBKDF2-SHA256
@@ -344,7 +378,10 @@ export async function registerUser({ name, email, password, role = 'student', av
     },
   });
 
-  if (apiRes?.data) {
+  if (
+    apiRes?.data &&
+    (!supabase || apiRes.data.source === 'supabase' || apiRes.data.source === 'postgresql')
+  ) {
     if (!apiRes.data.ok) {
       return { ok: false, error: apiRes.data.error || 'No fue posible registrar el usuario.' };
     }
@@ -573,13 +610,25 @@ export async function updatePasswordForEmail(email, newPassword) {
   return { ok: false, error: 'No encontramos ninguna cuenta registrada con ese correo electrónico.' };
 }
 
+function resolveNumericStudentId(userId) {
+  if (typeof userId === 'number' && Number.isFinite(userId)) return userId;
+  if (typeof userId === 'string') {
+    const clean = userId.trim().toLowerCase();
+    if (QUICK_PROFILE_IDS[clean]) return QUICK_PROFILE_IDS[clean];
+    const parsed = Number(clean);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return 1;
+}
+
 /**
  * Carga el perfil completo de un estudiante (HUD, XP, Avatares, Progreso)
  * consultando primero la API REST Express (`GET /api/v1/students/:id/hud` y `GET /api/v1/missions/map`)
  * y manteniendo el respaldo de Supabase / local.
  */
-export async function loadStudentFromSupabase(userId) {
-  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+export async function loadStudentFromSupabase(userId, userEmail = '') {
+  const numericId = resolveNumericStudentId(userId);
+  const cleanEmail = String(userEmail || '').trim().toLowerCase();
 
   // 1. Capa de Negocio Express (Tier 2: GET /api/v1/students/:id/hud + GET /api/v1/missions/map)
   const [hudRes, mapRes] = await Promise.all([
@@ -587,8 +636,31 @@ export async function loadStudentFromSupabase(userId) {
     callTier2Api(`/missions/map?usuarioId=${numericId}`),
   ]);
 
-  if (!supabase && hudRes?.data?.ok && hudRes.data.hud) {
+  const buildFromTier2 = () => {
+    if (!hudRes?.data?.ok || !hudRes.data.hud) return null;
     const hud = hudRes.data.hud;
+    const hudEmail = String(hud.correo || '').trim().toLowerCase();
+    if (cleanEmail && hudEmail && cleanEmail !== hudEmail) {
+      return {
+        userId: numericId,
+        name: 'Explorador',
+        role: 'student',
+        points: 0,
+        coins: 20,
+        streak: 1,
+        avatar: 'dragon',
+        ownedAvatars: ['astronaut', 'dragon'],
+        scores: {
+          Secuencias: 75,
+          Bucles: 45,
+          Condicionales: 80,
+          Descomposición: 55,
+        },
+        completedMissions: [],
+        enrolledGroups: ['5° A'],
+      };
+    }
+
     const completedFromMap = (mapRes?.data?.missions || [])
       .filter((m) => m.estado_usuario === 'completada')
       .map((m) => m.mision_id);
@@ -602,7 +674,7 @@ export async function loadStudentFromSupabase(userId) {
       name: hud.nombre || 'Explorador',
       role: hud.rol === 'docente' ? 'teacher' : 'student',
       points: hud.puntos_xp ?? 0,
-      coins: hud.saldo_monedas ?? 0,
+      coins: hud.saldo_monedas ?? 20,
       streak: hud.dias_racha ?? 1,
       avatar: hud.avatar_activo_id || 'dragon',
       ownedAvatars: hud.avatares_desbloqueados?.length ? hud.avatares_desbloqueados : ['astronaut', hud.avatar_activo_id || 'dragon'],
@@ -615,35 +687,50 @@ export async function loadStudentFromSupabase(userId) {
       completedMissions: completedFromMap,
       enrolledGroups: enrolledGroups.length ? enrolledGroups : ['5° A'],
     };
+  };
+
+  if (!supabase) {
+    return buildFromTier2();
   }
 
-  if (!supabase) return null;
-
   try {
-    // 1. Datos de usuario
-    const { data: user, error: userError } = await supabase
+    // 1. Datos de usuario (verificando coincidencia de correo si se proporcionó)
+    let { data: user } = await supabase
       .from('usuarios')
       .select('id, nombre, correo, rol, etiqueta_rapida')
       .eq('id', numericId)
-      .single();
+      .maybeSingle();
 
-    if (userError || !user) {
-      console.warn('[Supabase] No se encontró el usuario:', userError);
-      return null;
+    if (
+      cleanEmail &&
+      (!user || (user.correo && String(user.correo).trim().toLowerCase() !== cleanEmail))
+    ) {
+      const { data: userByEmail } = await supabase
+        .from('usuarios')
+        .select('id, nombre, correo, rol, etiqueta_rapida')
+        .eq('correo', cleanEmail)
+        .maybeSingle();
+      user = userByEmail || null;
     }
+
+    if (!user) {
+      return buildFromTier2();
+    }
+
+    const resolvedUid = user.id;
 
     // 2. Perfil gamificado (XP, monedas, racha, avatar activo)
     const { data: perfil } = await supabase
       .from('perfiles_gamificacion')
       .select('puntos_xp, nivel_actual, saldo_monedas, dias_racha, avatar_activo_id, puntajes_diagnostico')
-      .eq('usuario_id', numericId)
-      .single();
+      .eq('usuario_id', resolvedUid)
+      .maybeSingle();
 
     // 3. Progreso de misiones (resolviendo tanto IDs clásicos como slugs de expansión)
     const { data: progreso } = await supabase
       .from('progreso_misiones_usuario')
       .select('mision_id, estado, estrellas_ganadas')
-      .eq('usuario_id', numericId);
+      .eq('usuario_id', resolvedUid);
 
     const rawCompletedIds = (progreso || [])
       .filter((p) => p.estado === 'completada')
@@ -666,7 +753,7 @@ export async function loadStudentFromSupabase(userId) {
     const { data: avatares } = await supabase
       .from('inventario_avatares_usuario')
       .select('avatar_id')
-      .eq('usuario_id', numericId);
+      .eq('usuario_id', resolvedUid);
 
     const ownedAvatars = (avatares || []).map((a) => a.avatar_id);
 
@@ -676,7 +763,7 @@ export async function loadStudentFromSupabase(userId) {
       const { data: matriculas } = await supabase
         .from('matriculas_aula')
         .select('aula_id, aulas(codigo_grupo)')
-        .eq('estudiante_id', numericId);
+        .eq('estudiante_id', resolvedUid);
 
       if (Array.isArray(matriculas)) {
         enrolledGroups = matriculas
@@ -688,14 +775,14 @@ export async function loadStudentFromSupabase(userId) {
     }
 
     return {
-      userId: numericId,
+      userId: resolvedUid,
       name: user.nombre,
       role: user.rol === 'docente' ? 'teacher' : 'student',
-      points: perfil?.puntos_xp || 0,
-      coins: perfil?.saldo_monedas || 0,
-      streak: perfil?.dias_racha || 1,
+      points: perfil?.puntos_xp ?? 0,
+      coins: perfil?.saldo_monedas ?? 20,
+      streak: perfil?.dias_racha ?? 1,
       avatar: perfil?.avatar_activo_id || 'dragon',
-      ownedAvatars: ownedAvatars.length ? ownedAvatars : ['astronaut'],
+      ownedAvatars: ownedAvatars.length ? ownedAvatars : ['astronaut', perfil?.avatar_activo_id || 'dragon'],
       scores: perfil?.puntajes_diagnostico || {
         Secuencias: 75,
         Bucles: 45,
@@ -707,7 +794,7 @@ export async function loadStudentFromSupabase(userId) {
     };
   } catch (err) {
     console.error('[Supabase] Error cargando estudiante:', err);
-    return null;
+    return buildFromTier2();
   }
 }
 
@@ -716,7 +803,7 @@ export async function loadStudentFromSupabase(userId) {
  * `PATCH /api/v1/students/:id/rewards` (Capa 2 Express) con respaldo en Supabase.
  */
 export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp = 10, coins = 10) {
-  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+  const numericId = resolveNumericStudentId(userId);
 
   // 1. Capa de Negocio Express (Tier 2: PATCH /api/v1/students/:id/rewards)
   const apiRes = await callTier2Api(`/students/${numericId}/rewards`, {
@@ -760,7 +847,7 @@ export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp 
       .from('perfiles_gamificacion')
       .select('puntos_xp, saldo_monedas')
       .eq('usuario_id', numericId)
-      .single();
+      .maybeSingle();
 
     if (perfil) {
       await supabase
@@ -785,7 +872,7 @@ export async function syncMissionSuccess(userId, missionIdOrSlug, stars = 3, xp 
  * con validación estricta de `saldo_monedas >= costo`.
  */
 export async function syncAvatarPurchase(userId, avatarId, cost = 0) {
-  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+  const numericId = resolveNumericStudentId(userId);
   const numericCost = Math.max(0, Number(cost) || 0);
 
   // 1. Capa de Negocio Express (Tier 2: POST /api/v1/store/purchase)
@@ -815,7 +902,7 @@ export async function syncAvatarPurchase(userId, avatarId, cost = 0) {
       .from('perfiles_gamificacion')
       .select('saldo_monedas')
       .eq('usuario_id', numericId)
-      .single();
+      .maybeSingle();
 
     const saldoActual = Number(perfil?.saldo_monedas ?? 0);
     if (!perfil || saldoActual < numericCost) {
@@ -851,7 +938,7 @@ export async function syncAvatarPurchase(userId, avatarId, cost = 0) {
  * Sincroniza el cambio de avatar activo invocando primero `PATCH /api/v1/students/:id/avatar` (Capa 2 Express).
  */
 export async function syncAvatarSelection(userId, avatarId) {
-  const numericId = typeof userId === 'number' ? userId : QUICK_PROFILE_IDS[userId] || 1;
+  const numericId = resolveNumericStudentId(userId);
 
   // 1. Capa de Negocio Express (Tier 2: PATCH /api/v1/students/:id/avatar)
   const apiRes = await callTier2Api(`/students/${numericId}/avatar`, {

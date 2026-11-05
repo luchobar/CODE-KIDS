@@ -77,6 +77,7 @@ import {
 } from './supabase.js';
 
 const STORAGE_KEY = 'codekids-demo-state';
+const USER_PROFILES_STORAGE_KEY = 'codekids-user-profiles-v1';
 const A11Y_STORAGE_KEY = 'codekids-a11y-settings';
 
 const AVATAR_SHOP = [
@@ -210,18 +211,96 @@ const questions = [
   },
 ];
 
+function getUserProfileKey(user) {
+  if (!user) return '';
+  if (user.email) return `email:${String(user.email).trim().toLowerCase()}`;
+  if (user.id !== undefined && user.id !== null) return `id:${String(user.id).trim().toLowerCase()}`;
+  if (user.name) return `name:${String(user.name).trim().toLowerCase()}`;
+  return '';
+}
+
+function createDefaultUserProfile(user = null) {
+  const defaultAvatar = user?.avatar || 'dragon';
+  return {
+    scores: { Secuencias: 75, Bucles: 45, Condicionales: 80, Descomposición: 55 },
+    lastScore: null,
+    points: 0,
+    coins: 20,
+    streak: 1,
+    lastStoryDay: undefined,
+    avatar: defaultAvatar,
+    ownedAvatars: Array.from(new Set(['astronaut', defaultAvatar])),
+    completedMissions: [],
+    pythonProgress: [],
+  };
+}
+
+function readUserProfile(user) {
+  const base = createDefaultUserProfile(user);
+  const key = getUserProfileKey(user);
+  if (!key) return base;
+  try {
+    const allProfiles = JSON.parse(localStorage.getItem(USER_PROFILES_STORAGE_KEY) || '{}');
+    const saved =
+      allProfiles[key] ||
+      (user?.id !== undefined && user?.id !== null
+        ? allProfiles[`id:${String(user.id).trim().toLowerCase()}`]
+        : null);
+    if (!saved || typeof saved !== 'object') return base;
+    return {
+      ...base,
+      ...saved,
+      avatar: saved.avatar || user?.avatar || base.avatar,
+      ownedAvatars: Array.from(
+        new Set(['astronaut', ...(saved.ownedAvatars || []), user?.avatar || base.avatar]),
+      ),
+      completedMissions: Array.isArray(saved.completedMissions) ? saved.completedMissions : [],
+      pythonProgress: Array.isArray(saved.pythonProgress) ? saved.pythonProgress : [],
+    };
+  } catch {
+    return base;
+  }
+}
+
+function writeUserProfile(user, stateSnapshot) {
+  const key = getUserProfileKey(user);
+  if (!key || !stateSnapshot) return;
+  try {
+    const allProfiles = JSON.parse(localStorage.getItem(USER_PROFILES_STORAGE_KEY) || '{}');
+    const profileData = {
+      scores: stateSnapshot.scores || { Secuencias: 75, Bucles: 45, Condicionales: 80, Descomposición: 55 },
+      lastScore: stateSnapshot.lastScore ?? null,
+      points: stateSnapshot.points ?? 0,
+      coins: stateSnapshot.coins ?? 20,
+      streak: stateSnapshot.streak ?? 1,
+      lastStoryDay: stateSnapshot.lastStoryDay,
+      avatar: stateSnapshot.avatar || user?.avatar || 'dragon',
+      ownedAvatars: Array.isArray(stateSnapshot.ownedAvatars)
+        ? stateSnapshot.ownedAvatars
+        : ['astronaut', user?.avatar || 'dragon'],
+      completedMissions: Array.isArray(stateSnapshot.completedMissions)
+        ? stateSnapshot.completedMissions
+        : [],
+      pythonProgress: Array.isArray(stateSnapshot.pythonProgress)
+        ? stateSnapshot.pythonProgress
+        : [],
+    };
+    allProfiles[key] = profileData;
+    if (user?.id !== undefined && user?.id !== null) {
+      allProfiles[`id:${String(user.id).trim().toLowerCase()}`] = profileData;
+    }
+    localStorage.setItem(USER_PROFILES_STORAGE_KEY, JSON.stringify(allProfiles));
+  } catch {
+    /* localStorage opcional */
+  }
+}
+
 const initialState = {
   user: null,
-  scores: { Secuencias: 75, Bucles: 45, Condicionales: 80, Descomposición: 55 },
-  lastScore: null,
-  points: 120,
-  coins: 40,
-  avatar: 'astronaut',
-  ownedAvatars: ['astronaut'],
+  ...createDefaultUserProfile(null),
   soundEnabled: false,
   assignments: [],
   submissions: [],
-  pythonProgress: [],
 };
 
 const defaultA11y = {
@@ -234,12 +313,15 @@ const defaultA11y = {
 const readState = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const activeUser = saved.user || null;
+    const userProfile = activeUser ? readUserProfile(activeUser) : createDefaultUserProfile(null);
     return {
       ...initialState,
-      ...saved,
+      soundEnabled: Boolean(saved.soundEnabled),
       assignments: saved.assignments || [],
       submissions: saved.submissions || [],
-      pythonProgress: saved.pythonProgress || [],
+      user: activeUser,
+      ...userProfile,
     };
   } catch {
     return initialState;
@@ -4222,6 +4304,52 @@ export default function App() {
 
   useEffect(() => {
     refreshClassroomData();
+    if (state.user?.role === 'student') {
+      const initialUser = state.user;
+      const initialKey = getUserProfileKey(initialUser);
+      loadStudentFromSupabase(
+        initialUser.id || initialUser.name?.toLowerCase(),
+        initialUser.email,
+      )
+        .then((studentData) => {
+          if (!studentData) return;
+          const remoteCompleted = Array.isArray(studentData.completedMissions)
+            ? studentData.completedMissions
+            : [];
+          const remotePythonIds = remoteCompleted.filter(
+            (slug) => typeof slug === 'string' && (slug.startsWith('python-') || slug.startsWith('py-')),
+          );
+          setState((current) => {
+            if (!current.user || getUserProfileKey(current.user) !== initialKey) {
+              return current;
+            }
+            const ownLocal = readUserProfile(current.user);
+            return {
+              ...current,
+              points: Math.max(ownLocal.points || 0, studentData.points || 0),
+              coins: Math.max(ownLocal.coins ?? 20, studentData.coins ?? 20),
+              streak: Math.max(ownLocal.streak || 1, studentData.streak || 1),
+              avatar: studentData.avatar || ownLocal.avatar || initialUser.avatar || 'dragon',
+              ownedAvatars: Array.from(
+                new Set([
+                  'astronaut',
+                  ...(ownLocal.ownedAvatars || []),
+                  ...(studentData.ownedAvatars || []),
+                  initialUser.avatar || 'dragon',
+                ]),
+              ),
+              completedMissions: Array.from(
+                new Set([...(ownLocal.completedMissions || []), ...remoteCompleted]),
+              ),
+              pythonProgress: Array.from(
+                new Set([...(ownLocal.pythonProgress || []), ...remotePythonIds]),
+              ),
+              scores: studentData.scores || ownLocal.scores || current.scores,
+            };
+          });
+        })
+        .catch(() => {});
+    }
     if (!isSupabaseConfigured) return;
     loadExpansionFromSupabase()
       .then((data) => {
@@ -4231,6 +4359,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (state.user?.role === 'student') {
+      writeUserProfile(state.user, state);
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
@@ -4243,10 +4374,22 @@ export default function App() {
   }, [a11y]);
 
   const enter = async (user) => {
+    const localProfile = readUserProfile(user);
+    const targetUserKey = getUserProfileKey(user);
+
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(false);
+    setActivePythonMissionId('');
+    setActiveCodeWorld(null);
+
     setState((current) => ({
       ...current,
-      avatar: user.avatar || current.avatar || 'dragon',
-      ownedAvatars: Array.from(new Set([...(current.ownedAvatars || ['astronaut']), user.avatar || 'dragon'])),
+      ...localProfile,
+      avatar: user.avatar || localProfile.avatar || 'dragon',
+      ownedAvatars: Array.from(
+        new Set(['astronaut', ...(localProfile.ownedAvatars || []), user.avatar || 'dragon']),
+      ),
       user: {
         ...user,
         group: user.role === 'student' ? user.group || '5° A' : undefined,
@@ -4267,7 +4410,7 @@ export default function App() {
       );
       if (matchedStudent?.enrolledCourses?.length > 0) {
         setState((current) =>
-          current.user
+          current.user && getUserProfileKey(current.user) === targetUserKey
             ? {
                 ...current,
                 user: {
@@ -4283,35 +4426,60 @@ export default function App() {
 
     if (user.role === 'student') {
       try {
-        const studentData = await loadStudentFromSupabase(user.id || user.name?.toLowerCase());
+        const studentData = await loadStudentFromSupabase(
+          user.id || user.name?.toLowerCase(),
+          user.email,
+        );
         if (studentData) {
-          const remotePythonIds = (studentData.completedMissions || []).filter(
+          const remoteCompleted = Array.isArray(studentData.completedMissions)
+            ? studentData.completedMissions
+            : [];
+          const remotePythonIds = remoteCompleted.filter(
             (slug) => typeof slug === 'string' && (slug.startsWith('python-') || slug.startsWith('py-')),
           );
-          setState((current) => ({
-            ...current,
-            points: studentData.points,
-            coins: studentData.coins,
-            streak: studentData.streak,
-            avatar: studentData.avatar,
-            ownedAvatars: Array.from(new Set([...(current.ownedAvatars || []), ...studentData.ownedAvatars])),
-            completedMissions: Array.from(new Set([...(current.completedMissions || []), ...studentData.completedMissions])),
-            pythonProgress: Array.from(new Set([...(current.pythonProgress || []), ...remotePythonIds])),
-            scores: studentData.scores || current.scores,
-            user: current.user
-              ? {
-                  ...current.user,
-                  group:
-                    studentData.enrolledGroups?.[0] ||
-                    current.user.group ||
-                    '5° A',
-                  enrolledGroups:
-                    studentData.enrolledGroups?.length > 0
-                      ? studentData.enrolledGroups
-                      : current.user.enrolledGroups || ['5° A'],
-                }
-              : current.user,
-          }));
+          setState((current) => {
+            if (!current.user || getUserProfileKey(current.user) !== targetUserKey) {
+              return current;
+            }
+            const ownLocal = readUserProfile(current.user);
+            const mergedCompleted = Array.from(
+              new Set([...(ownLocal.completedMissions || []), ...remoteCompleted]),
+            );
+            const mergedPython = Array.from(
+              new Set([...(ownLocal.pythonProgress || []), ...remotePythonIds]),
+            );
+            const mergedAvatars = Array.from(
+              new Set([
+                'astronaut',
+                ...(ownLocal.ownedAvatars || []),
+                ...(studentData.ownedAvatars || []),
+                user.avatar || 'dragon',
+              ]),
+            );
+            return {
+              ...current,
+              points: Math.max(ownLocal.points || 0, studentData.points || 0),
+              coins: Math.max(ownLocal.coins ?? 20, studentData.coins ?? 20),
+              streak: Math.max(ownLocal.streak || 1, studentData.streak || 1),
+              avatar: studentData.avatar || ownLocal.avatar || user.avatar || 'dragon',
+              ownedAvatars: mergedAvatars,
+              completedMissions: mergedCompleted,
+              pythonProgress: mergedPython,
+              scores: studentData.scores || ownLocal.scores || current.scores,
+              user: {
+                ...current.user,
+                id: studentData.userId || current.user.id,
+                group:
+                  studentData.enrolledGroups?.[0] ||
+                  current.user.group ||
+                  '5° A',
+                enrolledGroups:
+                  studentData.enrolledGroups?.length > 0
+                    ? studentData.enrolledGroups
+                    : current.user.enrolledGroups || ['5° A'],
+              },
+            };
+          });
         }
       } catch (err) {
         console.warn('[API / Supabase Sync] No se pudo cargar perfil:', err);
@@ -4320,12 +4488,24 @@ export default function App() {
   };
 
   const exit = async () => {
+    if (state.user?.role === 'student') {
+      writeUserProfile(state.user, state);
+    }
     try {
       await fetchWithCsrf('/api/v1/auth/logout', { method: 'POST' });
     } catch {
       /* Aun si la red local falla, limpiamos el estado de vista */
     }
-    setState((current) => ({ ...current, user: null }));
+    setActiveSkill('');
+    setActiveAssignment(null);
+    setActivePython(false);
+    setActivePythonMissionId('');
+    setActiveCodeWorld(null);
+    setState((current) => ({
+      ...current,
+      ...createDefaultUserProfile(null),
+      user: null,
+    }));
     setView('home');
     setPublicView('landing');
   };

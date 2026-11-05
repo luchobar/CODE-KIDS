@@ -406,7 +406,34 @@ export async function getStudentHudProfile(usuarioId) {
 
   // 3. Almacén relacional 3FN
   const store = getRelationalStore();
-  const u = store.usuarios.find((item) => Number(item.id) === uid) || store.usuarios[0];
+  const u = store.usuarios.find((item) => Number(item.id) === uid);
+  if (!u) {
+    return {
+      ok: true,
+      operation: 'SELECT',
+      source: 'relational-3fn',
+      hud: {
+        usuario_id: uid,
+        nombre: 'Explorador',
+        correo: '',
+        rol: 'estudiante',
+        activo: true,
+        puntos_xp: 0,
+        nivel_actual: 1,
+        saldo_monedas: 20,
+        dias_racha: 1,
+        avatar_activo_id: 'dragon',
+        avatares_desbloqueados: ['astronaut', 'dragon'],
+        insignias: [],
+        puntajes_diagnostico: {
+          Secuencias: 75,
+          Bucles: 45,
+          Condicionales: 80,
+          Descomposición: 55,
+        },
+      },
+    };
+  }
   const pg = store.perfiles_gamificacion.find((item) => Number(item.usuario_id) === Number(u.id));
   const inv = store.inventario_avatares_usuario
     .filter((item) => Number(item.usuario_id) === Number(u.id))
@@ -427,12 +454,17 @@ export async function getStudentHudProfile(usuarioId) {
       activo: u.activo !== false,
       puntos_xp: pg?.puntos_xp ?? 0,
       nivel_actual: pg?.nivel_actual ?? Math.floor((pg?.puntos_xp ?? 0) / 100) + 1,
-      saldo_monedas: pg?.saldo_monedas ?? 0,
+      saldo_monedas: pg?.saldo_monedas ?? 20,
       dias_racha: pg?.dias_racha ?? 1,
       avatar_activo_id: pg?.avatar_activo_id ?? 'dragon',
-      avatares_desbloqueados: inv,
+      avatares_desbloqueados: inv.length ? inv : ['astronaut', 'dragon'],
       insignias: ins,
-      puntajes_diagnostico: pg?.puntajes_diagnostico || {},
+      puntajes_diagnostico: pg?.puntajes_diagnostico || {
+        Secuencias: 75,
+        Bucles: 45,
+        Condicionales: 80,
+        Descomposición: 55,
+      },
     },
   };
 }

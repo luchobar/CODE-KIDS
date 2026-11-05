@@ -67,7 +67,7 @@ export async function listMapMissionsWithProgress(usuarioId = 1) {
       ]);
       if (dbMundos?.length) mundos = dbMundos;
       if (dbMisiones?.length) misiones = dbMisiones;
-      if (dbProgreso?.length) progreso = dbProgreso;
+      if (Array.isArray(dbProgreso)) progreso = dbProgreso;
     } catch {
       /* continúa con almacén relacional */
     }
@@ -146,7 +146,7 @@ export async function getAvatarStoreCatalog(usuarioId = 1) {
         supabaseClient.from('inventario_avatares_usuario').select('avatar_id').eq('usuario_id', uid),
       ]);
       if (dbAvatares?.length) avatares = dbAvatares;
-      if (dbInv?.length) inventario = dbInv;
+      if (Array.isArray(dbInv)) inventario = dbInv;
     } catch {
       /* continúa con almacén relacional */
     }
