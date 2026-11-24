@@ -3,6 +3,7 @@ import {
   askOllama,
   ensureOllamaReady,
   getOllamaModelName,
+  isGeminiConfigured,
 } from './ollamaClient.js';
 import {
   buildCoachPrompt,
@@ -23,7 +24,7 @@ function applyBasicApiHeaders(req, res, next) {
 }
 
 /**
- * Crea el router Express para salud de Ollama y endpoints de asistencia IA (`/api/health`, `/api/ai/*`).
+ * Crea el router Express para salud de IA y endpoints de asistencia (`/api/health`, `/api/ai/*`).
  * @returns {import('express').Router}
  */
 export function createAiRouter() {
@@ -31,11 +32,14 @@ export function createAiRouter() {
   router.use(applyBasicApiHeaders);
   router.use(express.json({ limit: '64kb' }));
 
+  const aiSource = () => (isGeminiConfigured() ? 'gemini' : 'ollama');
+
   router.get('/health', async (_req, res, next) => {
     try {
       const status = await ensureOllamaReady({ warmup: false, log: false });
       return res.status(200).json({
         ok: true,
+        provider: aiSource(),
         model: getOllamaModelName(),
         ollama: status.ok,
         modelAvailable: status.modelAvailable,
@@ -49,10 +53,12 @@ export function createAiRouter() {
     try {
       const spec = buildStudentRoutePrompt(req.body || {});
       const result = await askOllama(spec.system, spec.payload, spec.schema);
-      result.recommendedMissionIds = (Array.isArray(result.recommendedMissionIds) ? result.recommendedMissionIds : [])
+      result.recommendedMissionIds = (
+        Array.isArray(result.recommendedMissionIds) ? result.recommendedMissionIds : []
+      )
         .filter((id) => spec.validIds.has(id))
         .slice(0, 3);
-      return res.status(200).json({ ...result, model: getOllamaModelName(), source: 'ollama' });
+      return res.status(200).json({ ...result, model: getOllamaModelName(), source: aiSource() });
     } catch (error) {
       return next(error);
     }
@@ -67,7 +73,7 @@ export function createAiRouter() {
         input.success ? 80 : 0,
         Math.min(input.success ? 100 : 65, Math.round(Number(result.score) || 0)),
       );
-      return res.status(200).json({ ...result, model: getOllamaModelName(), source: 'ollama' });
+      return res.status(200).json({ ...result, model: getOllamaModelName(), source: aiSource() });
     } catch (error) {
       return next(error);
     }
@@ -83,7 +89,7 @@ export function createAiRouter() {
         spec.catalog,
         spec.dominantWeakSkills,
       );
-      return res.status(200).json({ ...result, model: getOllamaModelName(), source: 'ollama' });
+      return res.status(200).json({ ...result, model: getOllamaModelName(), source: aiSource() });
     } catch (error) {
       return next(error);
     }
@@ -94,7 +100,7 @@ export function createAiRouter() {
       const spec = buildCoachPrompt(req.body || {});
       const result = await askOllama(spec.system, spec.payload, spec.schema);
       result.message = String(result.message || '').slice(0, 180);
-      return res.status(200).json({ ...result, model: getOllamaModelName(), source: 'ollama' });
+      return res.status(200).json({ ...result, model: getOllamaModelName(), source: aiSource() });
     } catch (error) {
       return next(error);
     }
@@ -110,8 +116,8 @@ export function createAiRouter() {
     const isTimeout = err?.name === 'TimeoutError';
     return res.status(isTimeout ? 504 : 503).json({
       error: isTimeout
-        ? 'Ollama tardó demasiado en responder.'
-        : 'No fue posible obtener una respuesta de Ollama.',
+        ? 'El proveedor de IA tardó demasiado en responder.'
+        : 'No fue posible obtener una respuesta del proveedor de IA.',
       detail: process.env.NODE_ENV === 'development' ? err?.message : undefined,
     });
   });

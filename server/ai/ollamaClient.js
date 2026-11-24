@@ -2,14 +2,18 @@ import { spawn } from 'node:child_process';
 
 const DEFAULT_OLLAMA_URL = 'http://127.0.0.1:11434';
 const DEFAULT_OLLAMA_MODEL = 'qwen2.5:3b';
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 const TAGS_TIMEOUT_MS = 2500;
 const POLL_TAGS_TIMEOUT_MS = 2000;
 const POLL_INTERVAL_MS = 600;
 const STARTUP_TIMEOUT_MS = 12_000;
 const CHAT_TIMEOUT_MS = 90_000;
+const GEMINI_TIMEOUT_MS = 25_000;
 
 const ollamaUrl = (process.env.OLLAMA_URL || DEFAULT_OLLAMA_URL).replace(/\/$/, '');
 const ollamaModel = process.env.OLLAMA_MODEL || DEFAULT_OLLAMA_MODEL;
+const geminiApiKey = (process.env.GEMINI_API_KEY || '').trim();
+const geminiModel = (process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL).trim();
 
 let startupPromise = null;
 const inflightRequests = new Map();
@@ -24,11 +28,19 @@ function logAi(enabled, level, message) {
 }
 
 /**
- * Devuelve el nombre del modelo Ollama configurado en el entorno.
+ * Indica si existe una clave `GEMINI_API_KEY` configurada en el servidor (ej. Vercel).
+ * @returns {boolean}
+ */
+export function isGeminiConfigured() {
+  return Boolean(geminiApiKey);
+}
+
+/**
+ * Devuelve el nombre del modelo IA activo (Gemini en la nube u Ollama local).
  * @returns {string}
  */
 export function getOllamaModelName() {
-  return ollamaModel;
+  return isGeminiConfigured() ? geminiModel : ollamaModel;
 }
 
 /**
@@ -55,6 +67,7 @@ export async function fetchOllamaTags(timeoutMs = TAGS_TIMEOUT_MS) {
  * Envía un pulso ligero de calentamiento para mantener el modelo cargado en memoria.
  */
 export function warmupOllamaModel() {
+  if (isGeminiConfigured()) return;
   fetch(`${ollamaUrl}/api/generate`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -77,11 +90,14 @@ function trySpawnOllamaServe() {
 }
 
 /**
- * Verifica que el demonio local de Ollama responda; si no está activo, intenta iniciarlo.
+ * Verifica que el proveedor IA esté listo (Gemini en la nube o demonio local de Ollama).
  * @param {{ warmup?: boolean, log?: boolean }} [options]
- * @returns {Promise<{ ok: boolean, modelAvailable: boolean }>}
+ * @returns {Promise<{ ok: boolean, modelAvailable: boolean, provider?: string }>}
  */
 export async function ensureOllamaReady({ warmup = false, log = false } = {}) {
+  if (isGeminiConfigured()) {
+    return { ok: true, modelAvailable: true, provider: 'gemini' };
+  }
   if (startupPromise) return startupPromise;
 
   startupPromise = (async () => {
@@ -161,6 +177,35 @@ export function parseModelJson(content) {
   }
 }
 
+async function requestGeminiChat(systemPrompt, input, formatSchema) {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`;
+  const result = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-goog-api-key': geminiApiKey,
+    },
+    signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: 'user', parts: [{ text: JSON.stringify(input) }] }],
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+        responseJsonSchema: formatSchema,
+      },
+    }),
+  });
+
+  if (!result.ok) {
+    throw new Error(`Gemini respondió ${result.status}.`);
+  }
+
+  const payload = await result.json();
+  const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return parseModelJson(text);
+}
+
 async function requestOllamaChat(bodyPayload) {
   const result = await fetch(`${ollamaUrl}/api/chat`, {
     method: 'POST',
@@ -176,15 +221,18 @@ async function requestOllamaChat(bodyPayload) {
 }
 
 /**
- * Envía una consulta estructurada a Ollama reutilizando solicitudes idénticas en vuelo.
+ * Envía una consulta estructurada al proveedor IA activo (Gemini API si hay `GEMINI_API_KEY` u Ollama local)
+ * reutilizando solicitudes idénticas en vuelo.
  * @param {string} systemPrompt
  * @param {unknown} input
  * @param {Record<string, unknown>} formatSchema
  * @returns {Promise<Record<string, unknown>>}
  */
 export async function askOllama(systemPrompt, input, formatSchema) {
+  const activeProvider = isGeminiConfigured() ? 'gemini' : 'ollama';
   const bodyPayload = JSON.stringify({
-    model: ollamaModel,
+    provider: activeProvider,
+    model: getOllamaModelName(),
     stream: false,
     format: formatSchema,
     keep_alive: '30m',
@@ -201,6 +249,9 @@ export async function askOllama(systemPrompt, input, formatSchema) {
   }
 
   const task = (async () => {
+    if (activeProvider === 'gemini') {
+      return requestGeminiChat(systemPrompt, input, formatSchema);
+    }
     try {
       return await requestOllamaChat(bodyPayload);
     } catch (firstError) {
