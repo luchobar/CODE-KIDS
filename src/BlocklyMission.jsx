@@ -8,7 +8,9 @@ import {
 } from '@phosphor-icons/react';
 import { BLOCKLY_LESSONS, challengeCategory, getBlocklyChallenge } from './blocklyChallenges.js';
 import BlocklyBriefingPanel from './components/ui/BlocklyBriefingPanel.jsx';
+import ContextualTooltip from './components/ui/ContextualTooltip.jsx';
 import RobotGridStage from './components/ui/RobotGridStage.jsx';
+import { WORKSPACE_TOOLTIPS } from './data/pedagogicalGlossary.js';
 import { BLOCKLY_MAX_BLOCKS } from './engines/blocklyConfig.js';
 import { useBlocklyWorkspace } from './hooks/useBlocklyWorkspace.js';
 import './BlocklyMission.css';
@@ -152,6 +154,11 @@ export default function BlocklyMission({
               <span className="block-counter-pill">
                 Bloques: <b>{blockCount}</b> / {BLOCKLY_MAX_BLOCKS}
               </span>
+              <ContextualTooltip
+                label="Límite de bloques"
+                content={WORKSPACE_TOOLTIPS.blockLimit}
+                align="right"
+              />
             </div>
           </div>
 
@@ -261,9 +268,16 @@ export default function BlocklyMission({
                 <span>🧩 Bloques</span>
               </button>
             </div>
-          </div>
 
-          <small className="blockly-attempts">Intentos en esta misión: {attempts}</small>
+            <div className="blockly-stage-helper-row">
+              <small className="blockly-attempts">Intentos en esta misión: {attempts}</small>
+              <ContextualTooltip
+                label="Depuración paso a paso"
+                content={WORKSPACE_TOOLTIPS.stepDebugger}
+                align="right"
+              />
+            </div>
+          </div>
         </section>
       </div>
 

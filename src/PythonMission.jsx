@@ -11,6 +11,7 @@ import {
 import { FormattedInstructions } from './components/ui/FormattedInstructions.jsx';
 import MissionWorkspaceShell from './components/ui/MissionWorkspaceShell.jsx';
 import RobotGridStage from './components/ui/RobotGridStage.jsx';
+import { WORKSPACE_TOOLTIPS } from './data/pedagogicalGlossary.js';
 import {
   buildAllPythonMissions,
   compilePythonGridExecution,
@@ -224,6 +225,8 @@ export default function PythonMission({
       briefLabel={mission?.mode === 'function' ? 'Misión Avanzada de Expansión' : 'Fundamento'}
       xpReward={mission?.xpReward ?? 0}
       coinReward={mission?.coinReward ?? 0}
+      pedagogySkill="Python"
+      tooltipText={WORKSPACE_TOOLTIPS.pythonIndent}
       instructions={
         mission?.mode === 'function' && mission.instructionsMd ? (
           <FormattedInstructions markdown={mission.instructionsMd} />

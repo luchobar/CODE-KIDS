@@ -1,16 +1,20 @@
+import { useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CheckCircle,
   Coins,
   Lightbulb,
   Lightning,
   WarningCircle,
 } from '@phosphor-icons/react';
+import ContextualTooltip from './ContextualTooltip.jsx';
+import MicroLearningPanel from './MicroLearningPanel.jsx';
 
 /**
  * Cascarón visual compartido por los laboratorios de código (Python, HTML5 y JavaScript).
- * Centraliza barra superior, selector de misiones, pistas, pestañas móviles y banner de resultados.
+ * Centraliza barra superior, guía teórica desplegable, pistas, pestañas móviles y resultados.
  */
 export default function MissionWorkspaceShell({
   backLabel,
@@ -25,6 +29,8 @@ export default function MissionWorkspaceShell({
   xpReward,
   coinReward,
   instructions,
+  pedagogySkill = '',
+  tooltipText = '',
   hintsCount = 0,
   hintIndex = 0,
   activeHint = '',
@@ -43,6 +49,8 @@ export default function MissionWorkspaceShell({
   isEmpty = false,
   emptyTitle = 'No hay misiones disponibles en este laboratorio.',
 }) {
+  const [showPedagogy, setShowPedagogy] = useState(false);
+
   if (isEmpty) {
     return (
       <main id="top" className="apple-page fullscreen-exercise-page">
@@ -87,22 +95,42 @@ export default function MissionWorkspaceShell({
               <span className="mission-reward-tag coins">
                 <Coins size={13} weight="fill" /> +{coinReward} Monedas
               </span>
+              {tooltipText && (
+                <ContextualTooltip label="Guía rápida del lenguaje" content={tooltipText} />
+              )}
             </div>
             {instructions}
           </div>
-          {hintsCount > 0 && (
-            <button type="button" onClick={onToggleHint}>
-              <Lightbulb size={15} weight="regular" />
-              <span>
-                {hintIndex === 0
-                  ? `Ver pista (0/${hintsCount})`
-                  : hintIndex < hintsCount
-                    ? `Siguiente pista (${hintIndex}/${hintsCount})`
-                    : 'Ocultar pistas'}
-              </span>
-            </button>
-          )}
+          <div className="mission-brief-actions">
+            {pedagogySkill && (
+              <button
+                type="button"
+                className={`button-secondary-pill${showPedagogy ? ' active' : ''}`}
+                aria-expanded={showPedagogy}
+                onClick={() => setShowPedagogy((prev) => !prev)}
+              >
+                <BookOpen size={15} weight="duotone" />
+                <span>{showPedagogy ? 'Ocultar guía teórica' : '📘 Guía teórica y ejemplos'}</span>
+              </button>
+            )}
+            {hintsCount > 0 && (
+              <button type="button" className="button-pearl-capsule" onClick={onToggleHint}>
+                <Lightbulb size={15} weight="regular" />
+                <span>
+                  {hintIndex === 0
+                    ? `Ver pista (0/${hintsCount})`
+                    : hintIndex < hintsCount
+                      ? `Siguiente pista (${hintIndex}/${hintsCount})`
+                      : 'Ocultar pistas'}
+                </span>
+              </button>
+            )}
+          </div>
         </div>
+
+        {showPedagogy && pedagogySkill && (
+          <MicroLearningPanel skill={pedagogySkill} variant="compact" defaultOpen />
+        )}
 
         {hintIndex > 0 && activeHint && (
           <p className="python-hint" role="status">

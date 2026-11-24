@@ -1,4 +1,5 @@
 import { Compass, Cpu, Lightbulb, ListChecks, Sparkle } from '@phosphor-icons/react';
+import MicroLearningPanel from './MicroLearningPanel.jsx';
 
 /**
  * Panel lateral de guía con Pipo, objetivos de la misión y pistas progresivas para Blockly.
@@ -80,6 +81,8 @@ export default function BlocklyBriefingPanel({
           </div>
         )}
       </div>
+
+      <MicroLearningPanel skill={category} variant="compact" />
     </aside>
   );
 }

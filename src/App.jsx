@@ -16,6 +16,7 @@ import TeacherDashboard from './features/teacher/TeacherDashboard.jsx';
 import { useAccessibility } from './hooks/useAccessibility.js';
 import { useAppSession } from './hooks/useAppSession.js';
 import { useClassroomState } from './hooks/useClassroomState.js';
+import { usePortalNavigation } from './hooks/usePortalNavigation.js';
 
 function resolveInitialPublicView() {
   if (typeof window === 'undefined') return 'landing';
@@ -24,7 +25,8 @@ function resolveInitialPublicView() {
 }
 
 /**
- * Compositor raíz de CodeKids: coordina navegación de vistas públicas, portal estudiante y consola docente.
+ * Compositor raíz multi-vista de CodeKids: coordina vistas públicas, portal explorador,
+ * consola docente, laboratorios interactivos y estado global de navegación.
  */
 export default function App() {
   const { a11y, setA11y, resetA11y } = useAccessibility();
@@ -46,6 +48,19 @@ export default function App() {
     setActivePythonMissionId('');
     setActiveCodeWorld(null);
   }, []);
+
+  const {
+    studentTab,
+    selectedLearnSkill,
+    setSelectedLearnSkill,
+    teacherTab,
+    landingTab,
+    navigateStudentTab,
+    navigateTeacherTab,
+    navigateLandingTab,
+    resetNavigation,
+    buildBreadcrumbs,
+  } = usePortalNavigation();
 
   const {
     state,
@@ -86,50 +101,77 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: scrollBehavior });
-  }, [view, activeSkill, activeAssignment, activePython, activeCodeWorld, scrollBehavior]);
+  }, [
+    view,
+    activeSkill,
+    activeAssignment,
+    activePython,
+    activeCodeWorld,
+    studentTab,
+    teacherTab,
+    landingTab,
+    publicView,
+    scrollBehavior,
+  ]);
 
   const handleEnterSession = async (user) => {
     await enter(user);
+    resetNavigation();
     setView('home');
     setPublicView('landing');
   };
 
   const handleExitSession = async () => {
     await exit();
+    resetNavigation();
     setView('home');
     setPublicView('landing');
   };
 
   const openLoginView = () => {
     setPublicView('login');
-    window.scrollTo({ top: 0, behavior: scrollBehavior });
   };
 
-  const openLandingView = () => {
+  const openLandingView = (nextTab = '') => {
+    if (nextTab) navigateLandingTab(nextTab);
     setPublicView('landing');
-    window.scrollTo({ top: 0, behavior: scrollBehavior });
   };
 
   const resetToHome = () => {
     clearActiveWorkspaces();
-    if (!state.user) setPublicView('landing');
+    if (!state.user) {
+      setPublicView('landing');
+      navigateLandingTab('overview');
+    } else if (state.user.role === 'teacher') {
+      navigateTeacherTab('overview');
+    } else {
+      navigateStudentTab('overview');
+    }
     setView('home');
-    window.scrollTo({ top: 0, behavior: scrollBehavior });
+  };
+
+  const handleSelectStudentTab = (tabId, skill = '') => {
+    clearActiveWorkspaces();
+    setView('home');
+    navigateStudentTab(tabId, skill);
+  };
+
+  const handleSelectTeacherTab = (tabId) => {
+    clearActiveWorkspaces();
+    navigateTeacherTab(tabId);
   };
 
   const goToMissions = () => {
     clearActiveWorkspaces();
     if (!state.user) {
-      if (publicView !== 'landing') setPublicView('landing');
-      window.setTimeout(() => {
-        document.getElementById('mundos')?.scrollIntoView({ behavior: scrollBehavior });
-      }, 80);
+      openLandingView('worlds');
       return;
     }
-    setView('home');
-    window.setTimeout(() => {
-      document.getElementById('curriculum')?.scrollIntoView({ behavior: scrollBehavior });
-    }, 60);
+    if (state.user.role === 'teacher') {
+      handleSelectTeacherTab('assignments');
+      return;
+    }
+    handleSelectStudentTab('learn');
   };
 
   const openAssessment = () => {
@@ -157,12 +199,23 @@ export default function App() {
     setView('result');
   };
 
-  const showMobileStudentBar =
-    state.user?.role === 'student' &&
-    !activePython &&
-    !activeCodeWorld &&
-    !activeSkill &&
-    !activeAssignment;
+  const hasOpenWorkspace = Boolean(
+    activePython || activeCodeWorld || activeSkill || activeAssignment,
+  );
+  const showMobileStudentBar = state.user?.role === 'student' && !hasOpenWorkspace;
+
+  const breadcrumbs = buildBreadcrumbs({
+    user: state.user,
+    view,
+    activeSkill,
+    activeAssignment,
+    activePython,
+    activeCodeWorld,
+    studentTab,
+    teacherTab,
+    landingTab,
+    onHome: resetToHome,
+  });
 
   return (
     <div className="portal-shell">
@@ -178,17 +231,28 @@ export default function App() {
         onAssessment={openAssessment}
         onPython={openPythonLab}
         onHome={resetToHome}
-        onGoMissions={goToMissions}
         publicView={publicView}
         onOpenLogin={openLoginView}
-        onBackToLanding={openLandingView}
+        onBackToLanding={() => openLandingView('overview')}
+        activeView={hasOpenWorkspace ? 'workspace' : view}
+        studentTab={studentTab}
+        onStudentTabChange={(tab) => handleSelectStudentTab(tab)}
+        teacherTab={teacherTab}
+        onTeacherTabChange={handleSelectTeacherTab}
+        landingTab={landingTab}
+        onLandingTabChange={openLandingView}
       />
 
       {!state.user ? (
         publicView === 'login' ? (
-          <LoginView onEnter={handleEnterSession} onBackToLanding={openLandingView} />
+          <LoginView onEnter={handleEnterSession} onBackToLanding={() => openLandingView('overview')} />
         ) : (
-          <PresentationLanding onOpenLogin={openLoginView} />
+          <PresentationLanding
+            onOpenLogin={openLoginView}
+            activeTab={landingTab}
+            onTabChange={navigateLandingTab}
+            breadcrumbs={breadcrumbs}
+          />
         )
       ) : state.user.role === 'teacher' ? (
         <TeacherDashboard
@@ -204,7 +268,9 @@ export default function App() {
           onDeleteAssignment={handleDeleteAssignment}
           onGradeSubmission={handleGradeSubmission}
           remoteExpansion={remoteExpansion}
-          reducedMotion={Boolean(a11y.reducedMotion)}
+          activeTab={teacherTab}
+          onTabChange={navigateTeacherTab}
+          breadcrumbs={breadcrumbs}
         />
       ) : activePython ? (
         <PythonMission
@@ -250,7 +316,11 @@ export default function App() {
       ) : view === 'assessment' ? (
         <AssessmentView onSubmit={handleFinishAssessment} onCancel={() => setView('home')} />
       ) : view === 'result' ? (
-        <ResultView state={state} onDone={() => setView('home')} />
+        <ResultView
+          state={state}
+          onDone={() => setView('home')}
+          onStudySkill={(skill) => handleSelectStudentTab('learn', skill)}
+        />
       ) : (
         <StudentDashboard
           state={state}
@@ -268,6 +338,12 @@ export default function App() {
             setActiveAssignment({ assignment, previousSubmission })
           }
           onOpenShop={() => setAvatarShop(true)}
+          activeTab={studentTab}
+          onTabChange={navigateStudentTab}
+          selectedLearnSkill={selectedLearnSkill}
+          onSelectLearnSkill={setSelectedLearnSkill}
+          breadcrumbs={breadcrumbs}
+          reducedMotion={Boolean(a11y.reducedMotion)}
         />
       )}
 
@@ -278,16 +354,16 @@ export default function App() {
         onPython={openPythonLab}
         onAssessment={openAssessment}
         onOpenLogin={openLoginView}
+        onSelectStudentSkill={(skill) => handleSelectStudentTab('learn', skill)}
+        onSelectLandingTab={openLandingView}
       />
 
       {showMobileStudentBar && (
         <MobileBottomBar
           view={view}
+          studentTab={studentTab}
           avatarShopOpen={avatarShop}
-          onHome={resetToHome}
-          onGoMissions={goToMissions}
-          onOpenPython={openPythonLab}
-          onOpenAssessment={openAssessment}
+          onSelectTab={(tabId) => handleSelectStudentTab(tabId)}
           onOpenShop={() => setAvatarShop(true)}
         />
       )}

@@ -8,8 +8,9 @@ Este documento es la referencia arquitectónica oficial del proyecto **Code Kids
 
 El sistema separa estrictamente la interfaz de usuario, la lógica de negocio/orquestación y el acceso físico a datos:
 
-1. **Capa 1 — Presentación (Frontend React SPA)**
-   - **Carpetas y vistas:** `src/App.jsx`, `src/components/` (`layout/`, `ui/`), `src/features/` (`landing/`, `auth/`, `student/`, `teacher/`), `src/styles/` (`tokens.css`, `a11y.css`, `base.css`, `buttons.css`, `layout.css`, `auth.css`, `student.css`, `teacher.css`, `modals.css`, `workspace-shared.css`, `responsive.css`, `index.css` + fachada `src/Autonomous.css`)
+1. **Capa 1 — Presentación (Frontend React SPA Multi-Vista)**
+   - **Carpetas y vistas:** `src/App.jsx`, `src/components/` (`layout/`, `ui/`), `src/features/` (`landing/`, `auth/`, `student/`, `teacher/`), `src/styles/` (`tokens.css`, `a11y.css`, `base.css`, `buttons.css`, `layout.css`, `navigation-views.css`, `pedagogy.css`, `auth.css`, `student.css`, `teacher.css`, `modals.css`, `workspace-shared.css`, `responsive.css`, `index.css` + fachada `src/Autonomous.css`)
+   - **Navegación y divulgación progresiva:** `ViewSubnav.jsx`, `ContextualTooltip.jsx` y `MicroLearningPanel.jsx` organizan tanto la página pública como los portales de estudiante y docente en 4 vistas enfocadas con *breadcrumbs*, acordeones, glosario STEAM y *steppers* interactivos sin pérdida de estado ni scroll largo.
    - **Responsabilidad:** Renderizar vistas, manejar estado puramente visual/local de UI y capturar eventos del usuario delegando toda acción de negocio a hooks o servicios desacoplados.
    - **Prohibiciones:** Nunca realizar llamadas `fetch(...)` crudas, nunca acceder a `localStorage` directamente, nunca consultar `supabase` desde componentes JSX y nunca incrustar intérpretes, motores de físicas ni lógica de negocio compleja en la vista.
 
@@ -17,7 +18,7 @@ El sistema separa estrictamente la interfaz de usuario, la lógica de negocio/or
    - **Frontend (`src/hooks/`, `src/domain/`, `src/engines/`):**
      - `src/domain/`: reglas puras de progreso (`progressRules.js`) y catálogos gamificados (`gamificationCatalog.js`).
      - `src/engines/`: motores de ejecución y simulación (`gridPhysics.js`, `blocklyConfig.js`, `pythonGridEngine.js`, `hologramPreview.js`).
-     - `src/hooks/`: hooks de React que orquestan estado, ciclo de vida (`AbortController`, limpieza de timers) y coordinación entre repositorios y vistas (`useAppSession.js`, `useClassroomState.js`, `useAccessibility.js`, `useAdaptiveRoute.js`, `useTeacherInsights.js`, `useBlocklyWorkspace.js`, `useCodeSnippetEditor.js`, `useAudioEffects.js`).
+     - `src/hooks/`: hooks de React que orquestan estado, ciclo de vida (`AbortController`, limpieza de timers), navegación multi-vista (`usePortalNavigation.js`) y coordinación entre repositorios y vistas (`useAppSession.js`, `useClassroomState.js`, `useAccessibility.js`, `useAdaptiveRoute.js`, `useTeacherInsights.js`, `useBlocklyWorkspace.js`, `useCodeSnippetEditor.js`, `useAudioEffects.js`).
    - **Backend (`server.js`, `server/ai/`, `server/api/`, `server/auth/`, `src/services/`):**
      - `server.js`: ensamblador HTTP/Express unificado que preserva las exportaciones `{ handleApiRequest, ensureOllamaReady }` para `vite.config.js` y ejecución standalone.
      - `server/ai/`: cliente Ollama (`ollamaClient.js`), constructor de prompts/analítica (`prompts.js`) y enrutador Express (`/api/health`, `/api/ai/*`).
@@ -29,7 +30,7 @@ El sistema separa estrictamente la interfaz de usuario, la lógica de negocio/or
      - `httpClient.js`: cliente único para Tier 2 (`/api/v1/*`), CSRF (`/api/v1/auth/*`) y Tutor IA (`/api/ai/*`).
      - `supabaseClient.js`: única instancia del cliente Supabase para navegador.
      - `storageStore.js`: lectura y escritura segura (`try/catch`) de `localStorage`.
-     - `seedData.js`, `classroomStats.js` y `landingContent.js`: semillas de demostración, helpers estadísticos de aula y contenido editorial de landing.
+     - `seedData.js`, `classroomStats.js`, `landingContent.js`, `pedagogicalModules.js` y `pedagogicalGlossary.js`: semillas de demostración, helpers estadísticos de aula, contenido editorial y catálogos pedagógicos STEAM.
      - `*Repository.js`: repositorios especializados por dominio (`authRepository.js`, `studentRepository.js`, `expansionRepository.js`, `classroomRepository.js`, `assignmentsRepository.js`, `reportsRepository.js`, `aiRepository.js`).
    - **Base de Datos (`sql/`):** Esquema relacional en 3FN (14 tablas), roles PostgreSQL y políticas RLS.
 

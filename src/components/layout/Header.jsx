@@ -12,7 +12,8 @@ import AccessibilityMenu from './AccessibilityMenu.jsx';
 import { AvatarGlyph } from './Glyphs.jsx';
 
 /**
- * Barra de navegación global y barra HUD gamificada del usuario autenticado.
+ * Barra de navegación global superior y barra HUD gamificada del usuario autenticado.
+ * Conecta directamente con las pestañas multi-vista de público, estudiante y docente.
  */
 export default function Header({
   user,
@@ -26,10 +27,16 @@ export default function Header({
   onAssessment,
   onPython,
   onHome,
-  onGoMissions,
   publicView = 'landing',
   onOpenLogin,
   onBackToLanding,
+  activeView = 'home',
+  studentTab = 'overview',
+  onStudentTabChange,
+  teacherTab = 'overview',
+  onTeacherTabChange,
+  landingTab = 'overview',
+  onLandingTabChange,
 }) {
   const [a11yOpen, setA11yOpen] = useState(false);
   const points = state?.points || 0;
@@ -37,22 +44,31 @@ export default function Header({
   const xpInLevel = points % 100;
   const scrollBehavior = a11y?.reducedMotion ? 'auto' : 'smooth';
 
-  const scrollToLanding = (event, sectionId) => {
-    event.preventDefault();
-    if (publicView !== 'landing' && onBackToLanding) {
-      onBackToLanding();
-      window.setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: scrollBehavior });
-      }, 100);
-      return;
-    }
-    const target = document.getElementById(sectionId);
-    if (target) {
-      target.scrollIntoView({ behavior: scrollBehavior });
-    } else {
-      window.scrollTo({ top: 0, behavior: scrollBehavior });
-    }
+  const goLandingTab = (tabId) => {
+    if (onLandingTabChange) onLandingTabChange(tabId);
+    if (publicView !== 'landing' && onBackToLanding) onBackToLanding();
   };
+
+  const publicLinks = [
+    { id: 'overview', label: 'Inicio' },
+    { id: 'methodology', label: 'Metodología' },
+    { id: 'worlds', label: 'Mundos' },
+    { id: 'community', label: 'Comunidad' },
+  ];
+
+  const studentLinks = [
+    { id: 'overview', label: 'Resumen' },
+    { id: 'learn', label: 'Aprender' },
+    { id: 'labs', label: 'Práctica' },
+    { id: 'progress', label: 'Progreso' },
+  ];
+
+  const teacherLinks = [
+    { id: 'overview', label: 'Resumen' },
+    { id: 'courses', label: 'Cursos' },
+    { id: 'assignments', label: 'Actividades' },
+    { id: 'analytics', label: 'Analítica' },
+  ];
 
   return (
     <div className="apple-nav-stack">
@@ -64,10 +80,9 @@ export default function Header({
             onClick={(event) => {
               event.preventDefault();
               if (user) {
-                if (onHome) onHome();
-              } else if (onBackToLanding) {
-                onBackToLanding();
+                onHome?.();
               } else {
+                goLandingTab('overview');
                 window.scrollTo({ top: 0, behavior: scrollBehavior });
               }
             }}
@@ -81,40 +96,61 @@ export default function Header({
           </a>
 
           <nav className="global-nav-links" aria-label="Secciones principales">
-            {user ? (
+            {user?.role === 'student' ? (
               <>
-                <button type="button" className="global-nav-link-btn" onClick={() => onHome?.()}>
-                  Mapa
-                </button>
-                <button type="button" className="global-nav-link-btn" onClick={() => onGoMissions?.()}>
-                  Misiones
-                </button>
-                {user.role === 'student' && (
-                  <>
-                    <button type="button" className="global-nav-link-btn" onClick={onAssessment}>
-                      Diagnóstico
+                {studentLinks.map((item) => {
+                  const isActive = activeView === 'home' && studentTab === item.id;
+                  return (
+                    <button
+                      type="button"
+                      key={item.id}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={`global-nav-link-btn${isActive ? ' active' : ''}`}
+                      onClick={() => onStudentTabChange?.(item.id)}
+                    >
+                      {item.label}
                     </button>
-                    <button type="button" className="global-nav-link-btn" onClick={() => onPython?.('')}>
-                      Lab Python
-                    </button>
-                  </>
-                )}
+                  );
+                })}
+                <button
+                  type="button"
+                  aria-current={activeView === 'assessment' ? 'page' : undefined}
+                  className={`global-nav-link-btn${activeView === 'assessment' ? ' active' : ''}`}
+                  onClick={onAssessment}
+                >
+                  Diagnóstico
+                </button>
               </>
+            ) : user?.role === 'teacher' ? (
+              teacherLinks.map((item) => {
+                const isActive = teacherTab === item.id;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`global-nav-link-btn${isActive ? ' active' : ''}`}
+                    onClick={() => onTeacherTabChange?.(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })
             ) : (
-              <>
-                <button type="button" className="global-nav-link-btn" onClick={(e) => scrollToLanding(e, 'top')}>
-                  Inicio
-                </button>
-                <button type="button" className="global-nav-link-btn" onClick={(e) => scrollToLanding(e, 'objetivo')}>
-                  ¿Qué es? y Objetivo
-                </button>
-                <button type="button" className="global-nav-link-btn" onClick={(e) => scrollToLanding(e, 'metodologia')}>
-                  Metodología
-                </button>
-                <button type="button" className="global-nav-link-btn" onClick={(e) => scrollToLanding(e, 'mundos')}>
-                  Mundos
-                </button>
-              </>
+              publicLinks.map((item) => {
+                const isActive = publicView === 'landing' && landingTab === item.id;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`global-nav-link-btn${isActive ? ' active' : ''}`}
+                    onClick={() => goLandingTab(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })
             )}
           </nav>
 

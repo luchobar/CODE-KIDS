@@ -1,0 +1,203 @@
+/* ==========================================================================
+   Multi-View Navigation: Sticky Subnav, Breadcrumbs, View Tabs & Transitions
+   (Usa exclusivamente design tokens de tokens.css)
+   ========================================================================== */
+
+.global-nav-links .global-nav-link-btn {
+  position: relative;
+  padding: 6px 2px;
+  transition: color 0.18s ease;
+}
+
+.global-nav-links .global-nav-link-btn:hover,
+.global-nav-links .global-nav-link-btn.active {
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.global-nav-links .global-nav-link-btn.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: var(--rounded-pill);
+  background: var(--color-accent-lime);
+}
+
+.view-subnav-bar {
+  position: sticky;
+  top: 48px;
+  z-index: 35;
+  background-color: var(--color-subnav-bg);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.view-subnav-inner {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 10px var(--space-lg);
+  display: grid;
+  gap: 8px;
+}
+
+.view-subnav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.view-subnav-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.breadcrumb-trail {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-ink-muted-48);
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb-link {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary-on-dark);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--rounded-xs);
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-current {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.view-tabs-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.view-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+.view-tab-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--rounded-pill);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas);
+  color: var(--color-ink-muted-80);
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.view-tab-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-ink);
+}
+
+.view-tab-btn.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.view-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--rounded-pill);
+  background-color: var(--color-accent-lime);
+  color: var(--color-cta-lime-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.subnav-course-pill {
+  padding: 6px 12px;
+  border-radius: var(--rounded-pill);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas);
+  color: var(--color-ink-muted-80);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.subnav-course-pill.selected {
+  border-color: var(--color-primary);
+  background-color: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+}
+
+.compact-portal-hero {
+  padding: var(--space-xl) 0;
+}
+
+.portal-tab-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.view-stage-panel {
+  animation: viewStageEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes viewStageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 833px) {
+  .view-subnav-bar {
+    position: static;
+  }
+
+  .view-subnav-inner {
+    padding: 8px var(--space-sm);
+  }
+}

@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 import { FormattedInstructions } from './components/ui/FormattedInstructions.jsx';
 import MissionWorkspaceShell from './components/ui/MissionWorkspaceShell.jsx';
+import { WORKSPACE_TOOLTIPS } from './data/pedagogicalGlossary.js';
 import {
   buildHologramSrcDoc,
   HTML_SNIPPETS,
@@ -186,6 +187,8 @@ export default function CodeWorldLab({
       briefLabel="Consigna de Misión"
       xpReward={mission?.xp_recompensa ?? 0}
       coinReward={mission?.monedas_recompensa ?? 0}
+      pedagogySkill={isHtml ? 'HTML5' : 'JavaScript'}
+      tooltipText={isHtml ? WORKSPACE_TOOLTIPS.hologramDom : WORKSPACE_TOOLTIPS.unitTests}
       instructions={<FormattedInstructions markdown={mission?.instrucciones_md || ''} />}
       hintsCount={hintsList.length}
       hintIndex={hintIndex}

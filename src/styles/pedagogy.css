@@ -1,0 +1,651 @@
+/* ==========================================================================
+   Pedagogical Micro-Learning, Tooltips, Steppers, Accordions & STEAM Glossary
+   (Usa exclusivamente design tokens de tokens.css)
+   ========================================================================== */
+
+.pedagogy-panel {
+  border-radius: var(--rounded-lg);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  padding: var(--space-lg);
+  display: grid;
+  gap: var(--space-md);
+}
+
+.pedagogy-panel.variant-compact {
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-canvas-parchment);
+  gap: var(--space-sm);
+}
+
+.pedagogy-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.pedagogy-header-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.pedagogy-header-copy h3 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.pedagogy-header-copy p {
+  font-size: 0.94rem;
+  color: var(--color-ink-muted-80);
+}
+
+.pedagogy-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.pedagogy-level-chip,
+.pedagogy-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--rounded-pill);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.pedagogy-level-chip {
+  background-color: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+}
+
+.pedagogy-time-chip {
+  background-color: var(--color-surface-pearl);
+  color: var(--color-ink-muted-80);
+}
+
+.pedagogy-compact-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.pedagogy-toggle-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pedagogy-chevron {
+  flex: none;
+  transition: transform 0.18s ease;
+}
+
+.pedagogy-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.pedagogy-body {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.pedagogy-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.pedagogy-pillar-card {
+  padding: var(--space-md);
+  border-radius: var(--rounded-md);
+  background-color: var(--color-canvas-parchment);
+  border: 1px solid var(--color-hairline);
+  display: grid;
+  gap: 4px;
+}
+
+.pedagogy-pillar-card b {
+  font-size: 0.82rem;
+  color: var(--color-primary-on-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pedagogy-pillar-card p {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--color-ink-muted-80);
+}
+
+.pedagogy-stepper {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--rounded-md);
+  background-color: var(--color-surface-pearl);
+  border: 1px solid var(--color-hairline);
+}
+
+.pedagogy-stepper-top,
+.pedagogy-stepper-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.pedagogy-stepper-title {
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--color-primary-on-dark);
+}
+
+.pedagogy-stepper-dots,
+.assessment-step-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepper-dot-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--rounded-full);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stepper-dot-btn.done {
+  border-color: var(--color-lime-border);
+  background-color: var(--color-lime-bg);
+  color: var(--color-lime-fg);
+}
+
+.stepper-dot-btn.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.pedagogy-stepper-card {
+  display: grid;
+  gap: 8px;
+  padding: var(--space-sm);
+  border-radius: var(--rounded-sm);
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+}
+
+.pedagogy-stepper-card h4 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.stepper-code-box {
+  padding: 10px 12px;
+  border-radius: var(--rounded-sm);
+  background-color: var(--color-code-bg);
+  color: var(--color-code-string);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.pedagogy-step-counter {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted-48);
+  font-weight: 600;
+}
+
+.pedagogy-detail-box {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.pedagogy-detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pedagogy-detail-tab {
+  padding: 6px 14px;
+  border-radius: var(--rounded-pill);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas-parchment);
+  color: var(--color-ink-muted-80);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pedagogy-detail-tab.active {
+  background-color: var(--tone-blue-bg);
+  border-color: var(--color-primary);
+  color: var(--tone-blue-fg);
+}
+
+.pedagogy-concepts-list,
+.pedagogy-tips-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.pedagogy-concepts-list li,
+.pedagogy-tips-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--color-ink-muted-80);
+}
+
+.pedagogy-concepts-list li svg {
+  color: var(--color-success-fg);
+  flex: none;
+  margin-top: 2px;
+}
+
+.pedagogy-tips-list li svg {
+  color: var(--color-warning-fg);
+  flex: none;
+  margin-top: 2px;
+}
+
+.pedagogy-mistakes-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.mistake-pair {
+  padding: var(--space-sm);
+  border-radius: var(--rounded-sm);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas-parchment);
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.mistake-bad,
+.mistake-fix {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.mistake-bad svg {
+  color: var(--color-error-fg);
+  flex: none;
+  margin-top: 2px;
+}
+
+.mistake-fix svg {
+  color: var(--color-success-fg);
+  flex: none;
+  margin-top: 2px;
+}
+
+.pedagogy-accordions {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.pedagogy-accordion-item {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--rounded-md);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas-parchment);
+}
+
+.pedagogy-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pedagogy-accordion-head {
+  display: grid;
+  gap: 2px;
+}
+
+.pedagogy-accordion-head small {
+  font-size: 0.76rem;
+  color: var(--color-ink-muted-48);
+}
+
+.pedagogy-accordion-body {
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-hairline);
+  font-size: 0.88rem;
+  color: var(--color-ink-muted-80);
+  line-height: 1.5;
+}
+
+/* Contextual Tooltips */
+.contextual-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.contextual-tooltip-trigger {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--rounded-full);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+  cursor: pointer;
+}
+
+.contextual-tooltip-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 70;
+  width: min(290px, 78vw);
+  padding: 12px 14px;
+  border-radius: var(--rounded-md);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  border: 1px solid var(--color-primary);
+  box-shadow: var(--shadow-product);
+  display: grid;
+  gap: 6px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.contextual-tooltip-popover.align-left {
+  left: 0;
+}
+
+.contextual-tooltip-popover.align-right {
+  right: 0;
+}
+
+.contextual-tooltip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--color-primary-on-dark);
+}
+
+.contextual-tooltip-close {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--rounded-full);
+  background-color: var(--color-canvas-parchment);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+/* Dashboard Helpers, Launchpad, Skill Bars & Glossary */
+.blockly-stage-helper-row,
+.overview-metrics-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.mission-brief-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.mission-brief-actions .button-secondary-pill.active {
+  background-color: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+}
+
+.overview-assignment-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.overview-stat-pill {
+  padding: var(--space-sm);
+  border-radius: var(--rounded-md);
+  background-color: var(--color-canvas-parchment);
+  border: 1px solid var(--color-hairline);
+  display: grid;
+}
+
+.overview-stat-pill b {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--color-primary-on-dark);
+}
+
+.skill-mastery-list {
+  display: grid;
+  gap: 10px;
+}
+
+.skill-mastery-row {
+  display: grid;
+  gap: 4px;
+}
+
+.skill-mastery-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.skill-mastery-track {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--rounded-pill);
+  background-color: var(--color-divider-soft);
+  overflow: hidden;
+}
+
+.skill-mastery-fill {
+  height: 100%;
+  border-radius: var(--rounded-pill);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent-lime));
+  transition: width 0.3s ease;
+}
+
+.profile-xp-bar-wrap {
+  display: grid;
+  gap: 4px;
+}
+
+.badges-grid .badge-item small {
+  font-size: 0.68rem;
+  color: var(--color-ink-muted-48);
+  line-height: 1.2;
+}
+
+.module-selector-strip,
+.labs-launchpad-grid,
+.glossary-grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.module-selector-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.world-utility-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--rounded-pill);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-surface-tile-3);
+  color: var(--color-ink);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.labs-launchpad-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.lab-station-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.lab-station-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.lab-station-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.lab-station-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.glossary-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.glossary-search-box {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.glossary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.glossary-detail-drawer {
+  display: grid;
+  gap: 8px;
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.glossary-analogy,
+.glossary-reinforce-box {
+  font-size: 0.86rem;
+  color: var(--color-ink-muted-80);
+  display: grid;
+  gap: 6px;
+}
+
+.assessment-stepper-bar {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.assessment-stepper-top,
+.assessment-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.assessment-progress-meta .skill-mastery-track {
+  flex: 1 1 180px;
+}
+
+.assessment-pedagogy-note {
+  display: grid;
+  gap: 6px;
+  padding: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  border-radius: var(--rounded-sm);
+  background-color: var(--color-canvas-parchment);
+  border: 1px solid var(--color-hairline);
+  font-size: 0.84rem;
+  color: var(--color-ink-muted-80);
+}
+
+.assessment-pedagogy-note p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.result-pedagogy-wrap {
+  width: 100%;
+  max-width: 680px;
+  text-align: left;
+}
+
+@media (max-width: 833px) {
+  .pedagogy-pillars-grid,
+  .glossary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pedagogy-panel {
+    padding: var(--space-md);
+  }
+}

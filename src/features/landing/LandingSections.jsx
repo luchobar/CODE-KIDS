@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ArrowRight,
   Brain,
@@ -42,7 +43,13 @@ const WORLD_ICONS = {
   js: <FileJs size={24} weight="regular" />,
 };
 
-export function LandingHeroSection({ onOpenLogin, onScrollToObjective }) {
+const WORLD_FILTERS = [
+  { id: 'all', label: 'Todos los mundos (7)' },
+  { id: 'blocks', label: 'Bloques Visuales (4)' },
+  { id: 'code', label: 'Código Real (3)' },
+];
+
+export function LandingHeroSection({ onOpenLogin, onGoToMethodology }) {
   return (
     <section id="top" className="product-tile-light landing-hero-tile cosmic-auth-stage">
       <div className="cosmic-orb orb-cyan" aria-hidden="true" />
@@ -61,10 +68,9 @@ export function LandingHeroSection({ onOpenLogin, onScrollToObjective }) {
           </h1>
 
           <p className="landing-hero-description">
-            <strong>CodeKids</strong> es una plataforma interactiva y gamificada que enseña
-            <strong> pensamiento computacional</strong> y programación a través de misiones espaciales.
-            Guiamos a los estudiantes paso a paso desde <strong>bloques visuales lógicos</strong> hasta código real
-            escrito en <strong>Python</strong>, <strong>HTML5</strong> y <strong>JavaScript</strong>.
+            <strong>CodeKids</strong> enseña <strong>pensamiento computacional</strong> mediante misiones guiadas,
+            llevando al estudiante desde <strong>bloques visuales</strong> hasta código real en{' '}
+            <strong>Python</strong>, <strong>HTML5</strong> y <strong>JavaScript</strong>.
           </p>
 
           <div className="landing-cta-group">
@@ -78,14 +84,14 @@ export function LandingHeroSection({ onOpenLogin, onScrollToObjective }) {
               <ArrowRight size={18} weight="bold" />
             </button>
 
-            <a
-              href="#objetivo"
+            <button
+              type="button"
               className="button-secondary-pill landing-secondary-btn"
-              onClick={onScrollToObjective}
+              onClick={onGoToMethodology}
             >
               <Compass size={18} weight="duotone" />
-              <span>Conoce el objetivo</span>
-            </a>
+              <span>Explorar metodología</span>
+            </button>
           </div>
 
           <div className="landing-stats-strip">
@@ -130,17 +136,14 @@ export function LandingObjectivesSection() {
           <span className="hero-eyebrow">💡 NUESTRO PROPÓSITO FORMATIVO</span>
           <h2 className="display-lg">¿Qué es CodeKids y cuál es nuestro objetivo?</h2>
           <p className="lead-subcopy">
-            CodeKids nace con la misión de democratizar la educación tecnológica, transformando el tiempo de pantalla
-            en una experiencia formativa donde los niños no solo consumen tecnología, sino que aprenden a crearla.
+            Transformamos el tiempo frente a la pantalla en pensamiento lógico, resolución creativa de problemas y autonomía digital.
           </p>
         </div>
 
         <div className="objective-grid">
           {LANDING_OBJECTIVES.map((card) => (
             <article key={card.id} className="objective-card">
-              <div className={`objective-icon-bubble ${card.tone}`}>
-                {OBJECTIVE_ICONS[card.icon]}
-              </div>
+              <div className={`objective-icon-bubble ${card.tone}`}>{OBJECTIVE_ICONS[card.icon]}</div>
               <h3>{card.title}</h3>
               <p>{card.description}</p>
             </article>
@@ -159,7 +162,7 @@ export function LandingMethodologySection() {
           <span className="hero-eyebrow">📈 RUTA DE APRENDIZAJE GRADUAL</span>
           <h2 className="display-lg">Una metodología sin frustración.</h2>
           <p className="lead-subcopy">
-            Diseñamos una curva de dificultad progresiva para que cada estudiante avance con confianza y autonomía.
+            Tres fases progresivas diseñadas para construir confianza antes de pasar al teclado profesional.
           </p>
         </div>
 
@@ -188,6 +191,15 @@ export function LandingMethodologySection() {
 }
 
 export function LandingWorldsSection() {
+  const [filter, setFilter] = useState('all');
+
+  const visibleWorlds = LANDING_WORLDS.filter((world) => {
+    const isCode = ['python', 'html', 'js'].includes(world.id);
+    if (filter === 'blocks') return !isCode;
+    if (filter === 'code') return isCode;
+    return true;
+  });
+
   return (
     <section id="mundos" className="product-tile-dark">
       <div className="tile-container">
@@ -195,12 +207,28 @@ export function LandingWorldsSection() {
           <span className="hero-eyebrow">🗺️ UNIVERSO EXPANDIBLE</span>
           <h2 className="display-lg">Explora los 7 mundos temáticos.</h2>
           <p className="lead-subcopy">
-            Cada mundo presenta desafíos únicos, mecánicas propias y recompensas coleccionables.
+            Filtra por modalidad para conocer cómo pasamos de bloques visuales a código escrito real.
           </p>
         </div>
 
+        <div className="adventure-filters-bar mb-md" role="group" aria-label="Filtrar mundos por tipo">
+          <div className="filter-pill-group">
+            {WORLD_FILTERS.map((opt) => (
+              <button
+                type="button"
+                key={opt.id}
+                aria-pressed={filter === opt.id}
+                className={`map-filter-chip${filter === opt.id ? ' active' : ''}`}
+                onClick={() => setFilter(opt.id)}
+              >
+                <span>{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="bento-curriculum-grid">
-          {LANDING_WORLDS.map((world) =>
+          {visibleWorlds.map((world) =>
             world.featured ? (
               <article key={world.id} className="bento-cell bento-cell-featured">
                 <div className="bento-cell-copy">

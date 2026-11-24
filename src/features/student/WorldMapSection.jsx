@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Compass, Lock, Play, Star, Trophy } from '@phosphor-icons/react';
+import { BookOpen, CaretDown, Compass, Lock, Play, Star, Trophy } from '@phosphor-icons/react';
 import { SkillGlyph } from '../../components/layout/Glyphs.jsx';
 
 const TOPIC_FILTERS = [
@@ -28,7 +28,8 @@ const DEFAULT_NAMES = [
 ];
 
 /**
- * Mapa interactivo de 7 mundos con filtros por temática y dificultad y estado vacío explícito.
+ * Mapa interactivo de 7 mundos con filtros por temática/dificultad, divulgación progresiva por mundo
+ * y acceso directo a la cápsula teórica correspondiente.
  */
 export default function WorldMapSection({
   worlds,
@@ -36,9 +37,15 @@ export default function WorldMapSection({
   completedMissionCount,
   totalMissionCount,
   onOpenMissionById,
+  onStudyWorldSkill = null,
 }) {
   const [skillFilter, setSkillFilter] = useState('Todos');
   const [difficultyFilter, setDifficultyFilter] = useState('Todas');
+  const [collapsedWorlds, setCollapsedWorlds] = useState({});
+
+  const toggleWorldCollapse = (skillKey) => {
+    setCollapsedWorlds((prev) => ({ ...prev, [skillKey]: !prev[skillKey] }));
+  };
 
   const filteredWorlds = worlds
     .filter((world) => skillFilter === 'Todos' || world.skill === skillFilter)
@@ -118,6 +125,7 @@ export default function WorldMapSection({
             {filteredWorlds.map(({ world, worldIndex, visibleNodes }) => {
               const totalInWorld = world.ids.length;
               const worldDoneCount = world.ids.filter((id) => allCompleted.includes(id)).length;
+              const isCollapsed = Boolean(collapsedWorlds[world.skill]);
               const previousWorldComplete =
                 worldIndex === 0 ||
                 worldIndex >= 3 ||
@@ -140,9 +148,34 @@ export default function WorldMapSection({
                         <span className="world-skill-label">
                           <SkillGlyph skill={world.skill} size={14} /> {world.skill}
                         </span>
-                        <span className="world-progress-pill">
-                          <Star size={13} weight="fill" /> {worldDoneCount * 3} / {totalInWorld * 3} estrellas
-                        </span>
+                        <div className="inline-actions-row">
+                          <span className="world-progress-pill">
+                            <Star size={13} weight="fill" /> {worldDoneCount * 3} / {totalInWorld * 3} estrellas
+                          </span>
+                          {onStudyWorldSkill && (
+                            <button
+                              type="button"
+                              className="world-utility-btn"
+                              onClick={() => onStudyWorldSkill(world.skill)}
+                            >
+                              <BookOpen size={13} weight="duotone" />
+                              <span>📖 Teoría</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="world-utility-btn"
+                            aria-expanded={!isCollapsed}
+                            onClick={() => toggleWorldCollapse(world.skill)}
+                          >
+                            <span>{isCollapsed ? 'Expandir' : 'Contraer'}</span>
+                            <CaretDown
+                              size={12}
+                              weight="bold"
+                              className={`pedagogy-chevron${!isCollapsed ? ' rotated' : ''}`}
+                            />
+                          </button>
+                        </div>
                       </div>
                       <h3>{world.title}</h3>
                       <p>{world.subtitle}</p>
@@ -150,61 +183,64 @@ export default function WorldMapSection({
                         {worldDoneCount} de {totalInWorld} misiones completadas
                       </small>
                     </div>
-                    <div className="world-nodes-grid">
-                      {visibleNodes.map(({ id, index }) => {
-                        const done = allCompleted.includes(id);
-                        const unlockedEntryIndex =
-                          index === 0 || (world.mode === 'python' && index === 3);
-                        const locked =
-                          !previousWorldComplete ||
-                          (!unlockedEntryIndex && !allCompleted.includes(world.ids[index - 1]));
-                        const active = !done && !locked;
-                        const nodeLabel =
-                          world.nodeNames?.[index] || DEFAULT_NAMES[index] || `Misión ${index + 1}`;
-                        const xpValue = world.nodeXp?.[index] || 10;
 
-                        return (
-                          <button
-                            type="button"
-                            key={id}
-                            disabled={locked}
-                            onClick={() => onOpenMissionById(id)}
-                            aria-label={`${nodeLabel}${locked ? ', bloqueado' : done ? ', completado con 3 estrellas' : ', disponible'}`}
-                            className={`world-stage-pill${done ? ' done' : ''}${active ? ' active' : ''}${locked ? ' locked' : ''}`}
-                          >
-                            <span className="world-stage-icon">
-                              {done ? (
-                                <Trophy size={16} weight="fill" />
-                              ) : locked ? (
-                                <Lock size={15} weight="duotone" />
-                              ) : (
-                                <Play size={14} weight="fill" />
-                              )}
-                            </span>
-                            <span className="world-stage-text">
-                              <b>{nodeLabel}</b>
-                              <small>
-                                {done
-                                  ? `Completado · +${xpValue} XP`
-                                  : locked
-                                    ? '🔒 Bloqueado'
-                                    : `⚡ ¡Disponible! · +${xpValue} XP`}
-                              </small>
-                              <span className="mission-node-stars" aria-hidden="true">
-                                {[1, 2, 3].map((starIdx) => (
-                                  <Star
-                                    key={starIdx}
-                                    size={12}
-                                    weight={done ? 'fill' : 'regular'}
-                                    className={done ? 'star-earned' : 'star-empty'}
-                                  />
-                                ))}
+                    {!isCollapsed && (
+                      <div className="world-nodes-grid">
+                        {visibleNodes.map(({ id, index }) => {
+                          const done = allCompleted.includes(id);
+                          const unlockedEntryIndex =
+                            index === 0 || (world.mode === 'python' && index === 3);
+                          const locked =
+                            !previousWorldComplete ||
+                            (!unlockedEntryIndex && !allCompleted.includes(world.ids[index - 1]));
+                          const active = !done && !locked;
+                          const nodeLabel =
+                            world.nodeNames?.[index] || DEFAULT_NAMES[index] || `Misión ${index + 1}`;
+                          const xpValue = world.nodeXp?.[index] || 10;
+
+                          return (
+                            <button
+                              type="button"
+                              key={id}
+                              disabled={locked}
+                              onClick={() => onOpenMissionById(id)}
+                              aria-label={`${nodeLabel}${locked ? ', bloqueado' : done ? ', completado con 3 estrellas' : ', disponible'}`}
+                              className={`world-stage-pill${done ? ' done' : ''}${active ? ' active' : ''}${locked ? ' locked' : ''}`}
+                            >
+                              <span className="world-stage-icon">
+                                {done ? (
+                                  <Trophy size={16} weight="fill" />
+                                ) : locked ? (
+                                  <Lock size={15} weight="duotone" />
+                                ) : (
+                                  <Play size={14} weight="fill" />
+                                )}
                               </span>
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                              <span className="world-stage-text">
+                                <b>{nodeLabel}</b>
+                                <small>
+                                  {done
+                                    ? `Completado · +${xpValue} XP`
+                                    : locked
+                                      ? '🔒 Bloqueado'
+                                      : `⚡ ¡Disponible! · +${xpValue} XP`}
+                                </small>
+                                <span className="mission-node-stars" aria-hidden="true">
+                                  {[1, 2, 3].map((starIdx) => (
+                                    <Star
+                                      key={starIdx}
+                                      size={12}
+                                      weight={done ? 'fill' : 'regular'}
+                                      className={done ? 'star-earned' : 'star-empty'}
+                                    />
+                                  ))}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </article>
               );

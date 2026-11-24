@@ -1,9 +1,11 @@
-import { ArrowRight, Compass } from '@phosphor-icons/react';
+import { ArrowRight, BookOpen, Compass } from '@phosphor-icons/react';
+import MicroLearningPanel from '../../components/ui/MicroLearningPanel.jsx';
 
 /**
- * Pantalla resumen tras completar el test diagnóstico mostrando la habilidad recomendada.
+ * Pantalla resumen tras completar el test diagnóstico mostrando la habilidad recomendada
+ * junto con su cápsula pedagógica para reforzar de inmediato.
  */
-export default function ResultView({ state, onDone }) {
+export default function ResultView({ state, onDone, onStudySkill }) {
   const weakest = Object.entries(state.scores || {}).sort((a, b) => a[1] - b[1])[0] || [
     'Bucles',
     50,
@@ -30,8 +32,22 @@ export default function ResultView({ state, onDone }) {
             </div>
           </article>
 
+          <div className="result-pedagogy-wrap">
+            <MicroLearningPanel skill={weakest[0]} variant="compact" defaultOpen />
+          </div>
+
           <div className="hero-cta-row centered">
-            <button type="button" className="button-primary" onClick={onDone}>
+            {onStudySkill && (
+              <button
+                type="button"
+                className="button-secondary-pill"
+                onClick={() => onStudySkill(weakest[0])}
+              >
+                <BookOpen size={15} weight="duotone" />
+                <span>Estudiar módulo de {weakest[0]}</span>
+              </button>
+            )}
+            <button type="button" className="button-primary cta-3d-lime" onClick={onDone}>
               <span>Ir a mi nueva ruta</span>
               <ArrowRight size={15} weight="regular" />
             </button>

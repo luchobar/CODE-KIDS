@@ -7,6 +7,8 @@
 @import "./base.css";
 @import "./buttons.css";
 @import "./layout.css";
+@import "./navigation-views.css";
+@import "./pedagogy.css";
 @import "./auth.css";
 @import "./student.css";
 @import "./teacher.css";

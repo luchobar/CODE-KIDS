@@ -1,25 +1,17 @@
-import { useMemo } from 'react';
-import {
-  ArrowRight,
-  FileHtml,
-  FileJs,
-  Flame,
-  Lightning,
-  Play,
-  Sparkle,
-  TerminalWindow,
-  Trophy,
-} from '@phosphor-icons/react';
-import StatCard from '../../components/layout/StatCard.jsx';
+import { useMemo, useState } from 'react';
+import { BookOpen, Compass, GraduationCap, TerminalWindow, Trophy } from '@phosphor-icons/react';
+import ViewSubnav from '../../components/ui/ViewSubnav.jsx';
 import { buildStudentWorldsCatalog } from '../../domain/gamificationCatalog.js';
 import { computeEarnedBadges } from '../../domain/progressRules.js';
 import { useAdaptiveRoute } from '../../hooks/useAdaptiveRoute.js';
-import StudentAssignmentsSection from './StudentAssignmentsSection.jsx';
-import StudentProfilePanel from './StudentProfilePanel.jsx';
-import WorldMapSection from './WorldMapSection.jsx';
+import StudentLabsTab from './StudentLabsTab.jsx';
+import StudentLearnTab from './StudentLearnTab.jsx';
+import StudentOverviewTab from './StudentOverviewTab.jsx';
+import StudentProgressTab from './StudentProgressTab.jsx';
 
 /**
- * Panel principal del estudiante: hero, métricas, ruta adaptativa IA, mapa de mundos y retos escolares.
+ * Portal del estudiante organizado en 4 vistas enfocadas con barra fija, breadcrumbs
+ * y transición fluida sin pérdida de estado ni progreso.
  */
 export default function StudentDashboard({
   state,
@@ -35,7 +27,31 @@ export default function StudentDashboard({
   onGroupChange,
   onOpenAssignment,
   onOpenShop,
+  activeTab,
+  onTabChange,
+  selectedLearnSkill,
+  onSelectLearnSkill,
+  breadcrumbs = [],
+  reducedMotion = false,
 }) {
+  const [fallbackTab, setFallbackTab] = useState('overview');
+  const [fallbackSkill, setFallbackSkill] = useState('Secuencias');
+
+  const currentTab = activeTab || fallbackTab;
+  const currentSkill = selectedLearnSkill || fallbackSkill;
+  const changeTab = (nextTab, nextSkill = '') => {
+    if (onTabChange) {
+      onTabChange(nextTab, nextSkill);
+    } else {
+      setFallbackTab(nextTab);
+      if (nextSkill) setFallbackSkill(nextSkill);
+    }
+  };
+  const changeSkill = (nextSkill) => {
+    if (onSelectLearnSkill) onSelectLearnSkill(nextSkill);
+    else setFallbackSkill(nextSkill);
+  };
+
   const completed = state.completedMissions || [];
   const allCompleted = useMemo(
     () => Array.from(new Set([...completed, ...(pythonProgress || [])])),
@@ -43,6 +59,9 @@ export default function StudentDashboard({
   );
   const assignments = (state.assignments || []).filter((assignment) => assignment.group === group);
   const submissions = state.submissions || [];
+  const pendingCount = assignments.filter(
+    (a) => !submissions.some((s) => s.assignmentId === a.id && s.studentName === state.user.name),
+  ).length;
 
   const worlds = useMemo(() => buildStudentWorldsCatalog(expansionData), [expansionData]);
   const blocklyWorlds = useMemo(() => worlds.slice(0, 4), [worlds]);
@@ -70,6 +89,9 @@ export default function StudentDashboard({
 
   const firstOpen =
     worlds.flatMap((world) => world.ids).find((id) => !allCompleted.includes(id)) || 'sequence-forest';
+  const firstBlocklyOpen =
+    blocklyWorlds.flatMap((world) => world.ids).find((id) => !allCompleted.includes(id)) ||
+    'sequence-forest';
   const totalMissionCount = worlds.reduce((sum, world) => sum + world.ids.length, 0);
   const completedMissionCount = worlds.reduce(
     (sum, world) => sum + world.ids.filter((id) => allCompleted.includes(id)).length,
@@ -79,209 +101,95 @@ export default function StudentDashboard({
   const pythonDoneCount = pythonWorldIds.filter((id) => allCompleted.includes(id)).length;
   const badges = computeEarnedBadges(allCompleted);
 
+  const tabs = [
+    { id: 'overview', label: 'Resumen', icon: <Compass size={16} weight="duotone" /> },
+    { id: 'learn', label: 'Módulos y Mundos', icon: <BookOpen size={16} weight="duotone" /> },
+    {
+      id: 'labs',
+      label: 'Práctica y Retos',
+      icon: <TerminalWindow size={16} weight="duotone" />,
+      badge: pendingCount,
+    },
+    { id: 'progress', label: 'Progreso y Glosario', icon: <Trophy size={16} weight="duotone" /> },
+  ];
+
   return (
     <main id="top" className="apple-page">
-      <section className="product-tile-light student-hero-tile">
-        <div className="tile-container split-hero-grid">
-          <div className="split-hero-copy">
-            <span className="hero-eyebrow">🚀 TU MODO HISTORIA · MAPA DE AVENTURA</span>
-            <h1 className="hero-display">¡Hola, {state.user.name}!</h1>
-            <p className="hero-lead">
-              Cada misión completada en bloques, Python, HTML5 o JavaScript suma XP a tu rango de explorador. ¿Listo para tu siguiente reto?
-            </p>
-            <div className="hero-cta-row">
-              <button
-                type="button"
-                className="button-primary adventure-cta-btn cta-3d-lime"
-                onClick={() => openMissionById(firstOpen)}
-              >
-                <Play size={16} weight="fill" />
-                <span>Continuar misión actual</span>
-              </button>
-              <button type="button" className="button-secondary-pill" onClick={onAssessment}>
-                <Sparkle size={15} weight="duotone" />
-                <span>Test de nivelación</span>
-              </button>
-            </div>
-          </div>
-          <div className="split-hero-visual">
-            <img
-              className="product-render-shadow hero-product-image"
-              src="/images/hero-codekids.png"
-              alt="Robot Pipo listo para una nueva misión de bloques"
-              width="960"
-              height="720"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="product-tile-parchment">
-        <div className="tile-container">
-          <div className="section-header-stack">
-            <h2 className="display-lg">Tu centro de mando.</h2>
-            <p className="lead-subcopy">
-              Consulta tu experiencia acumulada, tu racha diaria y las sugerencias personalizadas por IA.
-            </p>
-          </div>
-
-          <div className="metrics-bento-grid">
-            <StatCard
-              icon={<Lightning size={24} weight="fill" />}
-              label="Experiencia Total"
-              value={`${state.points} XP`}
-              note={`Explorador Nivel ${Math.floor((state.points || 0) / 100) + 1}`}
-              tone="mint"
-            />
-            <StatCard
-              icon={<Flame size={24} weight="fill" />}
-              label="Racha Activa"
-              value={`${state.streak || 1} ${(state.streak || 1) === 1 ? 'día' : 'días'}`}
-              note="¡Sigue practicando hoy!"
-              tone="peach"
-            />
-            <StatCard
-              icon={<Trophy size={24} weight="fill" />}
-              label="Insignias y Medallas"
-              value={`${badges.count} de 3`}
-              note={`${completedMissionCount} de ${totalMissionCount} misiones superadas`}
-              tone="lav"
-            />
-          </div>
-
-          {routeStatus === 'loading' && !aiRoute && (
-            <div className="store-utility-card ai-route-banner" role="status">
-              <div className="ai-route-header">
-                <div className="ai-route-title-group">
-                  <Sparkle size={20} weight="fill" />
-                  <div>
-                    <h3>Calculando tu ruta sugerida...</h3>
-                    <p>Analizando tu progreso para recomendarte el próximo desafío ideal.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {routeStatus === 'ready' && aiRoute && (
-            <div className="store-utility-card ai-route-banner">
-              <div className="ai-route-header">
-                <div className="ai-route-title-group">
-                  <Sparkle size={20} weight="fill" />
-                  <div>
-                    <h3>Ruta sugerida por Ollama</h3>
-                    <p>{aiRoute.summary}</p>
-                  </div>
-                </div>
-                <span className="model-tag">{aiRoute.model}</span>
-              </div>
-              {aiRoute.priorities?.length > 0 && (
-                <div className="ai-priority-grid">
-                  {aiRoute.priorities.slice(0, 2).map((item) => (
-                    <div className="ai-priority-item" key={item.skill}>
-                      <b>{item.skill}</b>
-                      <p>{item.reason}</p>
-                      <small>Idea: {item.activity}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {aiRoute.recommendedMissionIds?.length > 0 && (
-                <div className="ai-route-actions">
-                  <button
-                    type="button"
-                    className="button-primary"
-                    onClick={() =>
-                      openMissionById(
-                        aiRoute.recommendedMissionIds.find((id) => !allCompleted.includes(id)) || firstOpen,
-                      )
-                    }
-                  >
-                    <span>Practicar misión sugerida</span>
-                    <ArrowRight size={15} weight="regular" />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <WorldMapSection
-        worlds={worlds}
-        allCompleted={allCompleted}
-        completedMissionCount={completedMissionCount}
-        totalMissionCount={totalMissionCount}
-        onOpenMissionById={openMissionById}
+      <ViewSubnav
+        breadcrumbs={breadcrumbs}
+        tabs={tabs}
+        activeTab={currentTab}
+        onTabChange={(tabId) => changeTab(tabId)}
+        ariaLabel="Navegación del portal explorador"
+        rightSlot={
+          <span className="sub-nav-metric">
+            <GraduationCap size={15} weight="duotone" />
+            <span>Curso {group}</span>
+          </span>
+        }
       />
 
-      <section className="product-tile-light">
-        <div className="tile-container">
-          <div className="student-dual-grid">
-            <StudentAssignmentsSection
-              group={group}
-              studentName={state.user.name}
-              assignments={assignments}
-              submissions={submissions}
-              availableCourses={availableCourses}
-              enrolledGroups={enrolledGroups}
-              onGroupChange={onGroupChange}
-              onOpenAssignment={onOpenAssignment}
-            />
-            <StudentProfilePanel
-              userName={state.user.name}
-              avatar={state.avatar}
-              points={state.points}
-              coins={state.coins}
-              completedMissionCount={completedMissionCount}
-              badges={badges}
-              onOpenShop={onOpenShop}
-            />
-          </div>
-        </div>
-      </section>
+      <div key={currentTab} className="view-stage-panel">
+        {currentTab === 'overview' && (
+          <StudentOverviewTab
+            state={state}
+            group={group}
+            badges={badges}
+            completedMissionCount={completedMissionCount}
+            totalMissionCount={totalMissionCount}
+            aiRoute={aiRoute}
+            routeStatus={routeStatus}
+            firstOpen={firstOpen}
+            assignments={assignments}
+            submissions={submissions}
+            onAssessment={onAssessment}
+            onOpenMissionById={openMissionById}
+            onNavigateTab={changeTab}
+          />
+        )}
 
-      <section className="product-tile-dark-2 python-feature-tile">
-        <div className="tile-container split-hero-grid">
-          <div className="split-hero-copy">
-            <span className="hero-eyebrow">⚡ EXPANSIÓN MULTILENGUAJE</span>
-            <h2 className="display-lg">Laboratorios de Código Real.</h2>
-            <p className="lead-subcopy">
-              Escribe código en vivo en Python ({pythonDoneCount} de 6 etapas), construye interfaces en Ciudadela HTML o programa drones en Neo-Tokio JavaScript.
-            </p>
-            <div className="hero-cta-row">
-              <button type="button" className="button-primary" onClick={() => onPython('')}>
-                <TerminalWindow size={16} weight="regular" />
-                <span>Python (6 etapas)</span>
-              </button>
-              <button
-                type="button"
-                className="button-secondary-pill"
-                onClick={() => onOpenCodeWorld('ciudadela-html', '')}
-              >
-                <FileHtml size={16} weight="regular" />
-                <span>Ciudadela HTML</span>
-              </button>
-              <button
-                type="button"
-                className="button-secondary-pill"
-                onClick={() => onOpenCodeWorld('neo-tokio-javascript', '')}
-              >
-                <FileJs size={16} weight="regular" />
-                <span>Neo-Tokio JS</span>
-              </button>
-            </div>
-          </div>
-          <div className="split-hero-visual">
-            <img
-              className="product-render-shadow hero-product-image"
-              src="/images/python-lab.png"
-              alt="Laboratorios de programación Python, HTML5 y JavaScript de CodeKids"
-              loading="lazy"
-            />
-          </div>
-        </div>
-      </section>
+        {currentTab === 'learn' && (
+          <StudentLearnTab
+            selectedSkill={currentSkill}
+            onSelectSkill={changeSkill}
+            worlds={worlds}
+            allCompleted={allCompleted}
+            completedMissionCount={completedMissionCount}
+            totalMissionCount={totalMissionCount}
+            onOpenMissionById={openMissionById}
+            reducedMotion={reducedMotion}
+          />
+        )}
+
+        {currentTab === 'labs' && (
+          <StudentLabsTab
+            firstBlocklyOpen={firstBlocklyOpen}
+            pythonDoneCount={pythonDoneCount}
+            group={group}
+            studentName={state.user.name}
+            assignments={assignments}
+            submissions={submissions}
+            availableCourses={availableCourses}
+            enrolledGroups={enrolledGroups}
+            onGroupChange={onGroupChange}
+            onOpenAssignment={onOpenAssignment}
+            onPractice={onPractice}
+            onPython={onPython}
+            onOpenCodeWorld={onOpenCodeWorld}
+            onAssessment={onAssessment}
+          />
+        )}
+
+        {currentTab === 'progress' && (
+          <StudentProgressTab
+            state={state}
+            completedMissionCount={completedMissionCount}
+            badges={badges}
+            onOpenShop={onOpenShop}
+            onStudySkill={(skill) => changeTab('learn', skill)}
+          />
+        )}
+      </div>
     </main>
   );
 }
