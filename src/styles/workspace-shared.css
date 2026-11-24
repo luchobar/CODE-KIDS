@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Shared Coding Workspace Primitives (Mobile Tabs, Syntax Bar, Live Pulse)
+   ========================================================================== */
+
+.blockly-mobile-tabs-bar,
+.python-mobile-tabs-bar {
+  display: none;
+}
+
+.mobile-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: var(--rounded-pill);
+  background: rgba(255, 255, 255, 0.25);
+  color: var(--color-on-primary);
+  font-weight: 800;
+}
+
+.tab-live-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--rounded-pill);
+  background: var(--color-accent-lime);
+  box-shadow: 0 0 10px var(--color-accent-lime);
+  animation: workspaceTabPulse 1s infinite alternate;
+}
+
+.tab-hint-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: var(--rounded-pill);
+  background: var(--color-warning);
+  color: #0f172a;
+  font-weight: 800;
+}
+
+@keyframes workspaceTabPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.16);
+    opacity: 1;
+  }
+}
+
+/* Mobile Quick-Syntax Bar & Accessible Dark/Light Syntax Chips */
+.python-mobile-syntax-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 14px;
+  background: var(--color-syntax-bar-bg);
+  border-bottom: 1px solid var(--color-hairline);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.python-mobile-syntax-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.syntax-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-chip-border);
+  background: var(--color-chip-bg);
+  color: var(--color-chip-ink);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.syntax-chip:active {
+  transform: scale(0.95);
+  background: rgba(56, 189, 248, 0.22);
+}
+
+.syntax-chip code {
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.syntax-chip.char-chip {
+  min-width: 36px;
+  color: var(--color-chip-char);
+  font-weight: 800;
+}
+
+.syntax-chip.indent-chip {
+  color: var(--color-chip-indent);
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .blockly-mobile-tabs-bar,
+  .python-mobile-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 18px;
+    background: var(--color-surface-tile-2);
+    border: 1.5px solid var(--color-hairline);
+    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    margin-bottom: 6px;
+    touch-action: manipulation;
+  }
+
+  .blockly-mobile-tab-btn,
+  .python-mobile-tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 8px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    color: var(--color-ink-subtle);
+    font-family: var(--font-display);
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    touch-action: manipulation;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}

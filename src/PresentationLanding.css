@@ -1,6 +1,6 @@
 /* =============================================================================
    CODEKIDS — Página de Presentación Oficial (Landing Page)
-   Estilos modernos, accesibles y responsivos inspirados en diseño Apple/EdTech
+   Default Dark Theme alineado con tokens.css + overrides para Light Theme
    ============================================================================= */
 
 .landing-page {
@@ -9,7 +9,6 @@
   flex-direction: column;
 }
 
-/* 1. HERO DE PRESENTACIÓN */
 .landing-hero-tile {
   position: relative;
   overflow: hidden;
@@ -22,9 +21,9 @@
   gap: 8px;
   padding: 6px 14px;
   border-radius: var(--rounded-pill);
-  background: rgba(27, 126, 220, 0.12);
-  border: 1px solid rgba(27, 126, 220, 0.3);
-  color: var(--color-primary);
+  background: var(--tone-blue-bg);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--color-primary-on-dark);
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -33,10 +32,10 @@
   margin-bottom: var(--space-xs);
 }
 
-[data-theme="dark"] .landing-badge-chip {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.35);
-  color: #38bdf8;
+[data-theme="light"] .landing-badge-chip {
+  background: var(--color-surface-chip-translucent);
+  border-color: rgba(27, 126, 220, 0.3);
+  color: var(--color-primary);
 }
 
 .landing-hero-title {
@@ -45,12 +44,12 @@
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -0.03em;
-  color: var(--color-on-light);
+  color: var(--color-on-dark);
   margin: 0;
 }
 
-[data-theme="dark"] .landing-hero-title {
-  color: #ffffff;
+[data-theme="light"] .landing-hero-title {
+  color: var(--color-on-light);
 }
 
 .landing-hero-description {
@@ -70,14 +69,14 @@
   margin-top: var(--space-sm);
 }
 
-.landing-access-btn {
-  font-size: 1.0625rem !important;
-  padding: 16px 28px !important;
+.landing-cta-group .landing-access-btn {
+  font-size: 1.0625rem;
+  padding: 16px 28px;
   box-shadow: 0 10px 24px rgba(184, 236, 99, 0.32);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.landing-access-btn:hover {
+.landing-cta-group .landing-access-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 14px 30px rgba(184, 236, 99, 0.45);
 }
@@ -87,7 +86,7 @@
   padding: 14px 22px;
 }
 
-/* TIRA DE ESTADÍSTICAS RÁPIDAS */
+/* Tira de estadísticas rápidas */
 .landing-stats-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -95,14 +94,14 @@
   margin-top: var(--space-xl);
   padding: 20px 24px;
   border-radius: var(--rounded-lg);
-  background: var(--color-surface-tile-1);
+  background: rgba(18, 25, 41, 0.75);
   border: 1px solid var(--color-hairline);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
 }
 
-[data-theme="dark"] .landing-stats-strip {
-  background: rgba(18, 25, 41, 0.75);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+[data-theme="light"] .landing-stats-strip {
+  background: var(--color-surface-tile-1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
 .landing-stat-item {
@@ -116,11 +115,7 @@
   font-size: 1.6rem;
   font-weight: 800;
   line-height: 1.1;
-  color: var(--color-primary);
-}
-
-[data-theme="dark"] .landing-stat-number {
-  color: #38bdf8;
+  color: var(--color-primary-on-dark);
 }
 
 .landing-stat-label {
@@ -130,7 +125,7 @@
   color: var(--color-body-muted);
 }
 
-/* 2. PILARES DEL OBJETIVO FORMATIVO */
+/* Pilares del objetivo formativo */
 .objective-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -141,7 +136,7 @@
 .objective-card {
   padding: var(--space-xl);
   border-radius: var(--rounded-lg);
-  background: var(--color-surface-tile-1);
+  background: var(--color-surface-tile-2);
   border: 1px solid var(--color-hairline);
   display: flex;
   flex-direction: column;
@@ -151,11 +146,11 @@
 
 .objective-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
 }
 
-[data-theme="dark"] .objective-card {
-  background: var(--color-surface-tile-2);
+[data-theme="light"] .objective-card {
+  background: var(--color-surface-tile-1);
 }
 
 .objective-icon-bubble {
@@ -168,43 +163,23 @@
 }
 
 .objective-icon-bubble.bubble-blue {
-  background: rgba(27, 126, 220, 0.12);
-  color: #1b7edc;
+  background: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
 }
 
 .objective-icon-bubble.bubble-purple {
-  background: rgba(139, 92, 246, 0.14);
-  color: #8b5cf6;
+  background: var(--tone-lav-bg);
+  color: var(--tone-lav-fg);
 }
 
 .objective-icon-bubble.bubble-lime {
-  background: rgba(132, 204, 22, 0.16);
-  color: #65a30d;
+  background: var(--tone-mint-bg);
+  color: var(--tone-mint-fg);
 }
 
 .objective-icon-bubble.bubble-amber {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-}
-
-[data-theme="dark"] .objective-icon-bubble.bubble-blue {
-  background: rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
-}
-
-[data-theme="dark"] .objective-icon-bubble.bubble-purple {
-  background: rgba(167, 139, 250, 0.22);
-  color: #c4b5fd;
-}
-
-[data-theme="dark"] .objective-icon-bubble.bubble-lime {
-  background: rgba(163, 230, 53, 0.2);
-  color: #bef264;
-}
-
-[data-theme="dark"] .objective-icon-bubble.bubble-amber {
-  background: rgba(251, 191, 36, 0.22);
-  color: #fde047;
+  background: var(--tone-yellow-bg);
+  color: var(--tone-yellow-fg);
 }
 
 .objective-card h3 {
@@ -213,11 +188,11 @@
   font-weight: 700;
   line-height: 1.25;
   margin: 0;
-  color: var(--color-on-light);
+  color: var(--color-on-dark);
 }
 
-[data-theme="dark"] .objective-card h3 {
-  color: #ffffff;
+[data-theme="light"] .objective-card h3 {
+  color: var(--color-on-light);
 }
 
 .objective-card p {
@@ -228,7 +203,7 @@
   margin: 0;
 }
 
-/* 3. METODOLOGÍA EN 3 FASES */
+/* Metodología en 3 fases */
 .methodology-row-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -240,15 +215,15 @@
   position: relative;
   border-radius: var(--rounded-lg);
   padding: var(--space-xl);
-  background: var(--color-surface-tile-1);
+  background: var(--color-surface-tile-2);
   border: 1px solid var(--color-hairline);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
 }
 
-[data-theme="dark"] .methodology-step-card {
-  background: var(--color-surface-tile-2);
+[data-theme="light"] .methodology-step-card {
+  background: var(--color-surface-tile-1);
 }
 
 .step-number-tag {
@@ -262,7 +237,7 @@
   font-size: 1rem;
   font-weight: 800;
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .step-card-header h3 {
@@ -276,13 +251,9 @@
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--color-primary-on-dark);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-
-[data-theme="dark"] .step-subtitle {
-  color: #38bdf8;
 }
 
 .step-card-body {
@@ -311,11 +282,11 @@
 }
 
 .step-features-list li svg {
-  color: #10b981;
+  color: var(--color-success);
   flex-shrink: 0;
 }
 
-/* 4. AUDIENCIA DUAL (ESTUDIANTES VS DOCENTES) */
+/* Audiencia dual */
 .audience-dual-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -327,14 +298,14 @@
   border-radius: var(--rounded-lg);
   padding: var(--space-xxl);
   border: 1px solid var(--color-hairline);
-  background: var(--color-surface-tile-1);
+  background: var(--color-surface-tile-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
 }
 
-[data-theme="dark"] .audience-card {
-  background: var(--color-surface-tile-2);
+[data-theme="light"] .audience-card {
+  background: var(--color-surface-tile-1);
 }
 
 .audience-card-badge {
@@ -348,8 +319,8 @@
   letter-spacing: 0.05em;
   padding: 4px 10px;
   border-radius: var(--rounded-pill);
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
+  background: var(--tone-lav-bg);
+  color: var(--tone-lav-fg);
   width: fit-content;
 }
 
@@ -387,12 +358,12 @@
 }
 
 .audience-checklist li svg {
-  color: #10b981;
+  color: var(--color-success);
   margin-top: 3px;
   flex-shrink: 0;
 }
 
-/* 5. BANNER FINAL CTA */
+/* Banner final CTA */
 .landing-final-banner {
   border-radius: var(--rounded-lg);
   padding: 56px 40px;
@@ -410,53 +381,34 @@
   margin: var(--space-xxl) 0 var(--space-xl);
 }
 
+.landing-final-sparkle {
+  color: var(--color-cta-lime-top);
+}
+
 .landing-final-banner h2 {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 3.5vw, 2.6rem);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--color-on-primary);
   margin: 0;
 }
 
 .landing-final-banner p {
   font-family: var(--font-text);
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: var(--color-body-muted);
   max-width: 640px;
   margin: 0;
   line-height: 1.55;
 }
 
-/* BOTÓN DE ACCESO EN NAVBAR */
-.nav-access-btn {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px !important;
-  font-size: 0.875rem !important;
-  font-weight: 700 !important;
-}
-
-.auth-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: var(--space-md);
-  cursor: pointer;
-}
-
-/* RESPONSIVE DESIGN */
+/* Responsive Design */
 @media (max-width: 960px) {
   .landing-stats-strip {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .methodology-row-grid {
-    grid-template-columns: 1fr;
-  }
-
+  .methodology-row-grid,
   .audience-dual-grid {
     grid-template-columns: 1fr;
   }
@@ -478,7 +430,7 @@
     width: 100%;
   }
 
-  .landing-access-btn,
+  .landing-cta-group .landing-access-btn,
   .landing-secondary-btn {
     width: 100%;
     justify-content: center;

@@ -1,0 +1,671 @@
+/* ==========================================================================
+   Teacher Dashboard: Courses, DB Directory, Assignments, Roster & AI Insights
+   ========================================================================== */
+
+.teacher-course-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.teacher-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.course-selector-group {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.teacher-courses-management-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(360px, 1.08fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  align-items: start;
+}
+
+.create-course-card,
+.db-students-enrollment-card {
+  display: grid;
+  gap: 16px;
+}
+
+.course-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 12px;
+}
+
+.inline-mini-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-preselect-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.student-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: var(--rounded-pill);
+  border: 1.5px solid var(--color-hairline);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.student-select-pill:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.student-select-pill.selected {
+  border-color: var(--color-lime-strong);
+  background: var(--color-lime-bg);
+  color: var(--color-lime-fg);
+}
+
+.student-select-pill small {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.db-students-toolbar {
+  display: grid;
+  gap: 10px;
+}
+
+.db-students-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.db-student-list {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.db-student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  transition: border-color 0.2s ease;
+}
+
+.db-student-row:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.db-student-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.db-student-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+  flex-shrink: 0;
+}
+
+.db-student-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.db-student-name-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.db-student-name-line strong {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-ink);
+}
+
+.db-student-xp-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--rounded-pill);
+  background: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+  border: 1px solid var(--color-hairline);
+}
+
+.db-student-email {
+  font-size: 0.76rem;
+  color: var(--color-ink-muted-80);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-student-course-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.student-course-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--rounded-pill);
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--color-ink-muted-80);
+}
+
+.student-course-tag.active {
+  background: var(--color-lime-bg);
+  color: var(--color-lime-fg);
+  border: 1px solid var(--color-lime-border);
+}
+
+.student-course-tag.empty {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.db-student-actions {
+  flex-shrink: 0;
+}
+
+.button-secondary-pill.enrolled-pill {
+  border-color: var(--color-lime-border);
+  color: var(--color-lime-fg);
+}
+
+.new-tech-dot {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: var(--rounded-pill);
+  background: var(--color-lime-bg);
+  color: var(--color-lime-fg);
+  letter-spacing: 0.04em;
+}
+
+.expansion-pill-inline {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--rounded-pill);
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+  vertical-align: middle;
+}
+
+.target-scope-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Teacher Assignments & Submissions */
+.teacher-workflow-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.create-assignment-card,
+.assignment-results-card {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.card-header-row h3 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.card-header-row p {
+  font-size: 0.875rem;
+  color: var(--color-ink-muted-80);
+  margin-top: 4px;
+}
+
+.challenge-skill-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.challenge-picker {
+  display: grid;
+  gap: var(--space-xs);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.challenge-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: var(--rounded-md);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas-parchment);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.challenge-option.selected {
+  border: 2px solid var(--color-primary-focus);
+  background-color: var(--color-canvas);
+}
+
+.challenge-option-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.challenge-option-copy b {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.challenge-option-copy small {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted-48);
+}
+
+.publish-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.result-list {
+  display: grid;
+  gap: var(--space-sm);
+  max-height: 520px;
+  overflow: auto;
+}
+
+.submission-item-card {
+  padding: var(--space-md);
+  border-radius: var(--rounded-md);
+  border: 1px solid var(--color-hairline);
+  background-color: var(--color-canvas-parchment);
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.submission-item-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.student-initial-badge {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--rounded-full);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.submission-item-meta {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.submission-item-meta strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.submission-item-meta small {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted-48);
+}
+
+.submission-evidence {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 8px 12px;
+  border-radius: var(--rounded-sm);
+  background-color: var(--color-canvas);
+  color: var(--color-ink-muted-80);
+}
+
+.submission-feedback {
+  font-size: 0.875rem;
+  color: var(--color-ink);
+}
+
+.teacher-recommendation-box {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--rounded-sm);
+  background-color: var(--color-canvas);
+  font-size: 0.78rem;
+  color: var(--color-ink-muted-80);
+}
+
+.teacher-recommendation-box b {
+  color: var(--color-primary);
+}
+
+/* Teacher Roster & AI Insights */
+.roster-header-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.student-roster-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.roster-student-card {
+  padding: var(--space-lg);
+  border-radius: var(--rounded-lg);
+  background-color: var(--color-surface-tile-3);
+  border: 1px solid var(--color-hairline);
+  display: grid;
+  gap: var(--space-md);
+}
+
+.roster-student-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.roster-student-head h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-on-dark);
+}
+
+.roster-student-head small {
+  font-size: 0.75rem;
+  color: var(--color-body-muted);
+}
+
+.roster-score-number {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-primary-on-dark);
+}
+
+.roster-student-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--color-body-muted);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.dark-empty-card {
+  padding: var(--space-xxl) var(--space-lg);
+  border-radius: var(--rounded-lg);
+  background-color: var(--color-surface-tile-3);
+  border: 1px solid var(--color-hairline);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-sm);
+  color: var(--color-body-muted);
+}
+
+.teacher-ai-insights-dark {
+  margin-top: var(--space-xl);
+  padding: var(--space-xl);
+  border-radius: var(--rounded-lg);
+  background-color: var(--color-surface-tile-3);
+  border: 1px solid var(--color-hairline);
+  display: grid;
+  gap: var(--space-md);
+}
+
+.insights-dark-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary-on-dark);
+  font-size: 1.0625rem;
+}
+
+.insights-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.insights-focus-card {
+  padding: var(--space-md);
+  border-radius: var(--rounded-md);
+  background-color: var(--color-canvas-parchment);
+  display: grid;
+  gap: 4px;
+}
+
+.insights-focus-card b {
+  color: var(--color-ink);
+  font-size: 0.9rem;
+}
+
+.insights-focus-card p {
+  color: var(--color-ink-muted-80);
+  font-size: 0.875rem;
+}
+
+.insights-focus-card small {
+  color: var(--color-primary);
+  font-size: 0.78rem;
+}
+
+.insights-steps-section {
+  display: grid;
+  gap: 8px;
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.insights-section-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-on-dark);
+}
+
+.insights-steps-list {
+  padding-left: 20px;
+  color: var(--color-body-muted);
+  font-size: 0.875rem;
+  display: grid;
+  gap: 6px;
+}
+
+.proposed-exercises-section {
+  display: grid;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.proposed-exercises-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.proposed-exercises-lead {
+  font-size: 0.875rem;
+  color: var(--color-body-muted);
+  margin-top: 4px;
+}
+
+.proposed-exercises-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.proposed-exercise-card {
+  padding: var(--space-md);
+  border-radius: var(--rounded-md);
+  background-color: var(--color-canvas-parchment);
+  border: 1px solid var(--color-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.proposed-exercise-tags {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.proposed-skill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--rounded-pill);
+  background-color: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.proposed-level-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-ink-muted-48);
+  padding: 3px 8px;
+  border-radius: var(--rounded-pill);
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+}
+
+.proposed-exercise-card h4 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.25;
+}
+
+.proposed-exercise-instructions {
+  font-size: 0.85rem;
+  color: var(--color-ink-muted-80);
+  line-height: 1.45;
+  flex: 1;
+}
+
+.proposed-exercise-reason {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--rounded-sm);
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  font-size: 0.78rem;
+  color: var(--color-ink-muted-80);
+}
+
+.proposed-exercise-reason b {
+  color: var(--color-primary);
+}
+
+.proposed-exercise-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.proposal-assigned-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--rounded-pill);
+  background-color: var(--tone-mint-bg);
+  color: var(--tone-mint-fg);
+  font-size: 0.85rem;
+  font-weight: 600;
+}

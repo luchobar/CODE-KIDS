@@ -1,0 +1,49 @@
+/* ==========================================================================
+   Accessibility Overrides (Font Scale, High Contrast, Reduced Motion)
+   ========================================================================== */
+
+html[data-font-scale="normal"] {
+  font-size: 100%;
+}
+
+html[data-font-scale="lg"] {
+  font-size: 112%;
+}
+
+html[data-font-scale="xl"] {
+  font-size: 122%;
+}
+
+html[data-high-contrast="true"] {
+  --color-hairline: #7a7a7a;
+}
+
+html[data-high-contrast="true"][data-theme="dark"] {
+  --color-hairline: #a1a1a6;
+  --color-body-muted: #f5f5f7;
+}
+
+html[data-high-contrast="true"][data-theme="light"] {
+  --color-hairline: #142a3d;
+  --color-ink-muted-48: #142a3d;
+}
+
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

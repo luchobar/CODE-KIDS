@@ -1,5 +1,6 @@
 /* ==========================================================================
-   CODEKIDS — Interfaz del Ejercicio en 3 Paneles Modulares (Alto Contraste)
+   CODEKIDS — Interfaz Blockly en 3 Paneles Modulares
+   (Primitivas móviles compartidas en src/styles/workspace-shared.css)
    ========================================================================== */
 
 .blockly-mission {
@@ -20,18 +21,15 @@
   align-items: stretch;
 }
 
-/* ==========================================================================
-   PANEL 1 (Izquierda): Personaje Guía Pipo + Objetivos en Viñetas + Pistas
-   ========================================================================== */
-
+/* PANEL 1 (Izquierda): Personaje Guía Pipo + Objetivos + Pistas */
 .mission-briefing-panel {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 18px;
   border-radius: 22px;
-  background: var(--color-surface-tile-2, rgba(19, 27, 46, 0.85));
-  border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.2));
+  background: var(--color-surface-tile-2);
+  border: 1.5px solid var(--color-hairline);
   box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -43,18 +41,18 @@
   gap: 12px;
   padding: 14px;
   border-radius: 18px;
-  background: var(--color-canvas-parchment, rgba(15, 23, 42, 0.9));
-  border: 1.5px solid rgba(27, 126, 220, 0.35);
+  background: var(--color-canvas-parchment);
+  border: 1.5px solid var(--color-glass-border);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pipo-guide-card.mood-party {
-  border-color: #B8EC63;
+  border-color: var(--color-accent-lime);
   box-shadow: 0 0 22px rgba(184, 236, 99, 0.28);
 }
 
 .pipo-guide-card.mood-thinking {
-  border-color: #F59E0B;
+  border-color: var(--color-warning);
 }
 
 .pipo-avatar-orb {
@@ -66,12 +64,8 @@
   place-items: center;
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(27, 126, 220, 0.3), rgba(139, 92, 246, 0.28));
-  color: #38BDF8;
-  border: 1px solid rgba(27, 126, 220, 0.4);
-}
-
-[data-theme="light"] .pipo-avatar-orb {
-  color: #1B7EDC;
+  color: var(--color-primary-on-dark);
+  border: 1px solid var(--color-glass-border);
 }
 
 .pipo-status-dot {
@@ -80,10 +74,10 @@
   right: -2px;
   width: 12px;
   height: 12px;
-  border-radius: 9999px;
-  background: #B8EC63;
-  border: 2px solid var(--color-canvas, #0B0F19);
-  box-shadow: 0 0 8px #B8EC63;
+  border-radius: var(--rounded-pill);
+  background: var(--color-accent-lime);
+  border: 2px solid var(--color-canvas);
+  box-shadow: 0 0 8px var(--color-accent-lime);
 }
 
 .pipo-speech-bubble {
@@ -114,15 +108,10 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 3px 9px;
-  border-radius: 9999px;
-  background: rgba(139, 92, 246, 0.2);
-  color: #C4B5FD;
+  border-radius: var(--rounded-pill);
+  background: var(--tone-lav-bg);
+  color: var(--tone-lav-fg);
   border: 1px solid rgba(139, 92, 246, 0.35);
-}
-
-[data-theme="light"] .pipo-skill-chip {
-  background: #EDE9FE;
-  color: #6D28D9;
 }
 
 .pipo-speech-bubble p {
@@ -132,13 +121,12 @@
   margin: 0;
 }
 
-/* Objetivos en viñetas cortas */
 .mission-objectives-box {
   display: grid;
   gap: 10px;
   padding: 14px;
   border-radius: 16px;
-  background: var(--color-canvas, rgba(11, 15, 25, 0.72));
+  background: var(--color-canvas);
   border: 1px solid var(--color-hairline);
 }
 
@@ -151,11 +139,11 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #22D3EE;
+  color: var(--color-cyan-neon);
 }
 
 [data-theme="light"] .objectives-box-header {
-  color: #0284C7;
+  color: var(--color-primary);
 }
 
 .objectives-bullet-list {
@@ -182,18 +170,12 @@
   display: grid;
   place-items: center;
   border-radius: 7px;
-  background: rgba(132, 204, 22, 0.18);
-  color: #A3E635;
-  border: 1px solid rgba(132, 204, 22, 0.4);
+  background: var(--color-lime-bg);
+  color: var(--color-lime-fg);
+  border: 1px solid var(--color-lime-border);
   font-family: var(--font-display);
   font-size: 0.75rem;
   font-weight: 700;
-}
-
-[data-theme="light"] .objective-bullet-index {
-  background: #ECFCCB;
-  color: #3F6212;
-  border-color: #BEF264;
 }
 
 .mission-concept-capsule {
@@ -230,22 +212,16 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(249, 115, 22, 0.18));
-  color: #FBBF24;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 600;
-  border: 1.5px solid rgba(245, 158, 11, 0.45);
-  border-radius: 9999px;
+  border: 1.5px solid var(--color-warning-border);
+  border-radius: var(--rounded-pill);
   padding: 10px 16px;
   cursor: pointer;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-[data-theme="light"] .blockly-hint-button {
-  background: #FEF3C7;
-  color: #B45309;
-  border-color: #F59E0B;
 }
 
 .blockly-hint-button:hover {
@@ -260,9 +236,9 @@
   display: grid;
   gap: 4px;
   padding: 12px 14px;
-  border: 1.5px solid #F59E0B;
+  border: 1.5px solid var(--color-warning);
   border-radius: 14px;
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--color-warning-bg);
   color: var(--color-ink);
   font-size: 0.84rem;
   line-height: 1.4;
@@ -275,17 +251,10 @@
   gap: 6px;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #FBBF24;
+  color: var(--color-warning-fg);
 }
 
-[data-theme="light"] .blockly-hint-card b {
-  color: #B45309;
-}
-
-/* ==========================================================================
-   PANEL 2 (Centro): Área de Bloques y Espacio de Trabajo
-   ========================================================================== */
-
+/* PANEL 2 (Centro): Área de Bloques Blockly */
 .blockly-editor-panel {
   display: flex;
   flex-direction: column;
@@ -294,7 +263,7 @@
   border-radius: 22px;
   overflow: hidden;
   border: 2px solid var(--color-hairline);
-  background: #F8FAFC;
+  background: #f8fafc;
   box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.35);
 }
 
@@ -304,9 +273,13 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  background: #0F172A;
-  color: #F8FAFC;
+  background: var(--color-chip-bg);
+  color: #f8fafc;
   border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+[data-theme="light"] .editor-panel-toolbar {
+  background: #0f172a;
 }
 
 .editor-toolbar-title {
@@ -320,17 +293,19 @@
 .editor-dot {
   width: 10px;
   height: 10px;
-  border-radius: 9999px;
+  border-radius: var(--rounded-pill);
 }
 
 .editor-dot.cyan {
-  background: #1B7EDC;
+  background: var(--color-primary);
 }
+
 .editor-dot.violet {
-  background: #8B5CF6;
+  background: #8b5cf6;
 }
+
 .editor-dot.lime {
-  background: #B8EC63;
+  background: var(--color-accent-lime);
 }
 
 .editor-toolbar-badges {
@@ -341,9 +316,9 @@
 
 .snap-feedback-pill {
   padding: 4px 10px;
-  border-radius: 9999px;
-  background: rgba(184, 236, 99, 0.22);
-  color: #B8EC63;
+  border-radius: var(--rounded-pill);
+  background: var(--color-accent-lime-tint);
+  color: var(--color-accent-lime);
   border: 1px solid rgba(184, 236, 99, 0.5);
   font-size: 0.75rem;
   font-weight: 700;
@@ -352,14 +327,14 @@
 
 .block-counter-pill {
   padding: 4px 12px;
-  border-radius: 9999px;
+  border-radius: var(--rounded-pill);
   background: rgba(255, 255, 255, 0.1);
-  color: #E2E8F0;
+  color: #e2e8f0;
   font-size: 0.76rem;
 }
 
 .block-counter-pill b {
-  color: #38BDF8;
+  color: #38bdf8;
 }
 
 .blockly-editor-area {
@@ -369,8 +344,8 @@
   min-height: 0;
   overflow: hidden;
   background:
-    radial-gradient(#CBD5E1 1.25px, transparent 1.25px),
-    #F8FAFC;
+    radial-gradient(#cbd5e1 1.25px, transparent 1.25px),
+    #f8fafc;
   background-size: 24px 24px;
 }
 
@@ -380,14 +355,15 @@
   min-height: 0;
 }
 
+/* Override interno de librería Blockly SVG/Toolbox */
 .blockly-host .blocklySvg {
   background: transparent !important;
 }
 
 .blockly-host .blocklyToolboxDiv {
-  background: #0F172A !important;
-  color: #F8FAFC !important;
-  border-right: 1.5px solid #1E293B;
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-right: 1.5px solid #1e293b;
   padding: 8px 4px;
 }
 
@@ -402,14 +378,11 @@
 }
 
 .blockly-host .blocklyTreeLabel {
-  color: #F8FAFC !important;
+  color: #f8fafc !important;
   font-size: 0.88rem !important;
 }
 
-/* ==========================================================================
-   PANEL 3 (Derecha): Visualizador / Escenario del Juego y Controles Multimedia
-   ========================================================================== */
-
+/* PANEL 3 (Derecha): Escenario Robot 3x3 y Controles Multimedia */
 .robot-game {
   position: relative;
   min-width: 0;
@@ -418,8 +391,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 18px;
-  background: var(--color-surface-tile-2, rgba(19, 27, 46, 0.88));
-  border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.22));
+  background: var(--color-surface-tile-2);
+  border: 1.5px solid var(--color-hairline);
   border-radius: 22px;
   box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.35);
   overflow: hidden;
@@ -447,11 +420,11 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #22D3EE;
+  color: var(--color-cyan-neon);
 }
 
 [data-theme="light"] .stage-badge {
-  color: #0284C7;
+  color: var(--color-primary);
 }
 
 .robot-game-title b {
@@ -462,11 +435,11 @@
 }
 
 .stage-coords-pill {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 5px 10px;
-  border-radius: 9999px;
+  border-radius: var(--rounded-pill);
   background: var(--color-canvas);
   border: 1px solid var(--color-hairline);
   color: var(--color-ink-muted-80);
@@ -480,14 +453,14 @@
   gap: 10px;
   padding: 12px;
   border-radius: 20px;
-  background: #090D16;
+  background: #090d16;
   border: 2px solid rgba(34, 211, 238, 0.28);
   box-shadow: inset 0 0 24px rgba(6, 182, 212, 0.12);
 }
 
 [data-theme="light"] .robot-grid {
-  background: #0F172A;
-  border-color: #38BDF8;
+  background: #0f172a;
+  border-color: var(--color-primary-on-dark);
 }
 
 .robot-cell {
@@ -496,7 +469,7 @@
   place-items: center;
   border-radius: 14px;
   background: rgba(30, 41, 59, 0.75);
-  color: #F8FAFC;
+  color: #f8fafc;
   border: 1.5px solid rgba(148, 163, 184, 0.16);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -505,7 +478,7 @@
   position: absolute;
   top: 4px;
   left: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.62rem;
   color: rgba(148, 163, 184, 0.45);
   pointer-events: none;
@@ -519,15 +492,15 @@
 .trail-energy-dot {
   width: 10px;
   height: 10px;
-  border-radius: 9999px;
-  background: #38BDF8;
-  box-shadow: 0 0 10px #38BDF8;
+  border-radius: var(--rounded-pill);
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
 }
 
 .robot-cell-active {
   background: linear-gradient(135deg, rgba(27, 126, 220, 0.35), rgba(139, 92, 246, 0.32));
-  border-color: #38BDF8;
-  color: #38BDF8;
+  border-color: #38bdf8;
+  color: #38bdf8;
   box-shadow: 0 0 18px rgba(27, 126, 220, 0.4);
   transform: scale(1.03);
 }
@@ -535,19 +508,19 @@
 .robot-cell-goal {
   background: radial-gradient(circle, rgba(250, 204, 21, 0.26) 0%, rgba(30, 41, 59, 0.85) 80%);
   border-color: rgba(250, 204, 21, 0.65);
-  color: #FACC15;
+  color: #facc15;
 }
 
 .robot-cell-wall {
   background: repeating-linear-gradient(
     45deg,
-    #1E293B,
-    #1E293B 6px,
+    #1e293b,
+    #1e293b 6px,
     #334155 6px,
     #334155 12px
   );
-  border-color: #F97316;
-  color: #FB923C;
+  border-color: #f97316;
+  color: #fb923c;
 }
 
 .robot-sprite {
@@ -559,13 +532,13 @@
 }
 
 .goal-icon {
-  color: #FACC15;
+  color: #facc15;
   filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.75));
   animation: pulseStar 2s infinite ease-in-out;
 }
 
 .wall-icon {
-  color: #FB923C;
+  color: #fb923c;
 }
 
 .active-step-monitor {
@@ -577,20 +550,14 @@
   padding: 6px 12px;
   margin-top: 10px;
   border-radius: 10px;
-  background: rgba(6, 182, 212, 0.15);
+  background: var(--tone-blue-bg);
   border: 1px solid rgba(34, 211, 238, 0.4);
-  color: #22D3EE;
-  font-family: "JetBrains Mono", monospace;
+  color: var(--tone-blue-fg);
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 600;
 }
 
-[data-theme="light"] .active-step-monitor {
-  background: #E0F2FE;
-  color: #0369A1;
-}
-
-/* Controles Multimedia (Play, Paso a paso, Pausa, Reiniciar) */
 .robot-controls {
   display: grid;
   width: 100%;
@@ -606,15 +573,15 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(180deg, #B8EC63 0%, #95DC38 100%);
-  color: #101B2B;
+  background: linear-gradient(180deg, var(--color-cta-lime-top) 0%, var(--color-cta-lime-bottom) 100%);
+  color: var(--color-cta-lime-ink);
   border: 0;
   border-radius: 16px;
   font-family: var(--font-display);
   font-size: 1.02rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 0 #5E9319, 0 10px 20px -4px rgba(184, 236, 99, 0.45);
+  box-shadow: 0 4px 0 var(--color-cta-lime-shadow), 0 10px 20px -4px rgba(184, 236, 99, 0.45);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -625,7 +592,7 @@
 
 .robot-controls .game-check:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #5E9319;
+  box-shadow: 0 2px 0 var(--color-cta-lime-shadow);
 }
 
 .media-secondary-controls {
@@ -655,16 +622,12 @@
 
 .media-ctrl-btn.step-btn {
   border-color: rgba(27, 126, 220, 0.45);
-  color: #38BDF8;
-}
-
-[data-theme="light"] .media-ctrl-btn.step-btn {
-  color: #1B7EDC;
+  color: var(--color-primary-on-dark);
 }
 
 .media-ctrl-btn.pause-btn {
-  border-color: rgba(245, 158, 11, 0.5);
-  color: #FBBF24;
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-fg);
 }
 
 .media-ctrl-btn:hover:not(:disabled),
@@ -700,8 +663,8 @@
   padding: 14px 20px;
   margin: 0;
   border-radius: 16px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  background: var(--color-warning-bg);
+  border: 1.5px solid var(--color-warning-border);
   color: var(--color-ink);
   font-family: var(--font-display);
   font-size: 0.95rem;
@@ -709,15 +672,16 @@
 }
 
 .blockly-feedback.won {
-  border-color: #B8EC63;
-  color: #B8EC63;
-  background: rgba(184, 236, 99, 0.16);
+  border-color: var(--color-lime-border);
+  color: var(--color-lime-fg);
+  background: var(--color-lime-bg);
   box-shadow: 0 0 24px rgba(184, 236, 99, 0.25);
 }
 
-[data-theme="light"] .blockly-feedback.won {
-  color: #3F6212;
-  background: #F0FBDC;
+.blockly-feedback.error {
+  border-color: var(--color-error-border);
+  color: var(--color-error-fg);
+  background: var(--color-error-bg);
 }
 
 /* Confeti de celebración */
@@ -738,12 +702,12 @@
   animation: confettiFall 2.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.confetti-piece.c-0 { left: 12%; background: #1B7EDC; animation-delay: 0s; }
-.confetti-piece.c-1 { left: 28%; background: #B8EC63; animation-delay: 0.1s; }
-.confetti-piece.c-2 { left: 45%; background: #FACC15; animation-delay: 0.05s; }
-.confetti-piece.c-3 { left: 62%; background: #8B5CF6; animation-delay: 0.15s; }
-.confetti-piece.c-4 { left: 78%; background: #F97316; animation-delay: 0.08s; }
-.confetti-piece.c-5 { left: 90%; background: #EC4899; animation-delay: 0.2s; }
+.confetti-piece.c-0 { left: 12%; background: var(--color-primary); animation-delay: 0s; }
+.confetti-piece.c-1 { left: 28%; background: var(--color-accent-lime); animation-delay: 0.1s; }
+.confetti-piece.c-2 { left: 45%; background: #facc15; animation-delay: 0.05s; }
+.confetti-piece.c-3 { left: 62%; background: #8b5cf6; animation-delay: 0.15s; }
+.confetti-piece.c-4 { left: 78%; background: #f97316; animation-delay: 0.08s; }
+.confetti-piece.c-5 { left: 90%; background: #ec4899; animation-delay: 0.2s; }
 
 @keyframes confettiFall {
   0% {
@@ -766,14 +730,7 @@
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ==========================================================================
-   OPTIMIZACIÓN MOBILE-FIRST PARA BLOCKLY MISSION
-   ========================================================================== */
-
-.blockly-mobile-tabs-bar {
-  display: none;
-}
-
+/* Mobile quickbar & responsive overrides */
 .blockly-editor-mobile-quickbar {
   display: none;
 }
@@ -786,6 +743,7 @@
   .blockly-three-panel-grid {
     grid-template-columns: 1fr 1fr;
   }
+
   .mission-briefing-panel {
     grid-column: 1 / -1;
     display: grid;
@@ -799,89 +757,13 @@
     gap: 12px;
   }
 
-  /* Barra de pestañas segmentada para móvil */
-  .blockly-mobile-tabs-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px;
-    border-radius: 18px;
-    background: var(--color-surface-tile-2, rgba(19, 27, 46, 0.9));
-    border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.25));
-    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    margin-bottom: 6px;
-    touch-action: manipulation;
-  }
-
-  .blockly-mobile-tab-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 11px 8px;
-    border-radius: 14px;
-    border: none;
-    background: transparent;
-    color: var(--color-ink-subtle, #94A3B8);
-    font-family: var(--font-display, inherit);
-    font-size: 0.84rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-
-  .blockly-mobile-tab-btn .tab-icon {
-    font-size: 1.05rem;
-    line-height: 1;
-  }
-
   .blockly-mobile-tab-btn.active {
-    background: linear-gradient(135deg, #1B7EDC 0%, #06B6D4 100%);
-    color: #FFFFFF;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #06b6d4 100%);
+    color: var(--color-on-primary);
     box-shadow: 0 6px 18px rgba(6, 182, 212, 0.38);
     transform: translateY(-1px);
   }
 
-  .mobile-pill-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.72rem;
-    padding: 2px 7px;
-    border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.25);
-    color: #FFFFFF;
-    font-weight: 800;
-  }
-
-  .tab-live-pulse {
-    width: 9px;
-    height: 9px;
-    border-radius: 9999px;
-    background: #B8EC63;
-    box-shadow: 0 0 10px #B8EC63;
-    animation: pulseStar 1s infinite alternate;
-  }
-
-  .tab-hint-counter {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.72rem;
-    padding: 2px 6px;
-    border-radius: 9999px;
-    background: #F59E0B;
-    color: #0F172A;
-    font-weight: 800;
-  }
-
-  /* Control de visibilidad modular de paneles según la pestaña seleccionada */
   .blockly-three-panel-grid {
     display: flex;
     flex-direction: column;
@@ -890,18 +772,12 @@
   }
 
   .blockly-three-panel-grid.mobile-active-editor .tab-panel-briefing,
-  .blockly-three-panel-grid.mobile-active-editor .tab-panel-stage {
-    display: none !important;
-  }
-
+  .blockly-three-panel-grid.mobile-active-editor .tab-panel-stage,
   .blockly-three-panel-grid.mobile-active-stage .tab-panel-briefing,
-  .blockly-three-panel-grid.mobile-active-stage .tab-panel-editor {
-    display: none !important;
-  }
-
+  .blockly-three-panel-grid.mobile-active-stage .tab-panel-editor,
   .blockly-three-panel-grid.mobile-active-briefing .tab-panel-editor,
   .blockly-three-panel-grid.mobile-active-briefing .tab-panel-stage {
-    display: none !important;
+    display: none;
   }
 
   .blockly-editor-area {
@@ -909,14 +785,13 @@
     border-radius: 16px;
   }
 
-  /* Botonera de acción rápida integrada al editor de bloques en móvil */
   .blockly-editor-mobile-quickbar {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid var(--color-hairline, rgba(255, 255, 255, 0.12));
+    border-top: 1px solid var(--color-hairline);
   }
 
   .btn-quick-run {
@@ -928,9 +803,9 @@
     padding: 13px 18px;
     border-radius: 14px;
     border: none;
-    background: linear-gradient(135deg, #10B981, #06B6D4);
-    color: #FFFFFF;
-    font-family: var(--font-display, inherit);
+    background: linear-gradient(135deg, var(--color-success), #06b6d4);
+    color: var(--color-on-primary);
+    font-family: var(--font-display);
     font-weight: 800;
     font-size: 0.95rem;
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
@@ -951,10 +826,10 @@
     gap: 6px;
     padding: 13px 12px;
     border-radius: 14px;
-    border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.3));
-    background: var(--color-canvas-parchment, rgba(15, 23, 42, 0.85));
-    color: var(--color-ink, #FFFFFF);
-    font-family: var(--font-display, inherit);
+    border: 1.5px solid var(--color-hairline);
+    background: var(--color-canvas-parchment);
+    color: var(--color-ink);
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 0.86rem;
     cursor: pointer;
@@ -963,9 +838,9 @@
 
   .media-ctrl-btn.switch-blocks-btn {
     display: inline-flex;
-    background: rgba(139, 92, 246, 0.18);
+    background: var(--tone-lav-bg);
     border-color: rgba(139, 92, 246, 0.45);
-    color: #C084FC;
+    color: var(--tone-lav-fg);
   }
 }
 
@@ -1017,7 +892,7 @@
     min-height: 42px;
   }
 
-  .game-check {
+  .robot-controls .game-check {
     padding: 13px 18px;
     font-size: 0.95rem;
     min-height: 48px;

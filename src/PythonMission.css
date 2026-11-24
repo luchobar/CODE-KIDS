@@ -1,3 +1,8 @@
+/* ==========================================================================
+   CODEKIDS — Laboratorios de Código Real (Python, HTML5, JavaScript)
+   (Primitivas móviles compartidas en src/styles/workspace-shared.css)
+   ========================================================================== */
+
 .python-intro {
   margin: 4px 0 0;
   color: var(--color-ink-muted-80);
@@ -10,7 +15,7 @@
 .python-stages {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-sm, 12px);
+  gap: var(--space-sm);
   width: min(100%, 620px);
 }
 
@@ -18,10 +23,10 @@
   min-height: 54px;
   display: flex;
   align-items: center;
-  gap: var(--space-sm, 12px);
+  gap: var(--space-sm);
   padding: 10px 14px;
   border: 1.5px solid var(--color-hairline);
-  border-radius: var(--rounded-pill, 9999px);
+  border-radius: var(--rounded-pill);
   background: var(--color-canvas);
   color: var(--color-ink);
   text-align: left;
@@ -49,7 +54,7 @@
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: var(--rounded-full, 9999px);
+  border-radius: var(--rounded-full);
   background: var(--color-canvas-parchment);
   color: var(--color-ink);
 }
@@ -89,10 +94,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-md, 17px);
+  gap: var(--space-md);
   padding: 14px 20px;
   border: 1px solid var(--color-hairline);
-  border-radius: var(--rounded-lg, 18px);
+  border-radius: var(--rounded-lg);
   background: var(--color-canvas-parchment);
 }
 
@@ -125,7 +130,7 @@
   align-items: center;
   gap: 6px;
   border: 1px solid var(--color-hairline);
-  border-radius: var(--rounded-pill, 9999px);
+  border-radius: var(--rounded-pill);
   background: var(--color-surface-pearl);
   color: var(--color-ink);
   padding: 10px 18px;
@@ -143,11 +148,11 @@
 .python-hint {
   display: flex;
   align-items: center;
-  gap: var(--space-sm, 12px);
+  gap: var(--space-sm);
   padding: 12px 18px;
   margin: 0;
   border: 1px solid var(--color-primary);
-  border-radius: var(--rounded-md, 11px);
+  border-radius: var(--rounded-md);
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-text);
@@ -166,17 +171,17 @@
   flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
-  gap: var(--space-lg, 24px);
+  gap: var(--space-lg);
   align-items: stretch;
 }
 
 .python-editor-card {
   min-width: 0;
   overflow: hidden;
-  border: 1.5px solid #2a2a2c;
-  border-radius: var(--rounded-lg, 18px);
-  background: #161618;
-  color: #ffffff;
+  border: 1.5px solid var(--color-code-border);
+  border-radius: var(--rounded-lg);
+  background: var(--color-code-bg);
+  color: var(--color-code-ink);
   display: flex;
   flex-direction: column;
 }
@@ -187,16 +192,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: #202024;
-  border-bottom: 1px solid #2e2e32;
-  color: #ffffff;
+  background: var(--color-code-chrome);
+  border-bottom: 1px solid var(--color-code-border);
+  color: var(--color-code-ink);
 }
 
 .python-editor-header > span {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -207,7 +212,7 @@
   gap: 6px;
   border: 0;
   background: transparent;
-  color: #2997ff;
+  color: var(--color-code-accent);
   font-family: var(--font-text);
   font-size: 0.82rem;
   font-weight: 600;
@@ -223,9 +228,9 @@
   border: 0;
   outline: none;
   padding: 20px 24px;
-  background: #161618;
-  color: #f5f5f7;
-  font: 15px/1.75 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: var(--color-code-bg);
+  color: var(--color-code-ink);
+  font: 15px/1.75 var(--font-mono);
   tab-size: 4;
   white-space: pre;
   overflow: auto;
@@ -237,20 +242,20 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 20px;
-  background: #202024;
-  border-top: 1px solid #2e2e32;
+  background: var(--color-code-chrome);
+  border-top: 1px solid var(--color-code-border);
 }
 
 .python-editor-footer small {
-  color: #cccccc;
+  color: var(--color-code-muted);
   font-family: var(--font-text);
   font-size: 0.8rem;
   line-height: 1.4;
 }
 
 .python-editor-footer code {
-  color: #6ee7b7;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--color-code-string);
+  font-family: var(--font-mono);
 }
 
 .python-run {
@@ -262,7 +267,7 @@
   justify-content: center;
   gap: 8px;
   border: 0;
-  border-radius: var(--rounded-pill, 9999px);
+  border-radius: var(--rounded-pill);
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-family: var(--font-text);
@@ -287,10 +292,10 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  padding: var(--space-xl, 32px) var(--space-lg, 24px);
+  padding: var(--space-xl) var(--space-lg);
   background: var(--color-canvas-parchment);
   border: 1.5px solid var(--color-hairline);
-  border-radius: var(--rounded-lg, 18px);
+  border-radius: var(--rounded-lg);
 }
 
 .python-preview-title {
@@ -325,7 +330,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   padding: 10px;
-  border-radius: var(--rounded-lg, 18px);
+  border-radius: var(--rounded-lg);
   background: var(--color-canvas);
   border: 1.5px solid var(--color-hairline);
 }
@@ -333,7 +338,7 @@
 .python-cell {
   display: grid;
   place-items: center;
-  border-radius: var(--rounded-md, 11px);
+  border-radius: var(--rounded-md);
   background: var(--color-canvas-parchment);
   color: var(--color-ink);
   border: 1.5px solid transparent;
@@ -348,12 +353,12 @@
 .python-cell.goal {
   background: var(--tone-yellow-bg);
   border-color: var(--color-hairline);
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .python-cell.wall {
   background: #272729;
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .python-cell i {
@@ -374,7 +379,7 @@
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
-  border-radius: var(--rounded-lg, 18px);
+  border-radius: var(--rounded-lg);
   background: var(--color-canvas-parchment);
   border: 1.5px solid var(--color-hairline);
   color: var(--color-ink);
@@ -395,13 +400,19 @@
   background: var(--color-canvas);
 }
 
+.python-result.error {
+  border-color: var(--color-error-border);
+  color: var(--color-error-fg);
+  background: var(--color-error-bg);
+}
+
 .python-result button {
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   border: 0;
-  border-radius: var(--rounded-pill, 9999px);
+  border-radius: var(--rounded-pill);
   background: var(--color-primary);
   color: var(--color-on-primary);
   padding: 10px 20px;
@@ -411,143 +422,255 @@
   cursor: pointer;
 }
 
-/* ==========================================================================
-   OPTIMIZACIÓN MOBILE-FIRST PARA LABORATORIO DE PYTHON
-   ========================================================================== */
-
-.python-mobile-tabs-bar {
+.python-preview-actions-mobile {
   display: none;
 }
 
-.python-mobile-syntax-bar {
+/* Multilanguage Expansion Styles (Markdown Brief, HTML Hologram, JS Console) */
+.python-topbar-expanded {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.python-stages.python-stages-six {
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 1200px) {
+  .python-stages.python-stages-six {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.mission-brief-card {
+  align-items: flex-start;
+}
+
+.mission-brief-content {
+  display: grid;
+  gap: 8px;
+}
+
+.mission-brief-badges {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  overflow-x: auto;
-  padding: 8px 14px;
-  background: rgba(15, 23, 42, 0.6);
-  border-bottom: 1px solid var(--color-hairline, rgba(255, 255, 255, 0.12));
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  touch-action: pan-x;
 }
 
-.python-mobile-syntax-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.syntax-chip {
-  flex: none;
+.mission-reward-tag {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 4px;
-  padding: 7px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: var(--color-canvas, rgba(15, 23, 42, 0.9));
-  color: #38BDF8;
-  font-family: var(--font-mono, monospace);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-
-.syntax-chip:active {
-  transform: scale(0.95);
-  background: rgba(56, 189, 248, 0.25);
-}
-
-.syntax-chip code {
-  color: inherit;
-  font-size: inherit;
-  font-family: inherit;
-  background: transparent;
-  padding: 0;
-}
-
-.syntax-chip.char-chip {
-  min-width: 36px;
-  color: #FACC15;
-  font-weight: 800;
-}
-
-.syntax-chip.indent-chip {
-  color: #A78BFA;
+  padding: 3px 10px;
+  border-radius: var(--rounded-pill);
+  background: var(--tone-blue-bg);
+  color: var(--color-primary);
+  font-family: var(--font-text);
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
-.python-preview-actions-mobile {
-  display: none;
+.mission-reward-tag.coins {
+  background: var(--tone-yellow-bg);
+  color: var(--color-warning);
+}
+
+.md-instructions-box {
+  display: grid;
+  gap: 8px;
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.md-instruction-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.md-instruction-paragraph {
+  margin: 0;
+  color: var(--color-ink-muted-80);
+}
+
+.md-instruction-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  color: var(--color-ink);
+}
+
+.md-instruction-callout {
+  margin: 2px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 8px;
+  background: var(--color-canvas);
+  font-size: 0.86rem;
+  color: var(--color-ink-muted-80);
+}
+
+.md-inline-code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--tone-blue-bg);
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.code-lab-preview {
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 22px 20px;
+}
+
+.html-hologram-stage,
+.js-console-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  flex: 1;
+}
+
+.html-hologram-iframe {
+  width: 100%;
+  min-height: 215px;
+  border: 1.5px solid var(--color-hairline);
+  border-radius: 14px;
+  background: #0d1626;
+}
+
+.lab-console-placeholder {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 20px;
+  border: 1.5px dashed var(--color-hairline);
+  border-radius: 14px;
+  background: var(--color-canvas);
+  color: var(--color-ink-muted-80);
+}
+
+.lab-console-placeholder p {
+  margin: 0;
+  font-size: 0.88rem;
+  max-width: 30ch;
+}
+
+.lab-test-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lab-test-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-hairline);
+  background: var(--color-canvas);
+  text-align: left;
+}
+
+.lab-test-item.pass {
+  border-color: rgba(16, 185, 129, 0.55);
+}
+
+.lab-test-item.fail {
+  border-color: rgba(249, 115, 22, 0.6);
+}
+
+.lab-test-status {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--rounded-pill);
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.lab-test-item.fail .lab-test-status {
+  background: var(--tone-peach-bg);
+  color: #f97316;
+}
+
+.lab-test-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lab-test-copy b {
+  font-size: 0.85rem;
+  color: var(--color-ink);
+}
+
+.lab-test-copy small {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted-80);
+  word-break: break-word;
+}
+
+.lab-test-copy code {
+  font-family: var(--font-mono);
+  color: var(--color-primary);
 }
 
 @media (max-width: 960px) {
   .python-stages {
     width: 100%;
   }
+
   .python-workspace {
     grid-template-columns: 1fr;
   }
+
   .python-editor-card textarea {
     min-height: 280px;
   }
+
   .python-preview {
-    padding: var(--space-lg, 24px);
+    padding: var(--space-lg);
   }
+
   .python-grid {
     max-width: 220px;
   }
 }
 
 @media (max-width: 860px) {
-  .python-mobile-tabs-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px;
-    border-radius: 18px;
-    background: var(--color-surface-tile-2, rgba(19, 27, 46, 0.9));
-    border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.25));
-    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
-    margin-bottom: 8px;
-    touch-action: manipulation;
-  }
-
-  .python-mobile-tab-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 11px 8px;
-    border-radius: 14px;
-    border: none;
-    background: transparent;
-    color: var(--color-ink-subtle, #94A3B8);
-    font-family: var(--font-display, inherit);
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
   .python-mobile-tab-btn.active {
-    background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
-    color: #FFFFFF;
+    background: linear-gradient(135deg, var(--color-success) 0%, #06b6d4 100%);
+    color: var(--color-on-primary);
     box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
   }
 
-  /* Control de vista de pestañas en móvil */
-  .python-workspace.mobile-active-editor .tab-panel-python-preview {
-    display: none !important;
-  }
-
+  .python-workspace.mobile-active-editor .tab-panel-python-preview,
   .python-workspace.mobile-active-preview .tab-panel-python-editor {
-    display: none !important;
+    display: none;
   }
 
   .python-preview-actions-mobile {
@@ -563,10 +686,10 @@
     flex: 1;
     padding: 12px 14px;
     border-radius: 14px;
-    border: 1.5px solid var(--color-hairline, rgba(0, 240, 255, 0.3));
-    background: var(--color-canvas, rgba(15, 23, 42, 0.9));
-    color: var(--color-ink, #FFFFFF);
-    font-family: var(--font-display, inherit);
+    border: 1.5px solid var(--color-hairline);
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 0.85rem;
     cursor: pointer;
@@ -582,9 +705,9 @@
     padding: 12px 14px;
     border-radius: 14px;
     border: none;
-    background: linear-gradient(135deg, #10B981, #06B6D4);
-    color: #FFFFFF;
-    font-family: var(--font-display, inherit);
+    background: linear-gradient(135deg, var(--color-success), #06b6d4);
+    color: var(--color-on-primary);
+    font-family: var(--font-display);
     font-weight: 800;
     font-size: 0.85rem;
     cursor: pointer;
@@ -653,220 +776,4 @@
     padding: 12px 18px;
     font-size: 0.9rem;
   }
-}
-
-/* ==========================================================================
-   PAQUETE DE EXPANSIÓN MULTILENGUAJE (PYTHON AVANZADO, HTML5, JAVASCRIPT)
-   ========================================================================== */
-
-.python-topbar-expanded {
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.python-stages.python-stages-six {
-  width: 100%;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (min-width: 1200px) {
-  .python-stages.python-stages-six {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-}
-
-.mission-brief-card {
-  align-items: flex-start;
-}
-
-.mission-brief-content {
-  display: grid;
-  gap: 8px;
-}
-
-.mission-brief-badges {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.mission-reward-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(56, 189, 248, 0.14);
-  color: var(--color-primary);
-  font-family: var(--font-text);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.mission-reward-tag.coins {
-  background: rgba(250, 204, 21, 0.16);
-  color: #f59e0b;
-}
-
-.md-instructions-box {
-  display: grid;
-  gap: 8px;
-  color: var(--color-ink);
-  font-family: var(--font-text);
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-
-.md-instruction-heading {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.md-instruction-paragraph {
-  margin: 0;
-  color: var(--color-ink-muted-80, var(--color-ink));
-}
-
-.md-instruction-list {
-  margin: 0;
-  padding-left: 20px;
-  display: grid;
-  gap: 4px;
-  color: var(--color-ink);
-}
-
-.md-instruction-callout {
-  margin: 2px 0 0;
-  padding: 8px 12px;
-  border-left: 3px solid var(--color-primary);
-  border-radius: 8px;
-  background: var(--color-canvas);
-  font-size: 0.86rem;
-  color: var(--color-ink-muted-80, var(--color-ink));
-}
-
-.md-inline-code {
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: rgba(56, 189, 248, 0.14);
-  color: var(--color-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.85em;
-  font-weight: 600;
-}
-
-.code-lab-preview {
-  justify-content: flex-start;
-  align-items: stretch;
-  padding: 22px 20px;
-}
-
-.html-hologram-stage,
-.js-console-stage {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-  flex: 1;
-}
-
-.html-hologram-iframe {
-  width: 100%;
-  min-height: 215px;
-  border: 1.5px solid var(--color-hairline);
-  border-radius: 14px;
-  background: #0d1626;
-}
-
-.lab-console-placeholder {
-  flex: 1;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 10px;
-  padding: 20px;
-  border: 1.5px dashed var(--color-hairline);
-  border-radius: 14px;
-  background: var(--color-canvas);
-  color: var(--color-ink-muted-80, var(--color-ink));
-}
-
-.lab-console-placeholder p {
-  margin: 0;
-  font-size: 0.88rem;
-  max-width: 30ch;
-}
-
-.lab-test-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.lab-test-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1.5px solid var(--color-hairline);
-  background: var(--color-canvas);
-  text-align: left;
-}
-
-.lab-test-item.pass {
-  border-color: rgba(16, 185, 129, 0.55);
-}
-
-.lab-test-item.fail {
-  border-color: rgba(249, 115, 22, 0.6);
-}
-
-.lab-test-status {
-  width: 22px;
-  height: 22px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  background: rgba(16, 185, 129, 0.18);
-  color: #10b981;
-}
-
-.lab-test-item.fail .lab-test-status {
-  background: rgba(249, 115, 22, 0.18);
-  color: #f97316;
-}
-
-.lab-test-copy {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.lab-test-copy b {
-  font-size: 0.85rem;
-  color: var(--color-ink);
-}
-
-.lab-test-copy small {
-  font-size: 0.78rem;
-  color: var(--color-ink-muted-80, var(--color-ink));
-  word-break: break-word;
-}
-
-.lab-test-copy code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: var(--color-primary);
 }

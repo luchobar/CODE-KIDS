@@ -1,0 +1,498 @@
+/* ==========================================================================
+   Consolidated Responsive Breakpoints (Strictly Descending Cascade)
+   1068px -> 960px -> 833px -> 640px -> 480px
+   ========================================================================== */
+
+@media (max-width: 1068px) {
+  .hero-display {
+    font-size: 2.5rem;
+  }
+
+  .split-hero-grid {
+    gap: var(--space-xl);
+  }
+
+  .world-showcase-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .proposed-exercises-grid,
+  .teacher-courses-management-grid,
+  .course-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pet-companion.workspace-companion {
+    max-width: 100%;
+  }
+
+  .db-student-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .db-student-actions,
+  .db-student-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 833px) {
+  /* Evitar zoom automático en iOS sin romper el tamaño de editores de código */
+  .search-input,
+  .apple-textarea,
+  select {
+    font-size: 16px;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .portal-shell {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .split-hero-grid,
+  .student-dual-grid,
+  .teacher-workflow-grid,
+  .bento-curriculum-grid,
+  .metrics-bento-grid,
+  .student-roster-cards,
+  .shop-grid,
+  .world-nodes-grid,
+  .ai-priority-grid,
+  .insights-focus-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .split-hero-grid {
+    gap: 18px;
+  }
+
+  .bento-cell-featured,
+  .bento-cell-surface {
+    grid-column: span 1;
+  }
+
+  .global-nav-links {
+    display: none;
+  }
+
+  .global-nav-logo-horizontal {
+    max-height: 28px;
+    width: auto;
+  }
+
+  .sub-nav-frosted {
+    height: auto;
+    min-height: 48px;
+    padding: 6px 0;
+  }
+
+  .sub-nav-inner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sub-nav-controls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .hero-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .hero-cta-row button {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .split-hero-visual {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  /* Bottom Navigation Bar */
+  .mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 995;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: var(--color-surface-frosted);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border-top: 1.5px solid var(--color-hairline);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  .mobile-bottom-item {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-ink-subtle);
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color 0.18s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-bottom-item:active {
+    transform: scale(0.9);
+  }
+
+  .mobile-bottom-item.active {
+    color: var(--color-primary-focus);
+    font-weight: 800;
+  }
+
+  .mobile-bottom-item.active svg {
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.7));
+    transform: translateY(-1px);
+  }
+
+  /* Workspace & Map on Tablet/Mobile */
+  .fullscreen-exercise-page {
+    padding: 10px 0 24px;
+  }
+
+  .fullscreen-exercise-container {
+    padding: 0 12px;
+  }
+
+  .workspace-topbar {
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .workspace-back-btn {
+    align-self: flex-start;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+  }
+
+  .workspace-title-group h1 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+  }
+
+  .workspace-title-group p {
+    font-size: 0.86rem;
+  }
+
+  .world-showcase-row {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .world-showcase-media {
+    width: 100%;
+    text-align: center;
+  }
+
+  .world-render-img {
+    height: 160px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    margin: 0 auto;
+  }
+
+  .world-stage-pill {
+    padding: 12px 14px;
+    min-height: 52px;
+  }
+
+  .world-stage-text b {
+    font-size: 0.88rem;
+  }
+
+  .world-stage-text small {
+    font-size: 0.74rem;
+  }
+
+  /* Bottom Sheet Modals */
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-backdrop .feedback-modal,
+  .modal-backdrop .avatar-shop {
+    width: 100%;
+    max-width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 640px) {
+  .product-tile-light,
+  .product-tile-parchment,
+  .product-tile-dark,
+  .product-tile-dark-2 {
+    padding: 48px 0;
+  }
+
+  .hero-display {
+    font-size: 2.1rem;
+  }
+
+  .display-lg {
+    font-size: 1.75rem;
+  }
+
+  .global-nav-inner,
+  .sub-nav-inner,
+  .tile-container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .global-nav-actions {
+    gap: 6px;
+  }
+
+  .sub-nav-metric {
+    display: none;
+  }
+
+  .sub-nav-inner {
+    justify-content: space-between;
+  }
+
+  .hud-mode-pill {
+    font-size: 0.92rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hud-badge-cloud {
+    font-size: 0.68rem;
+    padding: 2px 7px;
+  }
+
+  .sub-nav-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .hud-xp-pill {
+    padding: 4px 9px;
+    gap: 6px;
+  }
+
+  .hud-xp-track {
+    display: none;
+  }
+
+  .sub-nav-controls .sub-nav-cta {
+    padding: 6px 11px;
+    font-size: 0.74rem;
+  }
+
+  .login-hero-tile {
+    padding: 24px 0 40px;
+  }
+
+  .glass-auth-card {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .auth-tabs-bar {
+    gap: 4px;
+  }
+
+  .auth-tabs-bar .configurator-option-chip {
+    padding: 8px 4px;
+    min-height: 38px;
+  }
+
+  .auth-tabs-bar .chip-copy b {
+    font-size: 0.74rem;
+  }
+
+  .floating-achievement-badge {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+  }
+
+  .floating-achievement-badge.top-badge {
+    top: 8px;
+    left: 8px;
+  }
+
+  .floating-achievement-badge.bottom-badge {
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .world-showcase-row {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .world-render-img {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .adventure-filters-bar {
+    padding: 12px;
+  }
+
+  .filter-pill-group {
+    width: 100%;
+  }
+
+  .map-filter-chip {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .assignment-utility-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .assignment-utility-row .button-primary-pill {
+    width: 100%;
+  }
+
+  .companion-summary-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ai-route-header,
+  .card-header-row,
+  .proposed-exercises-header,
+  .story-win {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .role-chip-grid,
+  .apple-footer-columns,
+  .badges-grid,
+  .challenge-skill-tabs,
+  .condition-options {
+    grid-template-columns: 1fr;
+  }
+
+  .proposed-exercise-actions {
+    width: 100%;
+  }
+
+  .proposed-exercise-actions button {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .workspace-reward-badges {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .workspace-topbar-left {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-backdrop .feedback-modal,
+  .modal-backdrop .avatar-shop {
+    padding: 18px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .modal-header-block h2,
+  .avatar-shop h2 {
+    font-size: 1.35rem;
+  }
+
+  .shop-balance {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-nav-brand span {
+    font-size: 1.05rem;
+  }
+
+  .hud-mode-pill {
+    max-width: 180px;
+    font-size: 0.82rem;
+  }
+
+  .hud-xp-pill {
+    padding: 3px 7px;
+  }
+
+  .hud-xp-text {
+    display: none;
+  }
+
+  .sub-nav-controls .streak-metric {
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  .sub-nav-controls .coin-hud-btn {
+    padding: 5px 9px;
+    font-size: 0.78rem;
+  }
+
+  .sub-nav-controls .sub-nav-cta {
+    padding: 5px 9px;
+    font-size: 0.72rem;
+  }
+}
