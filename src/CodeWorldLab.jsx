@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 import { FormattedInstructions } from './components/ui/FormattedInstructions.jsx';
 import MissionWorkspaceShell from './components/ui/MissionWorkspaceShell.jsx';
+import PipoCoachCard from './components/ui/PipoCoachCard.jsx';
 import { WORKSPACE_TOOLTIPS } from './data/pedagogicalGlossary.js';
 import {
   buildHologramSrcDoc,
@@ -25,6 +26,7 @@ import {
   getExpansionWorld,
 } from './expansionCatalog.js';
 import { isCompactViewport, useCodeSnippetEditor } from './hooks/useCodeSnippetEditor.js';
+import { usePipoExerciseCoach } from './hooks/usePipoExerciseCoach.js';
 import './PythonMission.css';
 
 export { FormattedInstructions };
@@ -35,7 +37,8 @@ function readActiveTheme() {
 }
 
 /**
- * Laboratorio interactivo de mundos de código real (HTML5 Ciudadela y Neo-Tokio JavaScript).
+ * Laboratorio interactivo de mundos de código real (HTML5 Ciudadela y Neo-Tokio JavaScript)
+ * con retroalimentación personalizada de PIPO en cada ejecución.
  */
 export default function CodeWorldLab({
   worldSlug,
@@ -78,6 +81,8 @@ export default function CodeWorldLab({
   const [attempts, setAttempts] = useState(0);
   const [mobileTab, setMobileTab] = useState('editor');
   const [activeTheme, setActiveTheme] = useState(readActiveTheme);
+  const { coachFeedback, coachLoading, requestCoachFeedback, resetCoachFeedback } =
+    usePipoExerciseCoach();
 
   useEffect(() => {
     setSelectedIndex(resolveMissionIndex());
@@ -89,7 +94,8 @@ export default function CodeWorldLab({
     setEvaluation(null);
     setHintIndex(0);
     setAttempts(0);
-  }, [mission?.slug, worldSlug]);
+    resetCoachFeedback();
+  }, [mission?.slug, worldSlug, resetCoachFeedback]);
 
   useEffect(() => {
     if (typeof MutationObserver === 'undefined' || typeof document === 'undefined') return undefined;
@@ -115,6 +121,7 @@ export default function CodeWorldLab({
   const selectMission = (index) => {
     if (!canUnlock(index)) return;
     setSelectedIndex(index);
+    resetCoachFeedback();
   };
 
   const runValidation = () => {
@@ -137,6 +144,17 @@ export default function CodeWorldLab({
         nextAttempt,
       );
     }
+
+    requestCoachFeedback({
+      skill: worldMeta.tecnologia,
+      language: worldMeta.tecnologia,
+      challenge: mission.titulo,
+      instructions: mission.contexto_narrativo || '',
+      success: outcome.passed,
+      attempts: nextAttempt,
+      codeOrBlocks: code,
+      errorHint: !outcome.passed ? outcome.message : '',
+    });
   };
 
   const snippets = isHtml ? HTML_SNIPPETS : JS_SNIPPETS;
@@ -219,6 +237,7 @@ export default function CodeWorldLab({
               onClick={() => {
                 setCode(mission.codigo_inicial);
                 setEvaluation(null);
+                resetCoachFeedback();
               }}
             >
               <ArrowCounterClockwise size={13} weight="regular" /> Restaurar código
@@ -352,6 +371,13 @@ export default function CodeWorldLab({
               isError: !evaluation.passed && String(evaluation.message || '').includes('Error'),
             }
           : null
+      }
+      pipoCoachSlot={
+        <PipoCoachCard
+          feedback={coachFeedback}
+          loading={coachLoading}
+          success={Boolean(evaluation?.passed)}
+        />
       }
       hasNextMission={selectedIndex < missions.length - 1}
       nextActionLabel="Siguiente misión"

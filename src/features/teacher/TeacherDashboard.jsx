@@ -116,7 +116,7 @@ export default function TeacherDashboard({
     ];
   }, [enrolledDbStudents, groupSubmissions, group]);
 
-  const { aiInsights, aiStatus, reloadInsights } = useTeacherInsights({
+  const { aiInsights, aiStatus, teacherFocus, setTeacherFocus, reloadInsights } = useTeacherInsights({
     group,
     visibleStudents,
     groupSubmissions,
@@ -341,22 +341,25 @@ export default function TeacherDashboard({
                   <span className="hero-eyebrow">📊 ANALÍTICA PEDAGÓGICA Y SQL (3FN)</span>
                   <h2 className="display-lg">Diagnóstico del curso {group}</h2>
                   <p className="lead-subcopy">
-                    Informe generado con Ollama junto a consultas analíticas complejas con JOIN, GROUP BY y HAVING.
+                    Diagnóstico especializado de PIPO junto a consultas analíticas complejas con JOIN, GROUP BY y HAVING.
                   </p>
                 </div>
                 <button
                   type="button"
                   className="button-primary"
-                  onClick={reloadInsights}
+                  onClick={() => reloadInsights(teacherFocus)}
                   disabled={aiStatus === 'loading'}
                 >
                   <Sparkle size={16} weight="fill" />
-                  <span>{aiStatus === 'loading' ? 'Generando informe...' : 'Actualizar informe con Ollama'}</span>
+                  <span>{aiStatus === 'loading' ? 'PIPO analizando el curso...' : 'Generar diagnóstico con PIPO'}</span>
                 </button>
               </div>
 
               <TeacherAiInsightsPanel
                 group={group}
+                teacherFocus={teacherFocus}
+                onTeacherFocusChange={setTeacherFocus}
+                onRequestFocus={(focus) => { setTeacherFocus(focus); reloadInsights(focus); }}
                 aiInsights={aiInsights}
                 aiStatus={aiStatus}
                 groupAssignments={groupAssignments}

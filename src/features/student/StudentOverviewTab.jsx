@@ -148,11 +148,11 @@ export default function StudentOverviewTab({
                 <div className="ai-route-title-group">
                   <Sparkle size={20} weight="fill" />
                   <div>
-                    <h3>Ruta sugerida por Ollama</h3>
+                    <h3>Ruta sugerida por PIPO</h3>
                     <p>{aiRoute.summary}</p>
                   </div>
                 </div>
-                <span className="model-tag">{aiRoute.model}</span>
+                <span className="model-tag">PIPO</span>
               </div>
               {aiRoute.priorities?.length > 0 && (
                 <div className="ai-priority-grid">

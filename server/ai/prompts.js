@@ -92,32 +92,40 @@ export const DEFAULT_MISSIONS = [
 ];
 
 /**
- * Normaliza hasta 3 ejercicios propuestos por el modelo garantizando IDs válidos del catálogo.
- * @param {Array<Record<string, unknown>>} rawExercises
- * @param {Array<Record<string, unknown>>} catalog
- * @param {string[]} dominantWeakSkills
- * @returns {Array<Record<string, unknown>>}
+ * Normaliza hasta 3 ejercicios propuestos por PIPO garantizando IDs válidos del catálogo
+ * y evitando repetir actividades ya asignadas cuando hay alternativas.
  */
-export function normalizeProposedExercises(rawExercises, catalog, dominantWeakSkills) {
+export function normalizeProposedExercises(
+  rawExercises,
+  catalog,
+  dominantWeakSkills,
+  alreadyAssignedIds = [],
+) {
   const missions = Array.isArray(catalog) && catalog.length > 0 ? catalog : DEFAULT_MISSIONS;
   const byId = new Map(missions.map((item) => [item.id, item]));
+  const assignedSet = new Set(Array.isArray(alreadyAssignedIds) ? alreadyAssignedIds : []);
   const usedIds = new Set();
   const normalized = [];
 
   const findMissionForSkill = (skillName) => {
     const clean = String(skillName || '').toLowerCase();
-    const matchBySkill = missions.find(
+    const candidates = missions.filter((m) => !usedIds.has(m.id));
+    const preferUnassigned = [
+      ...candidates.filter((m) => !assignedSet.has(m.id)),
+      ...candidates.filter((m) => assignedSet.has(m.id)),
+    ];
+
+    const matchBySkill = preferUnassigned.find(
       (m) =>
-        !usedIds.has(m.id) &&
-        (String(m.skill || '').toLowerCase().includes(clean) ||
-          String(m.category || '').toLowerCase().includes(clean)),
+        String(m.skill || '').toLowerCase().includes(clean) ||
+        String(m.category || '').toLowerCase().includes(clean),
     );
     if (matchBySkill) return matchBySkill;
     if (clean.includes('descompos') || clean.includes('depur')) {
-      const debugMission = missions.find((m) => !usedIds.has(m.id) && String(m.id).startsWith('debug-'));
+      const debugMission = preferUnassigned.find((m) => String(m.id).startsWith('debug-'));
       if (debugMission) return debugMission;
     }
-    return missions.find((m) => !usedIds.has(m.id)) || missions[0];
+    return preferUnassigned[0] || missions[0];
   };
 
   for (const item of Array.isArray(rawExercises) ? rawExercises : []) {
@@ -133,18 +141,20 @@ export function normalizeProposedExercises(rawExercises, catalog, dominantWeakSk
       skill: baseMission.skill || 'Secuencias',
       targetSkill: String(item.targetSkill || baseMission.category || baseMission.skill || 'Bucles'),
       level: baseMission.level || 'Inicio',
-      title: String(item.title || baseMission.exerciseTitle || baseMission.name).slice(0, 90),
-      instructions: String(item.instructions || baseMission.instructions).slice(0, 260),
+      title: String(item.title || baseMission.exerciseTitle || baseMission.name).slice(0, 100),
+      instructions: String(item.instructions || baseMission.instructions).slice(0, 300),
       reason: String(
-        item.reason || `Refuerza ${String(baseMission.skill || 'lógica').toLowerCase()} con práctica guiada en tablero.`,
-      ).slice(0, 220),
+        item.reason ||
+          `Seleccionado por PIPO para reforzar ${String(baseMission.skill || 'lógica').toLowerCase()}.`,
+      ).slice(0, 260),
     });
     if (normalized.length >= 3) break;
   }
 
-  const fallbackSkills = dominantWeakSkills.length > 0
-    ? dominantWeakSkills
-    : ['Bucles', 'Descomposición', 'Condicionales'];
+  const fallbackSkills =
+    dominantWeakSkills.length > 0
+      ? dominantWeakSkills
+      : ['Bucles', 'Condicionales', 'Python', 'Secuencias'];
 
   for (const weakSkill of fallbackSkills) {
     if (normalized.length >= 3) break;
@@ -157,9 +167,9 @@ export function normalizeProposedExercises(rawExercises, catalog, dominantWeakSk
       skill: mission.skill || 'Secuencias',
       targetSkill: weakSkill,
       level: mission.level || 'Inicio',
-      title: `${mission.exerciseTitle}: refuerzo de ${weakSkill.toLowerCase()}`,
+      title: `${mission.exerciseTitle}: refuerzo focalizado en ${weakSkill}`,
       instructions: mission.instructions,
-      reason: `Propuesto para atender la falencia detectada en ${weakSkill.toLowerCase()} mediante bloques visuales.`,
+      reason: `Sugerido por PIPO tras detectar necesidad de práctica en ${weakSkill.toLowerCase()}.`,
     });
   }
 
@@ -167,15 +177,16 @@ export function normalizeProposedExercises(rawExercises, catalog, dominantWeakSk
 }
 
 /**
- * Construye el prompt y esquema JSON para la ruta adaptativa del estudiante.
+ * Construye el prompt y esquema JSON para la ruta adaptativa personalizada de PIPO.
  */
 export function buildStudentRoutePrompt(input = {}) {
   return {
     system:
-      'Eres un tutor de programación para niños de primaria en Colombia. Usa solo los datos anónimos entregados. Genera una ruta breve y amable en español. Prioriza máximo 2 habilidades y recomienda solo IDs de misión presentes en el catálogo. No diagnostiques ni etiquetes al niño. Devuelve JSON con summary (string), priorities (array de {skill, reason, activity}), recommendedMissionIds (array de strings).',
+      'Eres PIPO, el robot tutor pedagógico de CodeKids. Jamás menciones nombres de modelos técnicos externos; hablas en primera persona como PIPO. Analiza los puntajes diagnósticos, misiones ya completadas e intentos recientes del estudiante para darle una recomendación genuinamente personalizada en español motivador. Prioriza máximo 2 habilidades concretas explicando por qué según sus números reales, y recomienda IDs de misión del catálogo que aún no haya completado.',
     payload: {
+      studentName: String(input.studentName || '').slice(0, 40),
       scores: input.scores,
-      progress: input.progress,
+      completedMissions: input.progress,
       recentResults: input.recentResults,
       missionCatalog: input.missionCatalog,
     },
@@ -204,12 +215,12 @@ export function buildStudentRoutePrompt(input = {}) {
 }
 
 /**
- * Construye el prompt y esquema JSON para evaluar una entrega de misión.
+ * Construye el prompt y esquema JSON para que PIPO evalúe la entrega de un reto escolar.
  */
 export function buildEvaluatePrompt(input = {}) {
   return {
     system:
-      'Evalúas evidencia de retos introductorios de programación por bloques para niños de primaria. El éxito o fracaso del motor del juego (success) es un hecho y no debes cambiarlo. Da una puntuación orientativa 0-100, una retroalimentación formativa y amable para el estudiante (feedback) y una recomendación pedagógica concreta para que el docente sepa cómo proceder con el niño (recommendation). Devuelve JSON con score (integer), feedback (string), recommendation (string).',
+      'Eres PIPO, tutor evaluador de programación en CodeKids. Nunca menciones otros nombres de IA; eres PIPO. Analiza el código o bloques reales enviados en "evidence", el número de intentos y la consigna. Respeta estrictamente "success". Entrega en español: score (entero 0-100), feedback (retroalimentación específica para el estudiante comentando qué hizo bien en su código/bloques y cómo optimizarlo, máx 280 caracteres) y recommendation (sugerencia didáctica precisa para el docente sobre el razonamiento observado en esta entrega).',
     payload: {
       skill: input.skill,
       instruction: input.instruction,
@@ -230,14 +241,20 @@ export function buildEvaluatePrompt(input = {}) {
 }
 
 /**
- * Agrega entregas y falencias del aula y construye el prompt del asesor docente.
+ * Construye el prompt enriquecido del asesor docente PIPO con agrupación diferenciada,
+ * evidencia real de entregas y atención a consultas específicas del profesor.
  */
 export function buildTeacherInsightsPrompt(input = {}) {
-  const rows = Array.isArray(input.submissions) ? input.submissions.slice(0, 200) : [];
+  const rows = Array.isArray(input.submissions) ? input.submissions.slice(0, 120) : [];
   const roster = Array.isArray(input.studentRoster) ? input.studentRoster.slice(0, 60) : [];
-  const catalog = Array.isArray(input.missionCatalog) && input.missionCatalog.length > 0
-    ? input.missionCatalog
-    : DEFAULT_MISSIONS;
+  const catalog =
+    Array.isArray(input.missionCatalog) && input.missionCatalog.length > 0
+      ? input.missionCatalog
+      : DEFAULT_MISSIONS;
+  const assignedMissionIds = Array.isArray(input.assignedMissionIds)
+    ? input.assignedMissionIds.slice(0, 40)
+    : [];
+  const teacherFocus = String(input.teacherFocus || '').trim().slice(0, 300);
 
   const totals = {};
   for (const row of rows) {
@@ -273,15 +290,34 @@ export function buildTeacherInsightsPrompt(input = {}) {
     .sort((a, b) => b[1] - a[1])
     .map(([skill]) => skill);
 
+  const recentEvidenceSamples = rows.slice(0, 8).map((r) => ({
+    studentName: String(r.studentName || 'Estudiante').slice(0, 40),
+    assignmentTitle: String(r.assignmentTitle || '').slice(0, 70),
+    skill: String(r.skill || '').slice(0, 40),
+    score: Number(r.score) || 0,
+    attempts: Number(r.attempts) || 1,
+    success: Boolean(r.success),
+    evidenceSnippet: String(r.evidence || '').slice(0, 220),
+  }));
+
   return {
     system:
-      'Eres asesor pedagógico de pensamiento computacional para docentes de primaria en Colombia. Analiza los resultados agregados del curso y las habilidades por reforzar (falencias). Redacta un informe claro en español que ayude al docente a saber cómo proceder en clase y desarrolla 3 propuestas de ejercicios prácticos usando los missionId del catálogo entregado para asignar a los estudiantes según sus falencias. Devuelve JSON con: overview (string con diagnóstico del grupo y orientación docente), focusSkills (array de {skill, evidence, activity}), nextSteps (array de strings con pasos concretos para la clase) y proposedExercises (array de 3 objetos {missionId, targetSkill, title, instructions, reason}).',
+      'Eres PIPO, el Asesor Pedagógico Especialista en Pensamiento Computacional y STEAM de CodeKids. Jamás menciones otros nombres de IA o modelos técnicos; identifícate únicamente como PIPO. Analiza a fondo la nómina real de estudiantes (sus nombres, puntajes y falencias específicas), las evidencias de código/bloques entregadas, los promedios de reintentos y el enfoque solicitado por el docente ("teacherFocus"). Evita respuestas genéricas o repetitivas: cita datos concretos del grupo y nombres de estudiantes que requieren nivelación vs reto avanzado. Si viene "teacherFocus", respóndelo directamente en "overview" y adapta las actividades propuestas a esa necesidad. Prioriza misiones del catálogo que NO estén en "alreadyAssignedMissionIds". Devuelve JSON estricto con overview, studentClusters (agrupación diferenciada del aula), focusSkills, nextSteps (guion concreto de intervención para la clase) y proposedExercises (3 retos adaptados con título e instrucciones contextualizadas para este grupo).',
     payload: {
       group: String(input.group || '').slice(0, 30),
+      teacherFocus: teacherFocus || 'Diagnóstico integral diferenciado del curso actual',
       studentCount: roster.length,
-      detectedWeaknesses: weakCounts,
-      aggregateSubmissions: aggregates,
-      assignmentSkills: input.assignmentSkills || [],
+      studentsDetail: roster.map((s) => ({
+        name: String(s.name || 'Estudiante').slice(0, 40),
+        score: Number(s.score) || 75,
+        weakSkill: String(s.weak || 'Bucles').slice(0, 40),
+        points: Number(s.points) || 0,
+        completedCount: Number(s.completedCount) || 0,
+      })),
+      detectedWeaknessesCount: weakCounts,
+      aggregateSubmissionsBySkill: aggregates,
+      recentSubmissionSamples: recentEvidenceSamples,
+      alreadyAssignedMissionIds: assignedMissionIds,
       availableMissions: catalog.map((m) => ({
         missionId: m.id,
         skill: m.skill,
@@ -295,6 +331,18 @@ export function buildTeacherInsightsPrompt(input = {}) {
       type: 'object',
       properties: {
         overview: { type: 'string' },
+        studentClusters: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              groupLabel: { type: 'string' },
+              students: { type: 'string' },
+              recommendation: { type: 'string' },
+            },
+            required: ['groupLabel', 'students', 'recommendation'],
+          },
+        },
         focusSkills: {
           type: 'array',
           items: {
@@ -323,31 +371,41 @@ export function buildTeacherInsightsPrompt(input = {}) {
           },
         },
       },
-      required: ['overview', 'focusSkills', 'nextSteps', 'proposedExercises'],
+      required: ['overview', 'studentClusters', 'focusSkills', 'nextSteps', 'proposedExercises'],
     },
     sampleSize: rows.length,
     catalog,
     dominantWeakSkills,
+    assignedMissionIds,
   };
 }
 
 /**
- * Construye el prompt y esquema JSON para los mensajes cortos del tutor robot Pipo.
+ * Construye el prompt y esquema JSON para la retroalimentación real de PIPO al finalizar
+ * o intentar cualquier ejercicio (Blockly, Python, HTML5 o JavaScript).
  */
 export function buildCoachPrompt(input = {}) {
   return {
     system:
-      'Eres Pipo, una mascota robot alegre que acompaña a niños de primaria aprendiendo programación. Responde con una sola frase corta, cariñosa, divertida y en español colombiano natural. Si falló, anima sin regañar y ofrece una pista general sin revelar la solución. Si acertó, celebra el esfuerzo. No uses emojis excesivos. Devuelve JSON con message (string).',
+      'Eres PIPO, el compañero robot tutor de CodeKids para estudiantes de 8 a 15 años. Jamás menciones nombres técnicos de modelos; eres PIPO. Analiza el código o secuencia de bloques real que construyó el estudiante ("codeOrBlocks"), el lenguaje/herramienta ("language"), la cantidad de intentos y el resultado ("success" y "errorHint"). Da una retroalimentación genuina, específica sobre lo que escribió o ensambló (menciona sus bloques, funciones, etiquetas o bucles reales): 1) "message": comentario cercano y específico sobre su solución o intento (2 a 3 oraciones claras, máx 280 caracteres). 2) "tip": consejo práctico concreto (si acertó, qué concepto acaba de dominar o cómo optimizarlo; si falló, pista puntual sobre qué línea/bloque revisar sin regalarle la respuesta completa, máx 200 caracteres). 3) "strength": etiqueta breve de habilidad observada (máx 45 caracteres).',
     payload: {
       skill: String(input.skill || '').slice(0, 40),
-      challenge: String(input.challenge || '').slice(0, 80),
+      language: String(input.language || input.skill || 'Bloques').slice(0, 30),
+      challenge: String(input.challenge || '').slice(0, 90),
+      instructions: String(input.instructions || '').slice(0, 240),
       success: Boolean(input.success),
       attempts: Math.max(1, Number(input.attempts) || 1),
+      codeOrBlocks: String(input.codeOrBlocks || '').slice(0, 1200),
+      errorHint: String(input.errorHint || '').slice(0, 200),
     },
     schema: {
       type: 'object',
-      properties: { message: { type: 'string' } },
-      required: ['message'],
+      properties: {
+        message: { type: 'string' },
+        tip: { type: 'string' },
+        strength: { type: 'string' },
+      },
+      required: ['message', 'tip', 'strength'],
     },
   };
 }

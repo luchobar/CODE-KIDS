@@ -3,7 +3,7 @@ import { fetchStudentAdaptiveRoute } from '../data/aiRepository.js';
 import { buildFallbackAdaptiveRoute } from '../domain/progressRules.js';
 
 /**
- * Obtiene la ruta adaptativa de aprendizaje desde Ollama con respaldo determinista y cancelación segura.
+ * Obtiene la ruta adaptativa de aprendizaje personalizada por PIPO con respaldo determinista y cancelación segura.
  */
 export function useAdaptiveRoute({ userName, scores, completed, submissions, blocklyWorlds }) {
   const [aiRoute, setAiRoute] = useState(null);
@@ -14,6 +14,7 @@ export function useAdaptiveRoute({ userName, scores, completed, submissions, blo
     setRouteStatus('loading');
 
     const payload = {
+      studentName: userName,
       scores,
       progress: completed || [],
       recentResults: (submissions || [])

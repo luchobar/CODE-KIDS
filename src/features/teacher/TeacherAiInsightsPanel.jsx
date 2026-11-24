@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { CheckCircle, NotePencil, Plus, Sparkle, WarningCircle } from '@phosphor-icons/react';
 import { SkillGlyph } from '../../components/layout/Glyphs.jsx';
 
+const FOCUS_CHIPS = [
+  'Nivelación urgente (<75%)',
+  'Transición de bloques a Python',
+  'Retos web HTML5 y JS',
+  'Depuración de errores frecuentes',
+];
+
 /**
  * Panel oscuro de análisis pedagógico docente con propuestas de refuerzo asignables en un clic.
  */
@@ -13,6 +20,9 @@ export default function TeacherAiInsightsPanel({
   assignedProposalIds,
   onAssignProposal,
   onCustomizeProposal,
+  teacherFocus = '',
+  onTeacherFocusChange,
+  onRequestFocus,
 }) {
   const [assigningKey, setAssigningKey] = useState('');
   const [assignError, setAssignError] = useState('');
@@ -35,7 +45,7 @@ export default function TeacherAiInsightsPanel({
       <div className="teacher-ai-insights-dark" role="status">
         <div className="insights-dark-header">
           <Sparkle size={18} weight="fill" />
-          <b>Ollama está analizando las falencias del curso {group}...</b>
+          <b>PIPO está analizando las falencias del curso {group}...</b>
         </div>
         <p>Generando diagnóstico pedagógico, plan de intervención y propuestas de ejercicios personalizados.</p>
       </div>
@@ -48,9 +58,62 @@ export default function TeacherAiInsightsPanel({
     <div className="teacher-ai-insights-dark">
       <div className="insights-dark-header">
         <Sparkle size={18} weight="fill" />
-        <b>Informe pedagógico y guía docente ({aiInsights.model})</b>
+        <b>Informe pedagógico y guía docente · PIPO</b>
       </div>
+      <span className="pipo-live-badge">{aiInsights.source === 'pipo' ? 'IA en vivo' : 'Análisis dinámico del aula'}</span>
+      {onRequestFocus && (
+        <form
+          className="pipo-teacher-prompt-bar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onRequestFocus(teacherFocus);
+          }}
+        >
+          <b>Consultar enfoque especializado a PIPO</b>
+          <div className="pipo-focus-chips">
+            {FOCUS_CHIPS.map((chip) => (
+              <button
+                type="button"
+                key={chip}
+                className={teacherFocus === chip ? 'pipo-focus-chip is-active' : 'pipo-focus-chip'}
+                onClick={() => onRequestFocus(chip)}
+                disabled={aiStatus === 'loading'}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+          <div className="pipo-teacher-form">
+            <input
+              className="search-input"
+              type="text"
+              value={teacherFocus}
+              placeholder="Ej: ¿Cómo apoyo a quienes fallan en bucles?"
+              onChange={(event) => onTeacherFocusChange?.(event.target.value)}
+              aria-label="Enfoque pedagógico para PIPO"
+            />
+            <button type="submit" className="primary-action" disabled={aiStatus === 'loading'}>
+              <Sparkle size={14} weight="fill" />
+              <span>{aiStatus === 'loading' ? 'PIPO pensando...' : 'Pedir plan a PIPO'}</span>
+            </button>
+          </div>
+        </form>
+      )}
       <p>{aiInsights.overview}</p>
+
+      {aiInsights.studentClusters?.length > 0 && (
+        <div className="student-clusters-grid">
+          {aiInsights.studentClusters.map((cluster, index) => (
+            <article className="student-cluster-card" key={(cluster.groupLabel || 'grupo') + index}>
+              <b>{cluster.groupLabel}</b>
+              {Array.isArray(cluster.students) && cluster.students.length > 0 && (
+                <small>{cluster.students.join(', ')}</small>
+              )}
+              <p>{cluster.recommendation}</p>
+            </article>
+          ))}
+        </div>
+      )}
 
       {aiInsights.focusSkills?.length > 0 && (
         <div className="insights-focus-grid">

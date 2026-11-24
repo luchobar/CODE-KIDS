@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/react';
 import { FormattedInstructions } from './components/ui/FormattedInstructions.jsx';
 import MissionWorkspaceShell from './components/ui/MissionWorkspaceShell.jsx';
+import PipoCoachCard from './components/ui/PipoCoachCard.jsx';
 import RobotGridStage from './components/ui/RobotGridStage.jsx';
 import { WORKSPACE_TOOLTIPS } from './data/pedagogicalGlossary.js';
 import {
@@ -18,6 +19,7 @@ import {
 } from './engines/pythonGridEngine.js';
 import { evaluatePythonFunctionMission } from './expansionCatalog.js';
 import { isCompactViewport, useCodeSnippetEditor } from './hooks/useCodeSnippetEditor.js';
+import { usePipoExerciseCoach } from './hooks/usePipoExerciseCoach.js';
 import './PythonMission.css';
 
 const FUNCTION_SNIPPETS = [
@@ -42,7 +44,7 @@ const GRID_SNIPPETS = [
 ];
 
 /**
- * Laboratorio interactivo de Python (etapas de grilla y retos avanzados de funciones).
+ * Laboratorio interactivo de Python con retroalimentación personalizada en vivo de PIPO.
  */
 export default function PythonMission({
   completed = [],
@@ -74,6 +76,8 @@ export default function PythonMission({
   const [hintIndex, setHintIndex] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [mobileTab, setMobileTab] = useState('editor');
+  const { coachFeedback, coachLoading, requestCoachFeedback, resetCoachFeedback } =
+    usePipoExerciseCoach();
 
   const clearTimers = () => {
     if (stepTimerRef.current) {
@@ -103,8 +107,9 @@ export default function PythonMission({
       setHintIndex(0);
       setAttempts(0);
       setRunning(false);
+      resetCoachFeedback();
     }
-  }, [initialMissionId, missions]);
+  }, [initialMissionId, missions, resetCoachFeedback]);
 
   const { textareaRef, insertSnippet, handleTabKeyDown } = useCodeSnippetEditor(code, setCode, {
     tabString: '    ',
@@ -126,6 +131,7 @@ export default function PythonMission({
     setTestResults([]);
     setHintIndex(0);
     setAttempts(0);
+    resetCoachFeedback();
   };
 
   const runCode = async () => {
@@ -142,6 +148,16 @@ export default function PythonMission({
       if (fnOutcome.passed && onComplete) {
         onComplete(mission.id, mission.xpReward, mission.coinReward, code, nextAttempt);
       }
+      requestCoachFeedback({
+        skill: 'Python',
+        language: 'Python',
+        challenge: mission.title,
+        instructions: mission.explanation || mission.objective || '',
+        success: fnOutcome.passed,
+        attempts: nextAttempt,
+        codeOrBlocks: code,
+        errorHint: !fnOutcome.passed ? fnOutcome.message : '',
+      });
       return;
     }
 
@@ -164,9 +180,29 @@ export default function PythonMission({
       if (compiled.passed && onComplete) {
         onComplete(mission.id, mission.xpReward, mission.coinReward, code, nextAttempt);
       }
+      requestCoachFeedback({
+        skill: 'Python',
+        language: 'Python',
+        challenge: mission.title,
+        instructions: mission.explanation || mission.objective || '',
+        success: compiled.passed,
+        attempts: nextAttempt,
+        codeOrBlocks: code,
+        errorHint: !compiled.passed ? compiled.message : '',
+      });
     } catch (error) {
       if (!cancelledRef.current) {
         setOutcome({ passed: false, message: error.message, isError: true });
+        requestCoachFeedback({
+          skill: 'Python',
+          language: 'Python',
+          challenge: mission.title,
+          instructions: mission.explanation || mission.objective || '',
+          success: false,
+          attempts: nextAttempt,
+          codeOrBlocks: code,
+          errorHint: error.message,
+        });
       }
     } finally {
       if (!cancelledRef.current) setRunning(false);
@@ -187,7 +223,7 @@ export default function PythonMission({
       intro={
         mission?.mode === 'function'
           ? mission.explanation
-          : 'De los bloques a la sintaxis escrita: resuelve cada ejercicio paso a paso.'
+          : 'De los bloques a la sintaxis escrita: resuelve cada ejercicio paso a paso con ayuda de PIPO.'
       }
       topbarExpanded
       stagesNav={
@@ -267,6 +303,7 @@ export default function PythonMission({
                 setCode(mission.starter);
                 setOutcome(null);
                 setTestResults([]);
+                resetCoachFeedback();
               }}
             >
               <ArrowCounterClockwise size={13} weight="regular" /> Restaurar código
@@ -398,6 +435,13 @@ export default function PythonMission({
         </div>
       }
       result={outcome}
+      pipoCoachSlot={
+        <PipoCoachCard
+          feedback={coachFeedback}
+          loading={coachLoading}
+          success={Boolean(outcome?.passed)}
+        />
+      }
       hasNextMission={selectedIndex < missions.length - 1}
       nextActionLabel="Siguiente ejercicio"
       onNextAction={() => selectMission(selectedIndex + 1)}

@@ -156,7 +156,7 @@ export default function StudentAssignmentModal({
           {gameOutcome && !result && (
             <div className="workspace-topbar-actions">
               <button type="button" className="button-primary" onClick={() => submit()} disabled={submitting}>
-                <span>{submitting ? 'Evaluando con Ollama...' : 'Enviar al docente'}</span>
+                <span>{submitting ? 'PIPO está revisando tu entrega...' : 'Enviar al docente'}</span>
                 <ArrowRight size={15} weight="regular" />
               </button>
             </div>
@@ -173,7 +173,7 @@ export default function StudentAssignmentModal({
           <div className="store-utility-card submission-result">
             <strong>{result.score}%</strong>
             <span>
-              Evaluación orientativa ({result.source === 'ollama' ? `Ollama ${result.model}` : 'modo local'})
+              Retroalimentación de PIPO
             </span>
             <p>{result.feedback}</p>
             <small>Tu docente revisa el resultado y conserva el criterio pedagógico.</small>
@@ -210,7 +210,7 @@ export default function StudentAssignmentModal({
             {gameOutcome && (
               <div className="assignment-submit-bar">
                 <button type="button" className="button-primary" onClick={() => submit()} disabled={submitting}>
-                  <span>{submitting ? 'Evaluando con Ollama...' : 'Enviar al docente'}</span>
+                  <span>{submitting ? 'PIPO está revisando tu entrega...' : 'Enviar al docente'}</span>
                   <ArrowRight size={15} weight="regular" />
                 </button>
               </div>

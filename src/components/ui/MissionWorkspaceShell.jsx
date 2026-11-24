@@ -14,7 +14,7 @@ import MicroLearningPanel from './MicroLearningPanel.jsx';
 
 /**
  * Cascarón visual compartido por los laboratorios de código (Python, HTML5 y JavaScript).
- * Centraliza barra superior, guía teórica desplegable, pistas, pestañas móviles y resultados.
+ * Centraliza barra superior, guía teórica desplegable, pistas, pestañas móviles, resultados y retroalimentación de PIPO.
  */
 export default function MissionWorkspaceShell({
   backLabel,
@@ -42,6 +42,7 @@ export default function MissionWorkspaceShell({
   editorPanel,
   previewPanel,
   result,
+  pipoCoachSlot = null,
   nextActionLabel,
   onNextAction,
   finalActionLabel,
@@ -191,6 +192,8 @@ export default function MissionWorkspaceShell({
             ) : null}
           </div>
         )}
+
+        {pipoCoachSlot}
       </div>
     </main>
   );

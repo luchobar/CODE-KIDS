@@ -127,30 +127,32 @@ export function computeEarnedBadges(allCompleted = []) {
 }
 
 /**
- * Evaluador heurístico local de entregas cuando Ollama no está accesible.
+ * Evaluador heurístico local de respaldo firmado por PIPO cuando la red no está disponible.
  */
 export function evaluateWorkFallback(assignment, response = '', gameOutcome = null) {
   if (gameOutcome) {
+    const attempts = gameOutcome.attempts || 1;
     const score = gameOutcome.success
-      ? Math.max(85, 100 - Math.max(0, (gameOutcome.attempts || 1) - 1) * 5)
+      ? Math.max(85, 100 - Math.max(0, attempts - 1) * 5)
       : 55;
     return {
       score,
+      assistant: 'PIPO',
       feedback: gameOutcome.success
-        ? `Reto superado. Aplicaste ${assignment.skill.toLowerCase()} con precisión para resolver la actividad.`
-        : `Intento registrado. Practiquemos ${assignment.skill.toLowerCase()} paso a paso para consolidar este reto.`,
+        ? `¡Excelente trabajo! PIPO verificó tu solución de ${assignment.skill.toLowerCase()} completada en ${attempts} intento(s).`
+        : `PIPO registró tu avance (${attempts} intento(s)). Repasemos ${assignment.skill.toLowerCase()} paso a paso para superar este reto.`,
       recommendation: gameOutcome.success
-        ? 'Propón una variante con un obstáculo adicional para transferir esta habilidad a un nuevo escenario.'
-        : `Repasa ${assignment.skill.toLowerCase()} con un ejemplo guiado antes de repetir el tablero.`,
+        ? 'El estudiante resolvió con solidez; se sugiere asignarle una variante con mayor complejidad o sintaxis escrita.'
+        : `Requiere acompañamiento guiado en ${assignment.skill.toLowerCase()} revisando la traza paso a paso.`,
     };
   }
 
   const words = String(response).trim().split(/\s+/).filter(Boolean).length;
   const text = String(response).toLowerCase();
   const signals = {
-    Bucles: /repet|bucle|veces|iterar/.test(text),
-    Secuencias: /primero|después|luego|orden|paso/.test(text),
-    Condicionales: /si |cuando|condición|entonces/.test(text),
+    Bucles: /repet|bucle|veces|iterar|for/.test(text),
+    Secuencias: /primero|después|luego|orden|paso|avanzar/.test(text),
+    Condicionales: /si |cuando|condición|entonces|if/.test(text),
     Descomposición: /divid|parte|tarea|paso|pequeñ/.test(text),
   };
   const conceptMentioned = signals[assignment.skill] || false;
@@ -160,17 +162,15 @@ export function evaluateWorkFallback(assignment, response = '', gameOutcome = nu
   );
   const feedback =
     score >= 80
-      ? `Explicaste con claridad tu aplicación de ${assignment.skill.toLowerCase()}.`
+      ? `PIPO destaca la claridad con que explicaste tu solución de ${assignment.skill.toLowerCase()}.`
       : conceptMentioned
-        ? `Buen avance en ${assignment.skill.toLowerCase()}. Añade un ejemplo concreto del recorrido.`
-        : `Detalla cómo utilizaste ${assignment.skill.toLowerCase()} y qué ocurre en cada paso.`;
+        ? `PIPO nota buen dominio conceptual de ${assignment.skill.toLowerCase()}; detalla qué ocurre en cada paso.`
+        : `PIPO te sugiere describir cómo aplicaste ${assignment.skill.toLowerCase()} línea por línea.`;
   const recommendation =
     score >= 80
-      ? 'Propón un reto con una variante nueva para que aplique lo aprendido en otro contexto.'
-      : conceptMentioned
-        ? 'Pídele que ensamble su solución y describa el resultado antes de ejecutarlo.'
-        : `Repasa ${assignment.skill.toLowerCase()} con una actividad guiada breve.`;
-  return { score, feedback, recommendation };
+      ? 'Listo para avanzar al siguiente reto con autonomía.'
+      : `Reforzar ${assignment.skill.toLowerCase()} conectando su explicación con una prueba en el simulador.`;
+  return { score, assistant: 'PIPO', feedback, recommendation };
 }
 
 export function stripMarkdownFormatting(md = '') {
@@ -223,7 +223,7 @@ export function buildTeacherActivitiesCatalog(remoteExpansion = null) {
 }
 
 /**
- * Genera la ruta adaptativa local de respaldo según el diagnóstico del estudiante.
+ * Genera la ruta adaptativa local de respaldo firmada por PIPO según el diagnóstico real del estudiante.
  */
 export function buildFallbackAdaptiveRoute({ userName, scores = {}, completed = [], blocklyWorlds = [] }) {
   const skillsList = ['Secuencias', 'Bucles', 'Condicionales', 'Descomposición'];
@@ -236,30 +236,31 @@ export function buildFallbackAdaptiveRoute({ userName, scores = {}, completed = 
     pending.length > 0 ? pending : worldForWeakest?.ids || ['loop-bridge'];
 
   const activities = {
-    Secuencias: 'Organiza bloques de avance y giros en el orden lógico correcto.',
+    Secuencias: 'Organiza bloques de avance y giros en el orden lógico exacto.',
     Bucles: 'Aplica el bloque «repetir» para resolver trayectorias largas ahorrando instrucciones.',
     Condicionales: 'Evalúa sensores «si hay pared» para tomar decisiones automáticas ante obstáculos.',
-    Descomposición: 'Identifica errores en rutinas previas y depura la ruta del personaje.',
+    Descomposición: 'Identifica errores en rutinas previas y depura la ruta paso a paso.',
   };
   const reasons = {
-    Secuencias: `Diagnóstico: ${scores.Secuencias || 60}%. Fortalecer el paso a paso consolidará tus bases algorítmicas.`,
-    Bucles: `Diagnóstico: ${scores.Bucles || 45}%. Dominar repeticiones te permitirá resolver desafíos en menos pasos.`,
-    Condicionales: `Diagnóstico: ${scores.Condicionales || 55}%. Aprender a bifurcar caminos te dará control total del robot.`,
-    Descomposición: `Diagnóstico: ${scores.Descomposición || 50}%. Desarmar problemas grandes en pasos pequeños evitará bloqueos.`,
+    Secuencias: `Puntaje actual: ${scores.Secuencias || 60}%. Fortalecer el paso a paso consolidará tus bases.`,
+    Bucles: `Puntaje actual: ${scores.Bucles || 45}%. Dominar repeticiones te permitirá resolver retos en menos líneas.`,
+    Condicionales: `Puntaje actual: ${scores.Condicionales || 55}%. Aprender a bifurcar caminos te dará control total.`,
+    Descomposición: `Puntaje actual: ${scores.Descomposición || 50}%. Dividir retos grandes en tramos pequeños evita bloqueos.`,
   };
 
   return {
-    summary: `¡Hola, ${userName || 'Explorador'}! Tu ruta personalizada adaptativa recomienda afianzar ${weakest} y ${secondWeakest} para acelerar tu ascenso al siguiente nivel.`,
-    model: 'CodeKids Adaptive AI Tutor',
+    summary: `¡Hola, ${userName || 'Explorador'}! Soy PIPO: según tus resultados actuales te sugiero entrenar ${weakest} y ${secondWeakest} para subir de nivel más rápido.`,
+    assistant: 'PIPO',
+    model: 'PIPO',
     priorities: [
       {
         skill: weakest,
-        reason: reasons[weakest] || 'Habilidad prioritaria según tu perfil diagnóstico.',
+        reason: reasons[weakest] || 'Habilidad prioritaria según tu perfil actual.',
         activity: activities[weakest] || 'Práctica interactiva en el mapa.',
       },
       {
         skill: secondWeakest,
-        reason: reasons[secondWeakest] || 'Refuerzo complementario para completar tu perfil.',
+        reason: reasons[secondWeakest] || 'Refuerzo complementario recomendado por PIPO.',
         activity: activities[secondWeakest] || 'Desafío en el tablero espacial.',
       },
     ],
@@ -268,70 +269,141 @@ export function buildFallbackAdaptiveRoute({ userName, scores = {}, completed = 
 }
 
 /**
- * Genera el informe pedagógico docente de respaldo cuando Ollama no está conectado.
+ * Diagnóstico dinámico de respaldo de PIPO calculado sobre los estudiantes, entregas y foco reales del curso.
  */
-export function buildFallbackTeacherInsights(targetGroup, roster = []) {
+export function buildFallbackTeacherInsights(
+  targetGroup,
+  roster = [],
+  submissions = [],
+  groupAssignments = [],
+  remoteExpansion = null,
+  teacherFocus = '',
+) {
   const avgScore = roster.length
-    ? Math.round(roster.reduce((acc, s) => acc + (s.score || 75), 0) / roster.length)
+    ? Math.round(roster.reduce((acc, s) => acc + (Number(s.score) || 75), 0) / roster.length)
     : 78;
 
+  const weakMap = {};
+  for (const s of roster) {
+    const w = String(s.weak || 'Bucles').trim();
+    weakMap[w] = (weakMap[w] || 0) + 1;
+  }
+  for (const sub of submissions) {
+    if ((Number(sub.score) || 0) < 80 && sub.skill) {
+      weakMap[sub.skill] = (weakMap[sub.skill] || 0) + 1;
+    }
+  }
+
+  const sortedWeak = Object.entries(weakMap)
+    .sort((a, b) => b[1] - a[1])
+    .map(([skill, count]) => ({ skill, count }));
+
+  const primaryWeak = sortedWeak[0]?.skill || 'Bucles';
+  const secondaryWeak = sortedWeak[1]?.skill || 'Condicionales';
+
+  const lowGroup = roster.filter((s) => (Number(s.score) || 75) < 75);
+  const midGroup = roster.filter((s) => {
+    const sc = Number(s.score) || 75;
+    return sc >= 75 && sc < 86;
+  });
+  const highGroup = roster.filter((s) => (Number(s.score) || 75) >= 86);
+
+  const studentClusters = [];
+  if (lowGroup.length > 0) {
+    studentClusters.push({
+      groupLabel: 'Nivelación prioritaria (< 75%)',
+      students: lowGroup.map((s) => `${s.name} (${s.score || 68}% · ${s.weak || primaryWeak})`).join(', '),
+      recommendation: `Acompañamiento paso a paso en ${primaryWeak} usando el depurador visual antes de evaluar código escrito.`,
+    });
+  }
+  if (midGroup.length > 0) {
+    studentClusters.push({
+      groupLabel: 'Consolidación activa (75% – 85%)',
+      students: midGroup.map((s) => `${s.name} (${s.score || 78}%)`).join(', '),
+      recommendation: `Práctica guiada en parejas combinando ${primaryWeak} y transición gradual a Python.`,
+    });
+  }
+  if (highGroup.length > 0) {
+    studentClusters.push({
+      groupLabel: 'Reto de profundización (≥ 86%)',
+      students: highGroup.map((s) => `${s.name} (${s.score}%)`).join(', '),
+      recommendation: 'Asignar funciones en Python, Ciudadela HTML5 o Neo-Tokio JavaScript y rol de mentores pares.',
+    });
+  }
+
+  const assignedIds = new Set((groupAssignments || []).map((a) => a.missionId));
+  const catalog = buildTeacherActivitiesCatalog(remoteExpansion);
+  const unassigned = catalog.filter((m) => !assignedIds.has(m.id));
+  const pool = unassigned.length >= 3 ? unassigned : catalog;
+
+  const focusLower = String(teacherFocus || '').toLowerCase();
+  const desiredSkills = [];
+  if (focusLower.includes('python')) desiredSkills.push('Python');
+  if (focusLower.includes('html') || focusLower.includes('web')) desiredSkills.push('HTML5');
+  if (focusLower.includes('javascript') || focusLower.includes('js')) desiredSkills.push('JavaScript');
+  if (focusLower.includes('depur') || focusLower.includes('error')) desiredSkills.push('Depuración');
+  desiredSkills.push(primaryWeak, secondaryWeak, 'Python', 'HTML5', 'JavaScript');
+
+  const chosen = [];
+  const used = new Set();
+  for (const sk of desiredSkills) {
+    if (chosen.length >= 3) break;
+    const found = pool.find(
+      (item) =>
+        !used.has(item.id) &&
+        (String(item.skill).toLowerCase() === String(sk).toLowerCase() ||
+          String(item.category).toLowerCase() === String(sk).toLowerCase()),
+    );
+    if (found) {
+      used.add(found.id);
+      chosen.push({
+        missionId: found.id,
+        templateId: found.templateId,
+        skill: found.skill,
+        targetSkill: sk,
+        level: found.level,
+        title: `${found.exerciseTitle} · Plan ${targetGroup}`,
+        instructions: found.instructions,
+        reason: `Seleccionado por PIPO para atender ${sk} en ${targetGroup} (${
+          lowGroup.length > 0
+            ? `apoyo focalizado para ${lowGroup.map((s) => s.name).join(', ')}`
+            : `promedio actual ${avgScore}%`
+        }).`,
+      });
+    }
+  }
+
+  const focusNote = teacherFocus
+    ? ` Enfoque solicitado («${teacherFocus}»): prioricé estrategias y retos alineados directamente con tu consulta.`
+    : '';
+
   return {
-    overview: `Informe pedagógico para ${targetGroup}: Promedio general de ${avgScore}% con ${roster.length} estudiante(s) activo(s). El curso está listo para combinar lógica de bloques con las nuevas misiones de Python, Ciudadela HTML y Neo-Tokio JavaScript.`,
-    model: 'CodeKids Pedagogic AI Engine',
+    overview: `Diagnóstico de PIPO para ${targetGroup}: promedio del grupo ${avgScore}% con ${roster.length} estudiante(s) y ${submissions.length} entrega(s) evaluadas. Las habilidades prioritarias hoy son ${primaryWeak} y ${secondaryWeak}.${focusNote}`,
+    assistant: 'PIPO',
+    model: 'PIPO',
+    source: 'local-dynamic',
+    studentClusters,
     focusSkills: [
       {
-        skill: 'Bucles y Python',
-        evidence:
-          'Oportunidad para transferir el bloque «repetir» hacia ciclos for e indentación real en Python.',
-        activity: 'Asignar «Protocolo Escudo Cuántico» o «Python Etapa 2: Bucle for» al curso.',
+        skill: primaryWeak,
+        evidence: `${weakMap[primaryWeak] || 1} indicador(es) del grupo señalan ${primaryWeak} como área crítica.`,
+        activity: `Modelar un ejemplo corto de ${primaryWeak} con ejecución «Paso a paso» (10 min) antes del trabajo autónomo.`,
       },
       {
-        skill: 'Desarrollo Web (HTML5 / JS)',
-        evidence:
-          'Los estudiantes con buen dominio condicional pueden avanzar a estructurar DOM y lógica reactiva.',
-        activity: 'Asignar «El Faro Holográfico (HTML5)» y «Neones de Shibuya (JavaScript)».',
+        skill: secondaryWeak,
+        evidence: `Habilidad complementaria para consolidar el desempeño general (${avgScore}%) en ${targetGroup}.`,
+        activity: `Resolver en parejas verbalizando la condición o secuencia antes de ejecutar la validación.`,
       },
     ],
     nextSteps: [
-      'Inscribir a los estudiantes de la base de datos en su respectivo curso desde el panel de gestión.',
-      'Asignar una misión de transición en Python o Ciudadela HTML para evaluar sintaxis escrita.',
-      'Revisar el código enviado por cada estudiante en la columna de respuestas del grupo.',
+      lowGroup.length > 0
+        ? `Dedicar 10 minutos de andamiaje directo con ${lowGroup.map((s) => s.name).join(', ')} reforzando ${primaryWeak}.`
+        : `Abrir la clase con un reto guiado de ${primaryWeak} proyectado para todo el grupo ${targetGroup}.`,
+      `Publicar una de las ${chosen.length} actividades recomendadas abajo (filtradas sin repetir tareas ya activas en ${targetGroup}).`,
+      highGroup.length > 0
+        ? `Proponer reto de código escrito a ${highGroup.map((s) => s.name).join(', ')} e invitarlos como apoyo par.`
+        : 'Revisar la evidencia de código en «Retos y Entregas» para detectar errores de conteo o sangría.',
     ],
-    proposedExercises: [
-      {
-        missionId: 'py-protocolo-escudo-cuantico',
-        templateId: 'python-code',
-        skill: 'Python',
-        targetSkill: 'Python Avanzado',
-        level: 'Inicio',
-        title: 'Laboratorio Python: Protocolo Escudo Cuántico',
-        instructions:
-          'Completa la función calcular_energia_escudo(baterias, factor) retornando el producto solo si supera o iguala 100.',
-        reason: 'Nueva actividad de expansión para introducir funciones y condicionales en Python.',
-      },
-      {
-        missionId: 'html-faro-holografico',
-        templateId: 'html-markup',
-        skill: 'HTML5',
-        targetSkill: 'Estructura Web HTML5',
-        level: 'Inicio',
-        title: 'Ciudadela HTML: El Faro Holográfico',
-        instructions:
-          'Construye dentro de <header> un encabezado <h1>Ciudadela HTML</h1> y el párrafo de estado Activo.',
-        reason:
-          'Permite que el curso practique etiquetas semánticas HTML5 con vista previa holográfica en vivo.',
-      },
-      {
-        missionId: 'js-neones-shibuya',
-        templateId: 'javascript-script',
-        skill: 'JavaScript',
-        targetSkill: 'Variables y Eventos JS',
-        level: 'Inicio',
-        title: 'Neo-Tokio JS: Neones de Shibuya',
-        instructions:
-          'Calcula energiaTotal multiplicando bateriasActivas * 25 y devuelve el mensaje con template literals.',
-        reason: 'Refuerza variables constantes, operadores aritméticos y plantillas de texto en JavaScript.',
-      },
-    ],
+    proposedExercises: chosen,
   };
 }

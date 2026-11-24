@@ -172,9 +172,9 @@ export const LANDING_FAQ_PEDAGOGY = [
   },
   {
     id: 'offline-ai',
-    question: '¿Qué aporta el Tutor IA (Ollama) y qué ocurre si no hay conexión?',
+    question: '¿Qué aporta el asistente PIPO y qué ocurre si no hay conexión?',
     answer:
-      'El tutor recomienda rutas personalizadas por falencia, genera propuestas de refuerzo para el docente y da mensajes de aliento en cada intento. Si el modelo local no está disponible, un motor pedagógico determinista mantiene todas las recomendaciones activas sin interrupciones.',
+      'PIPO recomienda rutas personalizadas por falencia, genera propuestas de refuerzo para el docente y da mensajes de aliento en cada intento. Si la IA en la nube no está disponible, un motor pedagógico determinista mantiene todas las recomendaciones activas sin interrupciones.',
   },
   {
     id: 'teacher-control',
