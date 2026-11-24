@@ -86,6 +86,13 @@ export function useBlocklyWorkspace({ mission, lessonHintsLength, onComplete, so
     let workspace = null;
     let resizeObserver = null;
     let handleWorkspaceEvent = null;
+    const handleViewportChange = () => {
+      window.requestAnimationFrame(() => {
+        if (workspaceRef.current && hostRef.current?.offsetWidth) {
+          Blockly.svgResize(workspaceRef.current);
+        }
+      });
+    };
 
     try {
       const toolbox = BLOCKLY_TOOLBOXES[mission.templateId] || BLOCKLY_TOOLBOXES['sequence-order'];
@@ -95,8 +102,17 @@ export function useBlocklyWorkspace({ mission, lessonHintsLength, onComplete, so
         sounds: false,
         trashcan: true,
         grid: { spacing: 24, length: 3, colour: BLOCKLY_GRID_COLOUR, snap: true },
-        zoom: { controls: true, wheel: true, startScale: 0.9, maxScale: 1.25, minScale: 0.65 },
+        zoom: {
+          controls: true,
+          wheel: true,
+          pinch: true,
+          startScale: isCompactViewport() ? 0.72 : 0.9,
+          maxScale: 1.25,
+          minScale: 0.5,
+        },
         move: { scrollbars: true, drag: true, wheel: true },
+        toolboxPosition: 'start',
+        horizontalLayout: false,
         maxBlocks: BLOCKLY_MAX_BLOCKS,
       });
 
@@ -128,9 +144,13 @@ export function useBlocklyWorkspace({ mission, lessonHintsLength, onComplete, so
       workspace.addChangeListener(handleWorkspaceEvent);
 
       resizeObserver = new ResizeObserver(() => {
-        if (workspaceRef.current) Blockly.svgResize(workspaceRef.current);
+        if (workspaceRef.current && hostRef.current?.offsetWidth) {
+          Blockly.svgResize(workspaceRef.current);
+        }
       });
       resizeObserver.observe(hostRef.current);
+      window.addEventListener('orientationchange', handleViewportChange);
+      window.addEventListener('resize', handleViewportChange);
     } catch {
       setWorkspaceError('No fue posible inicializar el editor visual de bloques en este navegador.');
     }
@@ -142,10 +162,23 @@ export function useBlocklyWorkspace({ mission, lessonHintsLength, onComplete, so
         workspace.removeChangeListener(handleWorkspaceEvent);
       }
       if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('orientationchange', handleViewportChange);
+      window.removeEventListener('resize', handleViewportChange);
       if (workspace) workspace.dispose();
       workspaceRef.current = null;
     };
   }, [mission.id]);
+
+  useEffect(() => {
+    if (mobileTab !== 'editor') return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      if (workspaceRef.current && hostRef.current?.offsetWidth) {
+        Blockly.svgResize(workspaceRef.current);
+        workspaceRef.current.scrollCenter?.();
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [mobileTab]);
 
   const switchMobileTab = (tab) => {
     setMobileTab(tab);

@@ -898,3 +898,65 @@
     min-height: 48px;
   }
 }
+
+/* ==========================================================================
+   Corrección móvil de Blockly: arrastre táctil, toolbox compacto,
+   menús desplegables sobre modales y ancho sin desbordes
+   ========================================================================== */
+.blockly-host,
+.blockly-host .blocklySvg,
+.blockly-host .blocklyFlyout {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Desplegables y tooltips de Blockly visibles también dentro de modales */
+.blocklyDropDownDiv,
+.blocklyWidgetDiv,
+.blocklyTooltipDiv {
+  z-index: 100000 !important;
+}
+
+@media (max-width: 1180px) {
+  .blockly-three-panel-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .blockly-mission,
+  .blockly-three-panel-grid,
+  .blockly-editor-panel,
+  .blockly-editor-area {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .blockly-editor-area {
+    flex: none;
+    position: relative;
+  }
+
+  .blockly-host {
+    position: absolute;
+    inset: 0;
+  }
+
+  .blockly-host .blocklyToolboxDiv {
+    padding: 4px 2px;
+    max-width: 112px;
+  }
+
+  .blockly-host .blocklyTreeRow {
+    height: 34px !important;
+    line-height: 34px !important;
+    margin: 3px 3px !important;
+    padding: 0 6px !important;
+  }
+
+  .blockly-host .blocklyTreeLabel {
+    font-size: 0.76rem !important;
+  }
+}
