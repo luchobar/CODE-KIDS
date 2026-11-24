@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
   BookOpen,
@@ -53,6 +54,7 @@ export default function Header({
   landingTab = 'overview',
   onLandingTabChange,
   breadcrumbs = [],
+  avatarShopOpen = false,
 }) {
   const [a11yOpen, setA11yOpen] = useState(false);
   const points = state?.points || 0;
@@ -74,10 +76,11 @@ export default function Header({
 
   const studentLinks = [
     { id: 'overview', label: 'Resumen', icon: <Compass size={15} weight="duotone" /> },
-    { id: 'learn', label: 'Módulos y Mundos', icon: <BookOpen size={15} weight="duotone" /> },
+    { id: 'learn', label: 'Módulos y Mundos', short: 'Aprender', icon: <BookOpen size={15} weight="duotone" /> },
     {
       id: 'labs',
       label: 'Práctica y Retos',
+      short: 'Práctica',
       icon: <TerminalWindow size={15} weight="duotone" />,
       badge: studentPendingCount,
     },
@@ -93,13 +96,78 @@ export default function Header({
       icon: <NotePencil size={15} weight="duotone" />,
       badge: teacherAssignmentsCount,
     },
-    { id: 'analytics', label: 'Analítica SQL e IA', icon: <ChartBar size={15} weight="duotone" /> },
+    { id: 'analytics', label: 'Analítica SQL e IA', short: 'Analítica', icon: <ChartBar size={15} weight="duotone" /> },
   ];
 
   const roleClass = user ? `role-${user.role}` : 'role-public';
 
+  // Fuente única de navegación móvil: se deriva de las mismas listas que la barra superior.
+  let mobileItems = [];
+  if (user?.role === 'student') {
+    mobileItems = [
+      ...studentLinks.map((item) => ({
+        ...item,
+        active: !avatarShopOpen && activeView === 'home' && studentTab === item.id,
+        onClick: () => onStudentTabChange?.(item.id),
+      })),
+      {
+        id: 'assessment',
+        label: 'Diagnóstico',
+        icon: <Sparkle size={15} weight="duotone" />,
+        active: !avatarShopOpen && activeView === 'assessment',
+        onClick: onAssessment,
+      },
+      {
+        id: 'shop',
+        label: 'Tienda',
+        icon: <Coins size={15} weight="fill" />,
+        badge: state?.coins || 0,
+        active: avatarShopOpen,
+        onClick: onOpenShop,
+      },
+    ];
+  } else if (user?.role === 'teacher') {
+    mobileItems = teacherLinks.map((item) => ({
+      ...item,
+      active: teacherTab === item.id,
+      onClick: () => onTeacherTabChange?.(item.id),
+    }));
+  } else {
+    mobileItems = publicLinks.map((item) => ({
+      ...item,
+      active: publicView === 'landing' && landingTab === item.id,
+      onClick: () => goLandingTab(item.id),
+    }));
+  }
+  const showMobileBar = activeView !== 'workspace' && typeof document !== 'undefined';
+  const mobileBar = showMobileBar
+    ? createPortal(
+        <nav className="mobile-bottom-bar unified-mobile-bar" aria-label="Navegación móvil">
+          {mobileItems.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              aria-current={item.active ? 'page' : undefined}
+              className={`mobile-bottom-item${item.active ? ' active' : ''}`}
+              onClick={item.onClick}
+            >
+              <span className="mobile-bottom-icon">
+                {item.icon}
+                {typeof item.badge === 'number' && item.badge > 0 && (
+                  <span className="mobile-bottom-badge">{item.badge}</span>
+                )}
+              </span>
+              <span>{item.short || item.label}</span>
+            </button>
+          ))}
+        </nav>,
+        document.body,
+      )
+    : null;
+
   return (
     <div className="apple-nav-stack">
+      {mobileBar}
       <header className={`global-nav ${roleClass}`} aria-label="Navegación global">
         <div className="global-nav-inner">
           <a

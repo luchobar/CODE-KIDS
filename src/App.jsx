@@ -4,7 +4,6 @@ import PresentationLanding from './PresentationLanding.jsx';
 import PythonMission from './PythonMission.jsx';
 import Footer from './components/layout/Footer.jsx';
 import Header from './components/layout/Header.jsx';
-import MobileBottomBar from './components/layout/MobileBottomBar.jsx';
 import LoginView from './features/auth/LoginView.jsx';
 import AssessmentView from './features/student/AssessmentView.jsx';
 import AvatarShopModal from './features/student/AvatarShopModal.jsx';
@@ -227,7 +226,6 @@ export default function App() {
   const hasOpenWorkspace = Boolean(
     activePython || activeCodeWorld || activeSkill || activeAssignment,
   );
-  const showMobileStudentBar = state.user?.role === 'student' && !hasOpenWorkspace;
 
   const breadcrumbs = buildBreadcrumbs({
     user: state.user,
@@ -245,6 +243,7 @@ export default function App() {
   return (
     <div className="portal-shell">
       <Header
+        avatarShopOpen={avatarShop}
         user={state.user}
         state={state}
         a11y={a11y}
@@ -388,16 +387,6 @@ export default function App() {
         onSelectStudentSkill={(skill) => handleSelectStudentTab('learn', skill)}
         onSelectLandingTab={openLandingView}
       />
-
-      {showMobileStudentBar && (
-        <MobileBottomBar
-          view={view}
-          studentTab={studentTab}
-          avatarShopOpen={avatarShop}
-          onSelectTab={(tabId) => handleSelectStudentTab(tabId)}
-          onOpenShop={() => setAvatarShop(true)}
-        />
-      )}
 
       {avatarShop && state.user?.role === 'student' && (
         <AvatarShopModal

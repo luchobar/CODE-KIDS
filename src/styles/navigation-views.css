@@ -171,3 +171,67 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   Navegación móvil unificada: una sola barra inferior para todos los roles
+   (sin pestañas duplicadas arriba ni botones repetidos en la sub-barra)
+   ========================================================================== */
+@media (max-width: 833px) {
+  .global-nav .global-nav-links,
+  .global-nav.role-public .global-nav-links,
+  .global-nav.role-teacher .global-nav-links,
+  .global-nav.role-student .global-nav-links {
+    display: none;
+  }
+
+  body {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body .portal-shell {
+    padding-bottom: 0;
+  }
+
+  /* La tienda y Python ya son accesibles desde la barra inferior / Práctica */
+  .sub-nav-controls .coin-hud-btn,
+  .sub-nav-controls .sub-nav-cta {
+    display: none;
+  }
+
+  .unified-mobile-bar .mobile-bottom-item {
+    padding: var(--space-xxs) 2px;
+    font-size: 0.68rem;
+  }
+
+  .unified-mobile-bar .mobile-bottom-item span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-bottom-icon {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .mobile-bottom-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mobile-bottom-badge {
+    position: absolute;
+    top: -6px;
+    right: -12px;
+    min-width: 18px;
+    padding: 0 var(--space-xxs);
+    border-radius: var(--rounded-pill);
+    background: var(--color-accent-lime);
+    color: var(--color-cta-lime-ink);
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 16px;
+    text-align: center;
+  }
+}
