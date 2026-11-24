@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  ChartBar,
-  Compass,
   GraduationCap,
   NotePencil,
   Plus,
@@ -9,7 +7,6 @@ import {
   UsersThree,
 } from '@phosphor-icons/react';
 import StatCard from '../../components/layout/StatCard.jsx';
-import ViewSubnav from '../../components/ui/ViewSubnav.jsx';
 import { DEFAULT_COURSES } from '../../data/seedData.js';
 import { SAMPLE_STUDENTS } from '../../domain/gamificationCatalog.js';
 import { useTeacherInsights } from '../../hooks/useTeacherInsights.js';
@@ -22,8 +19,8 @@ import TeacherAiInsightsPanel from './TeacherAiInsightsPanel.jsx';
 import TeacherPedagogyGuide from './TeacherPedagogyGuide.jsx';
 
 /**
- * Consola docente multi-vista: Resumen y Grupo, Cursos y Matrícula, Retos y Entregas,
- * y Analítica SQL e IA con cambio instantáneo y selector de curso persistente.
+ * Consola docente multi-vista controlada desde la barra de navegación global unificada
+ * (sin barras de pestañas duplicadas).
  */
 export default function TeacherDashboard({
   state,
@@ -40,13 +37,20 @@ export default function TeacherDashboard({
   remoteExpansion = null,
   activeTab,
   onTabChange,
-  breadcrumbs = [],
+  selectedGroup,
+  onSelectGroup,
 }) {
   const courseList = courses.length > 0 ? courses : DEFAULT_COURSES;
-  const [group, setGroup] = useState(courseList[0]?.codigoGrupo || '5° A');
+  const [fallbackGroup, setFallbackGroup] = useState(courseList[0]?.codigoGrupo || '5° A');
   const [fallbackTab, setFallbackTab] = useState('overview');
   const [draftExercise, setDraftExercise] = useState(null);
   const [assignedProposalIds, setAssignedProposalIds] = useState([]);
+
+  const group = selectedGroup || fallbackGroup;
+  const setGroup = (nextGroup) => {
+    if (onSelectGroup) onSelectGroup(nextGroup);
+    else setFallbackGroup(nextGroup);
+  };
 
   const currentTab = activeTab || fallbackTab;
   const changeTab = (nextTab) => {
@@ -145,50 +149,8 @@ export default function TeacherDashboard({
 
   const currentCourseMeta = courseList.find((c) => c.codigoGrupo === group);
 
-  const tabs = [
-    { id: 'overview', label: 'Resumen y Grupo', icon: <Compass size={16} weight="duotone" /> },
-    { id: 'courses', label: 'Cursos y Matrícula', icon: <UsersThree size={16} weight="duotone" /> },
-    {
-      id: 'assignments',
-      label: 'Retos y Entregas',
-      icon: <NotePencil size={16} weight="duotone" />,
-      badge: groupAssignments.length,
-    },
-    { id: 'analytics', label: 'Analítica SQL e IA', icon: <ChartBar size={16} weight="duotone" /> },
-  ];
-
-  const courseSelectorSlot = (
-    <div className="course-selector-group" role="group" aria-label="Seleccionar curso activo">
-      {courseList.map((courseItem) => {
-        const cCode = courseItem.codigoGrupo;
-        const count = (enrollmentsByGroup[cCode] || []).length;
-        return (
-          <button
-            type="button"
-            key={cCode}
-            className={group === cCode ? 'subnav-course-pill selected' : 'subnav-course-pill'}
-            onClick={() => setGroup(cCode)}
-          >
-            <span>
-              {cCode} ({count})
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
   return (
     <main id="top" className="apple-page">
-      <ViewSubnav
-        breadcrumbs={breadcrumbs}
-        tabs={tabs}
-        activeTab={currentTab}
-        onTabChange={changeTab}
-        rightSlot={courseSelectorSlot}
-        ariaLabel="Navegación de la consola docente"
-      />
-
       <div key={currentTab} className="view-stage-panel">
         {currentTab === 'overview' && (
           <div className="portal-tab-stack">

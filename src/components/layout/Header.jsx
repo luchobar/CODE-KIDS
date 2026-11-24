@@ -1,19 +1,28 @@
 import { useState } from 'react';
 import {
   ArrowLeft,
+  BookOpen,
+  ChartBar,
   Coins,
+  Compass,
   Flame,
   GraduationCap,
+  MapTrifold,
+  NotePencil,
   RocketLaunch,
   Sparkle,
+  Steps,
   TerminalWindow,
+  Trophy,
+  UsersThree,
 } from '@phosphor-icons/react';
+import ViewSubnav from '../ui/ViewSubnav.jsx';
 import AccessibilityMenu from './AccessibilityMenu.jsx';
 import { AvatarGlyph } from './Glyphs.jsx';
 
 /**
- * Barra de navegación global superior y barra HUD gamificada del usuario autenticado.
- * Conecta directamente con las pestañas multi-vista de público, estudiante y docente.
+ * Barra de navegación global unificada (una sola hilera de pestañas sin duplicaciones)
+ * acompañada únicamente de la tira HUD contextual cuando el usuario ha iniciado sesión.
  */
 export default function Header({
   user,
@@ -33,10 +42,17 @@ export default function Header({
   activeView = 'home',
   studentTab = 'overview',
   onStudentTabChange,
+  studentPendingCount = 0,
   teacherTab = 'overview',
   onTeacherTabChange,
+  teacherGroup = '5° A',
+  onTeacherGroupChange,
+  teacherCourses = [],
+  enrollmentsByGroup = {},
+  teacherAssignmentsCount = 0,
   landingTab = 'overview',
   onLandingTabChange,
+  breadcrumbs = [],
 }) {
   const [a11yOpen, setA11yOpen] = useState(false);
   const points = state?.points || 0;
@@ -50,29 +66,41 @@ export default function Header({
   };
 
   const publicLinks = [
-    { id: 'overview', label: 'Inicio' },
-    { id: 'methodology', label: 'Metodología' },
-    { id: 'worlds', label: 'Mundos' },
-    { id: 'community', label: 'Comunidad' },
+    { id: 'overview', label: 'Inicio', icon: <Compass size={15} weight="duotone" /> },
+    { id: 'methodology', label: 'Metodología', icon: <Steps size={15} weight="duotone" /> },
+    { id: 'worlds', label: 'Mundos', icon: <MapTrifold size={15} weight="duotone" /> },
+    { id: 'community', label: 'Comunidad', icon: <GraduationCap size={15} weight="duotone" /> },
   ];
 
   const studentLinks = [
-    { id: 'overview', label: 'Resumen' },
-    { id: 'learn', label: 'Aprender' },
-    { id: 'labs', label: 'Práctica' },
-    { id: 'progress', label: 'Progreso' },
+    { id: 'overview', label: 'Resumen', icon: <Compass size={15} weight="duotone" /> },
+    { id: 'learn', label: 'Módulos y Mundos', icon: <BookOpen size={15} weight="duotone" /> },
+    {
+      id: 'labs',
+      label: 'Práctica y Retos',
+      icon: <TerminalWindow size={15} weight="duotone" />,
+      badge: studentPendingCount,
+    },
+    { id: 'progress', label: 'Progreso', icon: <Trophy size={15} weight="duotone" /> },
   ];
 
   const teacherLinks = [
-    { id: 'overview', label: 'Resumen' },
-    { id: 'courses', label: 'Cursos' },
-    { id: 'assignments', label: 'Actividades' },
-    { id: 'analytics', label: 'Analítica' },
+    { id: 'overview', label: 'Resumen', icon: <Compass size={15} weight="duotone" /> },
+    { id: 'courses', label: 'Cursos', icon: <UsersThree size={15} weight="duotone" /> },
+    {
+      id: 'assignments',
+      label: 'Actividades',
+      icon: <NotePencil size={15} weight="duotone" />,
+      badge: teacherAssignmentsCount,
+    },
+    { id: 'analytics', label: 'Analítica SQL e IA', icon: <ChartBar size={15} weight="duotone" /> },
   ];
+
+  const roleClass = user ? `role-${user.role}` : 'role-public';
 
   return (
     <div className="apple-nav-stack">
-      <header className="global-nav" aria-label="Navegación global">
+      <header className={`global-nav ${roleClass}`} aria-label="Navegación global">
         <div className="global-nav-inner">
           <a
             className="global-nav-brand brand-with-logo"
@@ -108,7 +136,11 @@ export default function Header({
                       className={`global-nav-link-btn${isActive ? ' active' : ''}`}
                       onClick={() => onStudentTabChange?.(item.id)}
                     >
-                      {item.label}
+                      {item.icon}
+                      <span>{item.label}</span>
+                      {typeof item.badge === 'number' && item.badge > 0 && (
+                        <span className="view-tab-badge">{item.badge}</span>
+                      )}
                     </button>
                   );
                 })}
@@ -118,7 +150,8 @@ export default function Header({
                   className={`global-nav-link-btn${activeView === 'assessment' ? ' active' : ''}`}
                   onClick={onAssessment}
                 >
-                  Diagnóstico
+                  <Sparkle size={15} weight="duotone" />
+                  <span>Diagnóstico</span>
                 </button>
               </>
             ) : user?.role === 'teacher' ? (
@@ -132,7 +165,11 @@ export default function Header({
                     className={`global-nav-link-btn${isActive ? ' active' : ''}`}
                     onClick={() => onTeacherTabChange?.(item.id)}
                   >
-                    {item.label}
+                    {item.icon}
+                    <span>{item.label}</span>
+                    {typeof item.badge === 'number' && item.badge > 0 && (
+                      <span className="view-tab-badge">{item.badge}</span>
+                    )}
                   </button>
                 );
               })
@@ -147,7 +184,8 @@ export default function Header({
                     className={`global-nav-link-btn${isActive ? ' active' : ''}`}
                     onClick={() => goLandingTab(item.id)}
                   >
-                    {item.label}
+                    {item.icon}
+                    <span>{item.label}</span>
                   </button>
                 );
               })
@@ -198,15 +236,22 @@ export default function Header({
       {user && (
         <div className="sub-nav-frosted">
           <div className="sub-nav-inner">
-            <div className="sub-nav-title">
+            <div className="sub-nav-context">
               <span className="hud-mode-pill">
                 <Sparkle size={14} weight="fill" />
                 <span>{user.role === 'teacher' ? 'Consola Docente' : `Explorador · ${user.name}`}</span>
               </span>
+              <ViewSubnav breadcrumbs={breadcrumbs} className="subnav-inline-crumbs" />
             </div>
+
             <div className="sub-nav-controls">
               {user.role === 'student' ? (
                 <>
+                  <span className="sub-nav-metric">
+                    <GraduationCap size={15} weight="duotone" />
+                    <span>{user.group || '5° A'}</span>
+                  </span>
+
                   <div
                     className="hud-xp-pill"
                     title={`${points} XP totales (${100 - xpInLevel} XP para subir a Nivel ${level + 1})`}
@@ -242,10 +287,36 @@ export default function Header({
                   </button>
                 </>
               ) : (
-                <span className="sub-nav-metric">
-                  <GraduationCap size={16} weight="duotone" />
-                  <span>{user.name}</span>
-                </span>
+                <>
+                  {teacherCourses.length > 0 && onTeacherGroupChange && (
+                    <div className="course-selector-group" role="group" aria-label="Seleccionar curso activo">
+                      {teacherCourses.map((courseItem) => {
+                        const cCode = courseItem.codigoGrupo;
+                        const count = (enrollmentsByGroup[cCode] || []).length;
+                        return (
+                          <button
+                            type="button"
+                            key={cCode}
+                            className={
+                              teacherGroup === cCode
+                                ? 'subnav-course-pill selected'
+                                : 'subnav-course-pill'
+                            }
+                            onClick={() => onTeacherGroupChange(cCode)}
+                          >
+                            <span>
+                              {cCode} ({count})
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <span className="sub-nav-metric">
+                    <GraduationCap size={16} weight="duotone" />
+                    <span>{user.name}</span>
+                  </span>
+                </>
               )}
             </div>
           </div>

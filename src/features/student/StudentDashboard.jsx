@@ -1,6 +1,4 @@
 import { useMemo, useState } from 'react';
-import { BookOpen, Compass, GraduationCap, TerminalWindow, Trophy } from '@phosphor-icons/react';
-import ViewSubnav from '../../components/ui/ViewSubnav.jsx';
 import { buildStudentWorldsCatalog } from '../../domain/gamificationCatalog.js';
 import { computeEarnedBadges } from '../../domain/progressRules.js';
 import { useAdaptiveRoute } from '../../hooks/useAdaptiveRoute.js';
@@ -10,8 +8,8 @@ import StudentOverviewTab from './StudentOverviewTab.jsx';
 import StudentProgressTab from './StudentProgressTab.jsx';
 
 /**
- * Portal del estudiante organizado en 4 vistas enfocadas con barra fija, breadcrumbs
- * y transición fluida sin pérdida de estado ni progreso.
+ * Portal del estudiante organizado en 4 vistas controladas desde la barra global unificada
+ * (y la barra inferior móvil), sin barras de pestañas duplicadas.
  */
 export default function StudentDashboard({
   state,
@@ -31,7 +29,6 @@ export default function StudentDashboard({
   onTabChange,
   selectedLearnSkill,
   onSelectLearnSkill,
-  breadcrumbs = [],
   reducedMotion = false,
 }) {
   const [fallbackTab, setFallbackTab] = useState('overview');
@@ -59,9 +56,6 @@ export default function StudentDashboard({
   );
   const assignments = (state.assignments || []).filter((assignment) => assignment.group === group);
   const submissions = state.submissions || [];
-  const pendingCount = assignments.filter(
-    (a) => !submissions.some((s) => s.assignmentId === a.id && s.studentName === state.user.name),
-  ).length;
 
   const worlds = useMemo(() => buildStudentWorldsCatalog(expansionData), [expansionData]);
   const blocklyWorlds = useMemo(() => worlds.slice(0, 4), [worlds]);
@@ -101,34 +95,8 @@ export default function StudentDashboard({
   const pythonDoneCount = pythonWorldIds.filter((id) => allCompleted.includes(id)).length;
   const badges = computeEarnedBadges(allCompleted);
 
-  const tabs = [
-    { id: 'overview', label: 'Resumen', icon: <Compass size={16} weight="duotone" /> },
-    { id: 'learn', label: 'Módulos y Mundos', icon: <BookOpen size={16} weight="duotone" /> },
-    {
-      id: 'labs',
-      label: 'Práctica y Retos',
-      icon: <TerminalWindow size={16} weight="duotone" />,
-      badge: pendingCount,
-    },
-    { id: 'progress', label: 'Progreso y Glosario', icon: <Trophy size={16} weight="duotone" /> },
-  ];
-
   return (
     <main id="top" className="apple-page">
-      <ViewSubnav
-        breadcrumbs={breadcrumbs}
-        tabs={tabs}
-        activeTab={currentTab}
-        onTabChange={(tabId) => changeTab(tabId)}
-        ariaLabel="Navegación del portal explorador"
-        rightSlot={
-          <span className="sub-nav-metric">
-            <GraduationCap size={15} weight="duotone" />
-            <span>Curso {group}</span>
-          </span>
-        }
-      />
-
       <div key={currentTab} className="view-stage-panel">
         {currentTab === 'overview' && (
           <StudentOverviewTab

@@ -17,6 +17,7 @@ import { useAccessibility } from './hooks/useAccessibility.js';
 import { useAppSession } from './hooks/useAppSession.js';
 import { useClassroomState } from './hooks/useClassroomState.js';
 import { usePortalNavigation } from './hooks/usePortalNavigation.js';
+import { DEFAULT_COURSES } from './data/seedData.js';
 
 function resolveInitialPublicView() {
   if (typeof window === 'undefined') return 'landing';
@@ -38,6 +39,7 @@ export default function App() {
   const [activeCodeWorld, setActiveCodeWorld] = useState(null);
   const [avatarShop, setAvatarShop] = useState(false);
   const [publicView, setPublicView] = useState(resolveInitialPublicView);
+  const [teacherGroup, setTeacherGroup] = useState('5° A');
 
   const classroomRefreshRef = useRef(null);
 
@@ -199,6 +201,29 @@ export default function App() {
     setView('result');
   };
 
+  const teacherCourses =
+    classroomData.courses?.length > 0 ? classroomData.courses : DEFAULT_COURSES;
+  const activeTeacherGroup = teacherCourses.some((c) => c.codigoGrupo === teacherGroup)
+    ? teacherGroup
+    : teacherCourses[0]?.codigoGrupo || '5° A';
+
+  const studentGroup = state.user?.group || '5° A';
+  const studentPendingCount =
+    state.user?.role === 'student'
+      ? (state.assignments || [])
+          .filter((a) => a.group === studentGroup)
+          .filter(
+            (a) =>
+              !(state.submissions || []).some(
+                (s) => s.assignmentId === a.id && s.studentName === state.user.name,
+              ),
+          ).length
+      : 0;
+  const teacherAssignmentsCount =
+    state.user?.role === 'teacher'
+      ? (state.assignments || []).filter((a) => a.group === activeTeacherGroup).length
+      : 0;
+
   const hasOpenWorkspace = Boolean(
     activePython || activeCodeWorld || activeSkill || activeAssignment,
   );
@@ -237,10 +262,17 @@ export default function App() {
         activeView={hasOpenWorkspace ? 'workspace' : view}
         studentTab={studentTab}
         onStudentTabChange={(tab) => handleSelectStudentTab(tab)}
+        studentPendingCount={studentPendingCount}
         teacherTab={teacherTab}
         onTeacherTabChange={handleSelectTeacherTab}
+        teacherGroup={activeTeacherGroup}
+        onTeacherGroupChange={setTeacherGroup}
+        teacherCourses={teacherCourses}
+        enrollmentsByGroup={classroomData.enrollmentsByGroup}
+        teacherAssignmentsCount={teacherAssignmentsCount}
         landingTab={landingTab}
         onLandingTabChange={openLandingView}
+        breadcrumbs={breadcrumbs}
       />
 
       {!state.user ? (
@@ -251,13 +283,12 @@ export default function App() {
             onOpenLogin={openLoginView}
             activeTab={landingTab}
             onTabChange={navigateLandingTab}
-            breadcrumbs={breadcrumbs}
           />
         )
       ) : state.user.role === 'teacher' ? (
         <TeacherDashboard
           state={state}
-          courses={classroomData.courses}
+          courses={teacherCourses}
           dbStudents={classroomData.students}
           enrollmentsByGroup={classroomData.enrollmentsByGroup}
           onCreateCourse={handleCreateCourse}
@@ -270,7 +301,8 @@ export default function App() {
           remoteExpansion={remoteExpansion}
           activeTab={teacherTab}
           onTabChange={navigateTeacherTab}
-          breadcrumbs={breadcrumbs}
+          selectedGroup={activeTeacherGroup}
+          onSelectGroup={setTeacherGroup}
         />
       ) : activePython ? (
         <PythonMission
@@ -342,7 +374,6 @@ export default function App() {
           onTabChange={navigateStudentTab}
           selectedLearnSkill={selectedLearnSkill}
           onSelectLearnSkill={setSelectedLearnSkill}
-          breadcrumbs={breadcrumbs}
           reducedMotion={Boolean(a11y.reducedMotion)}
         />
       )}
