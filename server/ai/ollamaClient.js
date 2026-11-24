@@ -177,27 +177,52 @@ export function parseModelJson(content) {
   }
 }
 
-async function requestGeminiChat(systemPrompt, input, formatSchema) {
+async function callGeminiEndpoint(bodyObject) {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`;
-  const result = await fetch(endpoint, {
+  return fetch(endpoint, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       'x-goog-api-key': geminiApiKey,
     },
     signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: 'user', parts: [{ text: JSON.stringify(input) }] }],
+    body: JSON.stringify(bodyObject),
+  });
+}
+
+async function requestGeminiChat(systemPrompt, input, formatSchema) {
+  const baseBody = {
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: 'user', parts: [{ text: JSON.stringify(input) }] }],
+    generationConfig: {
+      temperature: 0.2,
+      responseMimeType: 'application/json',
+      responseJsonSchema: formatSchema,
+    },
+  };
+
+  let result = await callGeminiEndpoint(baseBody);
+
+  if (result.status === 400) {
+    const fallbackBody = {
+      ...baseBody,
       generationConfig: {
         temperature: 0.2,
         responseMimeType: 'application/json',
-        responseJsonSchema: formatSchema,
       },
-    }),
-  });
+    };
+    result = await callGeminiEndpoint(fallbackBody);
+  }
 
   if (!result.ok) {
+    let reason = '';
+    try {
+      const errJson = await result.json();
+      reason = String(errJson?.error?.message || '').slice(0, 180);
+    } catch {
+      reason = '';
+    }
+    console.warn(`[CodeKids AI] Gemini HTTP ${result.status}${reason ? `: ${reason}` : ''}`);
     throw new Error(`Gemini respondió ${result.status}.`);
   }
 
